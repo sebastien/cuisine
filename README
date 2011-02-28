@@ -1,0 +1,15 @@
+== Cuisine
+== Chef-like functionality for Fabric
+
+Sorry, no setup.py yet. Simply put 'cuisine.py' in your PYTHONPATH, and
+create a 'fabfile.py' like this:
+
+
+<<<
+from cuisine import *
+
+
+# <your rules>
+<<<
+
+The 'cuisine-api.html' files contains all the information you'll need regarding the API!
