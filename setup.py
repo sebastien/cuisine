@@ -8,7 +8,6 @@ setup(name = "cuisine",
 	author = "Sebastien Pierre",
 	author_email = "sebastien.pierre@gmail.com",
 	url = "https://github.com/sebastien/cuisine",
-	#packages=["cuisine",],
 	install_requires=['fabric',],
 	py_modules = ['cuisine',],
-	)
+)
