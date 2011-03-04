@@ -1,0 +1,3 @@
+recursive-include cuisine
+include README
+
