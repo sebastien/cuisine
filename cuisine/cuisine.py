@@ -202,23 +202,23 @@ def package_update( package=None ):
 	"""Updates the package database (when no argument) or update the package
 	or list of packages given as argument."""
 	if package == None:
-		run("sudo apt-get --yes update")
+		sudo("apt-get --yes update")
 	else:
 		if type(package) in (list,tuple): package = " ".join(package)
-		run("sudo apt-get --yes upgrade " + package)
+		sudo("apt-get --yes upgrade " + package)
 	
 def package_install( package, update=False ):
 	"""Installs the given package/list of package, optionnaly updating the package
 	database."""
-	if update: run("sudo apt-get --yes update")
+	if update: sudo("apt-get --yes update")
 	if type(package) in (list,tuple): package = " ".join(package)
-	run("sudo apt-get --yes install %s" % (package))
+	sudo("apt-get --yes install %s" % (package))
 
 @multiargs
 def package_ensure( package ):
 	"""Tests if the given package is installed, and installes it in case it's not
 	already there."""
-	if run("dpkg -s %s | grep 'Status:' ; true" % package).find("installed") == -1:
+	if run("dpkg -s %s | grep 'Status: install ok installed' ; true" % package).find("installed") == -1:
 		package_install(package)
 
 def command_ensure( command, package=None ):
@@ -261,7 +261,7 @@ def group_create( name, gid=None ):
 	"""Creates a group with the given name, and optionnaly given gid."""
 	options = []
 	if gid:  options.append("-g '%s'" % (gid))
-	run("sudo groupadd %s '%s'" % (" ".join(options), name))
+	sudo("groupadd %s '%s'" % (" ".join(options), name))
 
 def group_check( name ):
 	"""Checks if there is a group defined with the given name, returning its information
