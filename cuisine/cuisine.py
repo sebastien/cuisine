@@ -146,7 +146,7 @@ def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	if mode:  run("chmod %s %s '%s'" % (recursive, mode,  location))
 	if owner: run("chown %s %s '%s'" % (recursive, owner, location))
 	if group: run("chgrp %s %s '%s'" % (recursive, group, location))
-	
+
 def file_write( location, content, mode=None, owner=None, group=None ):
 	"""Writes the given content to the file at the given remote location, optionally
 	setting mode/owner/group."""
@@ -206,7 +206,7 @@ def package_update( package=None ):
 	else:
 		if type(package) in (list,tuple): package = " ".join(package)
 		sudo("apt-get --yes upgrade " + package)
-	
+
 def package_install( package, update=False ):
 	"""Installs the given package/list of package, optionnaly updating the package
 	database."""

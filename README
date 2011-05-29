@@ -22,8 +22,11 @@ Cuisine's features are:
 Installation
 ============
 
-There's no 'setup.py' yet, but there's probably no need for it: simply put
-'cuisine.py' in your PYTHONPATH, and create a 'fabfile.py' like this:
+To install Cuisine
+
+>		python setup.py
+
+Or simply put 'cuisine.py' in your PYTHONPATH, and create a 'fabfile.py' like this:
 
 >    from cuisine import *
 >    # Write your rules here
