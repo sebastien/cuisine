@@ -1,15 +1,41 @@
 == Cuisine
 == Chef-like functionality for Fabric
 
-Sorry, no setup.py yet. Simply put 'cuisine.py' in your PYTHONPATH, and
-create a 'fabfile.py' like this:
+[Fabric](http://fabfile.org) is an incredible tool to automate administration
+of remote machines. As Fabric's function are rather low-level, you'll probably
+quickly see a need for more high-level functions such as add/remove users and
+groups, install/upgrade packages, etc.
 
+Cuisine is a small set of functions that sit on top of Fabric, to abstract
+common administration operations such as file/dir operations, user/group creation,
+package install/upgrade, making it easier to write portable administration
+and deployment scripts.
 
-<<<
-from cuisine import *
+Cuisine's features are:
 
+ * Small, easy to read, 1-file API
+ * Covers file/dir operations, user/group operations, package operations
+ * Text processing and template functions
+ * All functions are lazy: they will actually only do things when the change
+   is required.
 
-# <your rules>
-<<<
+Installation
+============
 
-The 'cuisine-api.html' files contains all the information you'll need regarding the API!
+There's no 'setup.py' yet, but there's probably no need for it: simply put
+'cuisine.py' in your PYTHONPATH, and create a 'fabfile.py' like this:
+
+>    from cuisine import *
+>    # Write your rules here
+
+Cuisine automatically imports and wraps some of Fabric's API functions, so
+you probably won't need anything else that this.
+
+If you want more information, you can:
+
+ * Look at Cuisine's [API](cuisine-api.html)
+ * Read the [presentation on Cuisine](http://ur1.ca/45ku5)
+
+Enjoy!
+
+# EOF - vim: ts=2 sw=2 syn=texto
