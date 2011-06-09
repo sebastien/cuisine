@@ -2,6 +2,8 @@
 # Project   : Cuisine - Functions to write Fabric recipies
 # -----------------------------------------------------------------------------
 # Author    : Sebastien Pierre                            <sebastien@ffctn.com>
+# Author    : Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
+# Author    : Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
@@ -9,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 import fabric, fabric.api, fabric.context_managers
-import os, base64, bz2, string, re
+import os, base64, bz2, string, re, time
 
 __doc__ = """
 Cuisine makes it easy to write automatic server installation and configuration
@@ -26,7 +28,7 @@ Note that right now, Cuisine only supports Debian-based Linux systems.
 # and <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1/>
 # http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html
 
-VERSION    = "0.0.2"
+VERSION   = "0.0.3"
 MODE      = "user"
 RE_SPACES = re.compile("[\s\t]+")
 
@@ -41,18 +43,19 @@ def mode_sudo():
 	global MODE
 	MODE = "sudo"
 
-def run(*args):
+def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE' global
 	to tell wether the command should be run as regular user or sudo."""
 	if MODE == "sudo":
-		return fabric.api.sudo(*args)
+		return fabric.api.sudo(*args, **kwargs)
 	else:
-		return fabric.api.run(*args)
+		return fabric.api.run(*args, **kwargs)
 
-def sudo(*args):
+def sudo(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE' global
 	to tell wether the command should be run as regular user or sudo."""
-	return fabric.api.sudo(*args)
+	return fabric.api.sudo(*args, **kwargs)
+
 
 def multiargs(function):
 	"""Decorated functions will be 'map'ed to every element of the first argument
@@ -190,14 +193,21 @@ def dir_exists( location ):
 
 def dir_ensure( location, recursive=False, mode=None, owner=None, group=None ):
 	"""Ensures that there is a remote directory at the given location, optionnaly
-	updating its mode/owner/group."""
-	if not dir_exists(location):
-		run("mkdir %s '%s'" % (recursive and "-p" or "", location))
-		dir_attribs(location, mode, owner, group, recursive)
+	updating its mode/owner/group.
+
+	If we are not updating the owner/group then this can be done as a single
+	ssh call, so use that method, otherwise set owner/group after creation."""
+	if mode:
+		mode_arg = "-m %s" % (mode)
+	else:
+		mode_arg = ""
+	sudo("(test -d '%s' || mkdir %s %s '%s') && echo OK ; true" % (location, recursive and "-p" or "", mode_arg, location))
+	if owner or group:
+		dir_attribs(location, owner=owner, group=group)
 
 def command_check( command ):
 	"""Tests if the given command is available on the system."""
-	return run("which '%s' && echo OK ; true" % command).endswith("OK")
+	return run("which '%s' >& /dev/null && echo OK ; true" % command).endswith("OK")
 
 def package_update( package=None ):
 	"""Updates the package database (when no argument) or update the package
@@ -229,12 +239,16 @@ def command_ensure( command, package=None ):
 	if not command_check(command): package_install(package)
 	assert command_check(command), "Command was not installed, check for errors: %s" % (command)
 
-def user_create( name, home=None, uid=None, gid=None ):
-	"""Creates the user with the given name, optionally giving a specific home/uid/gid."""
+def user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None):
+	"""Creates the user with the given name, optionally giving a specific password/home/uid/gid/shell."""
 	options = ["-m"]
+	if passwd: options.append("-p '%s'" % (passwd))
 	if home: options.append("-d '%s'" % (home))
 	if uid:  options.append("-u '%s'" % (uid))
 	if gid:  options.append("-g '%s'" % (gid))
+	if shell: options.append("-s '%s'" % (shell))
+	if uid_min:  options.append("-K UID_MIN='%s'" % (uid_min))
+	if uid_max:  options.append("-K UID_MAX='%s'" % (uid_max))
 	run("useradd %s '%s'" % (" ".join(options), name))
 
 def user_check( name ):
@@ -242,24 +256,40 @@ def user_check( name ):
 	as a '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}' or 'None' if
 	the user does not exists."""
 	d = run("cat /etc/passwd | egrep '^%s:' ; true" % (name))
+	s = run("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'")
+	results = {}
 	if d:
 		d = d.split(":")
-		return dict(name=d[0],uid=d[2],gid=d[3],home=d[5],shell=d[6])
+		results = dict(name=d[0],uid=d[2],gid=d[3],home=d[5],shell=d[6])
+	if s:
+		results['passwd']=s
+	if results:
+		return results
 	else:
 		return None
 
-def user_ensure( name, home=None, uid=None, gid=None ):
-	"""Ensures that the given users exists, optionnaly updating its home/uid/gid."""
+def user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None):
+	"""Ensures that the given users exists, optionally updating their passwd/home/uid/gid/shell."""
 	d = user_check(name)
 	if not d:
-		user_create(name, home, uid, gid)
+		user_create(name, passwd, home, uid, gid, shell)
 	else:
-		if home != None and d["home"] != home: assert False, "Not implemented"
-		if uid  != None and d["uid"]  != uid:  assert False, "Not implemented"
-		if gid  != None and d["gid"]  != gid:  assert False, "Not implemented"
+		options=[]
+		if passwd != None and d.get('passwd') != passwd:
+			options.append("-p '%s'" % (passwd))
+		if home != None and d.get("home") != home:
+			options.append("-d '%s'" % (home))
+		if uid  != None and d.get("uid") != uid:
+			options.append("-u '%s'" % (uid))
+		if gid  != None and d.get("gid") != gid:
+			options.append("-g '%s'" % (gid))
+		if shell != None and d.get("shell") != shell:
+			options.append("-s '%s'" % (shell))
+		if options:
+			sudo("usermod %s '%s'" % (" ".join(options), name))
 
 def group_create( name, gid=None ):
-	"""Creates a group with the given name, and optionnaly given gid."""
+	"""Creates a group with the given name, and optionally given gid."""
 	options = []
 	if gid:  options.append("-g '%s'" % (gid))
 	sudo("groupadd %s '%s'" % (" ".join(options), name))
@@ -281,7 +311,8 @@ def group_ensure( name, gid=None ):
 	if not d:
 		group_create(name, gid)
 	else:
-		if gid  != None and d["gid"]  != gid:  assert False, "Not implemented"
+		if gid != None and d.get("gid") != gid:
+			sudo("groupmod -g %s '%s'" % (gid, name))
 
 def group_user_check( group, user ):
 	"""Checks if the given user is a member of the given group. It will return 'False'
@@ -308,19 +339,25 @@ def group_user_add( group, user ):
 		text = "\n".join(lines)
 		file_write("/etc/group", text)
 
-def ssh_keygen( user ):
-	"""Generates a pair of DSA keys in the user's home .ssh directory."""
+def group_user_ensure( group, user):
+	"""Ensure that a given user is a member of a given group."""
+	d = group_check(group)
+	if user not in d["members"]:
+		group_user_add(group, user)
+
+def ssh_keygen( user, keytype="dsa" ):
+	"""Generates a pair of ssh keys in the user's home .ssh directory."""
 	d = user_check(user)
 	assert d, "User does not exist: %s" % (user)
 	home = d["home"]
-	if not file_exists(home + "/.ssh/id_dsa.pub"):
+	if not file_exists(home + "/.ssh/id_%s.pub" % keytype):
 		dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
-		run("ssh-keygen -q -t dsa -f '%s/.ssh/id_dsa' -N ''" % (home))
-		file_attribs(home + "/.ssh/id_dsa",     owner=user, group=user)
-		file_attribs(home + "/.ssh/id_dsa.pub", owner=user, group=user)
+		run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" % (home, keytype, keytype))
+		file_attribs(home + "/.ssh/id_%s" % keytype,     owner=user, group=user)
+		file_attribs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
 
 def ssh_authorize( user, key ):
-	"""Adds the give key to the '.ssh/authorized_keys' for the given user."""
+	"""Adds the given key to the '.ssh/authorized_keys' for the given user."""
 	d    = user_check(user)
 	keyf = d["home"] + "/.ssh/authorized_keys"
 	if file_exists(keyf):
