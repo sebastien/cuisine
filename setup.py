@@ -1,18 +1,20 @@
 #!/usr/bin/env python
+#encoding: utf-8
 from distutils.core import setup
-
+import os, sys
+VERSION = eval(filter(lambda _:_.startswith("VERSION"), file("cuisine/__init__.py").readlines())[0].split("=")[1])
 setup(
-	name = "cuisine",
-	packages = ["cuisine",],
-	version = "0.0.1",
-	description = "Chef-like functionality for Fabric",
-	author = "Sebastien Pierre",
-	author_email = "sebastien.pierre@gmail.com",
-	url = "http://type-z.org/sebastien",
-	download_url = "https://github.com/sebastien/cuisine",
+	name             = "cuisine",
+	packages         = ["cuisine",],
+	version          = VERSION,
+	description      = "Chef-like functionality for Fabric",
+	author           = "Sébastien Pierre",
+	author_email     = "sebastien.pierre@gmail.com",
+	url              = "http://github.com/sebastien",
+	download_url     = "https://github.com/sebastien/cuisine",
 	install_requires = ['fabric',],
-	keywords = ["fabric", "chef", "ssh",],
-	classifiers = [
+	keywords         = ["fabric", "chef", "ssh",],
+	classifiers      = [
 		"Programming Language :: Python",
 		"Development Status :: 3 - Alpha",
 		"Natural Language :: English",
@@ -22,4 +24,4 @@ setup(
 		"Topic :: Utilities"
 		],
 )
-
+# EOF - vim: ts=4 sw=4 noet
