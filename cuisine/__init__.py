@@ -261,7 +261,7 @@ def user_check( name ):
 	as a '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}' or 'None' if
 	the user does not exists."""
 	d = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
-	s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'")
+	s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (name))
 	results = {}
 	if d:
 		d = d.split(":")
@@ -284,7 +284,14 @@ def user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None):
 			method, salt = d.get('passwd').split('$')[1:3]
 			passwd_crypted = crypt.crypt(passwd, '$%s$%s' % (method, salt))
 			if passwd_crypted != d.get('passwd'):
-				options.append("-p '%s'" % (passwd))
+				options.append("-p '%s'" % (passwd_crypted))
+		if passwd != None and d.get('passwd') is None:
+			# user doesn't have passwd
+			method = 6
+			saltchars = string.ascii_letters + string.digits + './'
+			salt = ''.join([random.choice(saltchars) for x in range(8)])
+			passwd_crypted = crypt.crypt(passwd, '$%s$%s' % (method, salt))
+			options.append("-p '%s'" % (passwd_crypted))
 		if home != None and d.get("home") != home:
 			options.append("-d '%s'" % (home))
 		if uid  != None and d.get("uid") != uid:
