@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-__all__ = ["create", "check", "ensure"]
+__all__ = ["create", "exists", "get", "ensure"]
 
 import crypt
 import random
@@ -36,23 +36,32 @@ def create(name, password=None, home=None, uid=None, gid=None, shell=None):
     sudo("useradd %s %r" % (" ".join(options), name))
 
 
-def check(name):
-    """Checks if there is a user defined with the given name and
-    returns its information as a :func:`dict` or ``None`` if a user
-    doesn't exist.
+def exists(name):
+    """Returns ``True`` if there is a remote user with a given name
+    and ``False`` otherwise.
     """
-    userdata = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
-    password = sudo("cat /etc/shadow | egrep '^%s:' | "
-                    "awk -F':' '{print $2}'" % (name))
+    return bool(sudo("cat /etc/passwd | egrep '^%s:' ; true" % name))
 
-    data = {}
-    if userdata:
-        data.update(zip(["name", "password", "uuid", "gid", "home", "shekk"],
+
+def get(name, silent=True):
+    """Returns user data from ``/etc/{passwd,shadow}`` on the remote
+    machine.
+
+    :param unicode name: name of the user to fetch data for.
+    :param bool silent: if ``False`` :exc:`ValueError` is raised when
+                        no user is found for a given name otherwise
+                        ``None`` is returned.
+    """
+    data = sudo("cat /etc/passwd | egrep '^%s:' ; true" % name)
+    if data:
+        data = dict(zip(["name", "password", "uuid", "gid", "home", "shekk"],
                     data.split(":")))
-    if password:
-        data["password"] = password
 
-    return data or None
+        data["password"] = sudo("cat /etc/shadow | egrep '^%s:' | "
+                                "awk -F':' '{print $2}'" % name)
+        return data
+    elif not silent:
+        raise ValueError("User %r doesn't exist." % name)
 
 
 def ensure(name, password=None, home=None, uid=None, gid=None, shell=None):
@@ -61,10 +70,12 @@ def ensure(name, password=None, home=None, uid=None, gid=None, shell=None):
 
     TODO: split this into ensure() and update()?
     """
-    d = check(name)
-    if not d:
+    data = get(name)
+    if not data:
         create(name, password, home, uid, gid, shell)
     else:
+        # FIXME: oh my, this is mess ...
+        d = data
         options=[]
         if password != None and d.get('password') != None:
             method, salt = d.get('password').split('$')[1:3]

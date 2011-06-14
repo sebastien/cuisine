@@ -21,11 +21,7 @@ def keygen(user, keytype="dsa"):
     :param unicode keytype: see :man ssh-keygen(1): for details.
     :raises ValueError: when a given user doesn't exist.
     """
-    userdata = _user.check(user)
-    if not userdata:
-        raise ValueError("User %r doesn't exist" % user)
-
-    home = userdata["home"]
+    home = _user.get(user)["home"]
     if not file.exists(home + "/.ssh/id_%s.pub" % keytype):
         dir.ensure(home + "/.ssh", mode="0700", owner=user, group=user)
         run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" % (home, keytype, keytype))
@@ -40,11 +36,7 @@ def authorize(user, key):
     :param unicode key: SSH public key string.
     :raises ValueError: when a given user doesn't exist.
     """
-    userdata = _user.check(user)
-    if not userdata:
-        raise ValueError("User %r doesn't exist" % user)
-
-    keyfile = userdata["home"] + "/.ssh/authorized_keys"
+    keyfile = _user.get(user)["home"] + "/.ssh/authorized_keys"
     if file.exists(keyfile):
         if key not in file.read(keyfile):
             file.append(keyfile, key)

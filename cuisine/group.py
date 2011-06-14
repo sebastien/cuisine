@@ -43,7 +43,6 @@ def exists(name):
 
 def get(name, silent=True):
     """Returns group data from ``/etc/group`` on the remote machine.
-    or ``None`` if a given group doesn't exist.
 
     :param unicode name: name of the group to fetch data for.
     :param bool silent: if ``False`` :exc:`ValueError` is raised when
