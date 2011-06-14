@@ -1,15 +1,4 @@
-# -----------------------------------------------------------------------------
-# Project   : Cuisine - Functions to write Fabric recipies
-# -----------------------------------------------------------------------------
-# Author    : Sebastien Pierre                            <sebastien@ffctn.com>
-# Author    : Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
-# Author    : Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
-# License   : Revised BSD License
-# -----------------------------------------------------------------------------
-# Creation  : 26-Apr-2010
-# Last mod  : 09-Jun-2011
-# -----------------------------------------------------------------------------
-
+# -*- coding: utf-8 -*-
 """
     cusisine
     ~~~~~~~~
@@ -24,7 +13,7 @@
     Note, that right now, Cuisine only supports Debian-based Linux systems.
 
     :copyright: (c) 2011 by Sebastien Pierre, see AUTHORS for more details.
-    :license: ???
+    :license: BSD, see LICENSE for more details.
 """
 
 import os, base64, bz2, string, re, time, random, crypt
