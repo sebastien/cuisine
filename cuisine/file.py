@@ -58,7 +58,7 @@ def read(location):
 
 def write(location, content, **acl):
     """Writes a given content to the file at the given remote location,
-    and optionally sets it's access rights.
+    and optionally sets its access rights.
     """
     # Hides the output, which is especially important
     with settings(hide("warning", "running", "stdout"), warn_only=True):
@@ -69,7 +69,7 @@ def write(location, content, **acl):
 
 def append(location, content, **acl):
     """Appends a given content to the remote file at the given location;
-    and optionally updates it's access rights.
+    and optionally updates its access rights.
 
     :raises ValueError: there's no file at a given location.
     """
