@@ -38,8 +38,6 @@ import fabric
 import fabric.api
 import fabric.context_managers
 
-from . import file
-
 
 MODE      = "user"
 RE_SPACES = re.compile("[\s\t]+")
@@ -241,6 +239,8 @@ def group_user_check( group, user ):
 @multiargs
 def group_user_add( group, user ):
 	"""Adds the given user/list of users to the given group/groups."""
+	from . import file
+
 	assert group_check(group), "Group does not exist: %s" % (group)
 	if not group_user_check(group, user):
 		lines = []
@@ -260,26 +260,6 @@ def group_user_ensure( group, user):
 	if user not in d["members"]:
 		group_user_add(group, user)
 
-def ssh_keygen( user, keytype="dsa" ):
-	"""Generates a pair of ssh keys in the user's home .ssh directory."""
-	d = user_check(user)
-	assert d, "User does not exist: %s" % (user)
-	home = d["home"]
-	if not file.exists(home + "/.ssh/id_%s.pub" % keytype):
-		dir.ensure(home + "/.ssh", mode="0700", owner=user, group=user)
-		run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" % (home, keytype, keytype))
-		file.attrs(home + "/.ssh/id_%s" % keytype,     owner=user, group=user)
-		file.attrs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
-
-def ssh_authorize( user, key ):
-	"""Adds the given key to the '.ssh/authorized_keys' for the given user."""
-	d    = user_check(user)
-	keyf = d["home"] + "/.ssh/authorized_keys"
-	if file.exists(keyf):
-		if file.read(keyf).find(key) == -1:
-			file.append(keyf, key)
-	else:
-		file.write(keyf, key)
 
 def upstart_ensure( name ):
 	"""Ensures that the given upstart service is running, restarting it if necessary"""
