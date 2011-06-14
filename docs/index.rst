@@ -1,5 +1,5 @@
-Cusisine -- Chef-like functionality for Fabric
-==============================================
+Cuisine -- Chef-like functionality for Fabric
+=============================================
 
 
 About
