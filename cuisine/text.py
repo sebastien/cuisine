@@ -21,8 +21,8 @@ def line(text, pred):
     """Returns the first line that matches the given predicate.
 
     :param unicode text: a blob to lookup the line in.
-    :param function pred: a predicate which checks if the line
-                          is the one we need.
+    :param pred: a predicate which checks if the line
+                 is the one we need.
     """
     for line in text.splitlines():
         if pred(line):
@@ -61,11 +61,10 @@ def replace_lines(text, old, new, cmp=operator.eq, key=lambda x: x):
     :param unicode text: a blob to process.
     :param unicode old: a line to be replaced.
     :param unicode new: replacement line.
-    :param (x, y) -> bool: a function which takes too lines and returns
-                           ``True`` if they're equal and ``False``
-                           otherwise.
-    :param key x -> x: a function which pre-processes the lines before
-                       comparison.
+    :param cmp: a function which takes too lines and returns ``True``
+                if they're equal and ``False`` otherwise.
+    :param key: a function which pre-processes the lines before
+                comparison.
     """
     result, count = [], 0
 
@@ -88,7 +87,7 @@ def ensure_lines(text, *lines):
     'foo\\nbar\\nbaz'
 
     :param unicode text: a blob to lookup the lines in.
-    :param (list, tuple) lines: a list of lines to ensure.
+    :param lines: a list of lines to ensure.
     """
     result = text.splitlines()
     for line in lines:

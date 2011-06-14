@@ -30,37 +30,7 @@
 import os
 from functools import wraps
 
-import fabric
-import fabric.api
-import fabric.context_managers
-
-
-MODE      = "user"
-
-
-def mode_user():
-	"""Cuisine functions will be executed as the current user."""
-	global MODE
-	MODE = "user"
-
-
-def mode_sudo():
-	"""Cuisine functions will be executed with sudo."""
-	global MODE
-	MODE = "sudo"
-
-
-def run(*args, **kwargs):
-	"""A wrapper around :func:`~fabric.api.sudo` and
-    :func:`~fabric.api.run`, which uses an appropriate command, based
-    on the value of ``cuisine.MOD`` global.
-    """
-	if MODE == "sudo":
-		return fabric.api.sudo(*args, **kwargs)
-	else:
-		return fabric.api.run(*args, **kwargs)
-
-sudo = fabric.api.sudo
+from fabric.api import env, sudo, run as fabrun
 
 
 def multiargs(func):
@@ -88,6 +58,30 @@ def multiargs(func):
             return func(*args, **kwargs)
     return inner
 
+
+def run(*args, **kwargs):
+	"""A wrapper around :func:`~fabric.operations.sudo` and
+    :func:`~fabric.operations.run`, which uses an appropriate command,
+    based on the ``env["mode"]`` value.
+
+    To switch ``cuisine`` into sudo-mode do:
+
+    >>> from fabric.api import env
+    >>> env["mode"] = "sudo"
+
+    ... or just leave it in the default user-mode.
+
+    >>> env["mode"]
+    'user'
+    """
+	if env.get("mode", "user") == "sudo":
+		return sudo(*args, **kwargs)
+	else:
+		return fabrun(*args, **kwargs)
+
+
+# Bunch of stuff to sort.
+# .......................
 
 def local_read( location ):
 	"""Reads a *local* file from the given location, expanding '~' and shell variables."""
