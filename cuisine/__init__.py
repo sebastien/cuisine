@@ -27,6 +27,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import bz2
 import crypt
 import os
 import random
