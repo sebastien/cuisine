@@ -1,7 +1,18 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Project   : Cuisine - Functions to write Fabric recipies
+# -----------------------------------------------------------------------------
+# Author    : Sebastien Pierre                            <sebastien@ffctn.com>
+# Author    : Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
+# Author    : Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
+# License   : Revised BSD License
+# -----------------------------------------------------------------------------
+# Creation  : 26-Apr-2010
+# Last mod  : 09-Jun-2011
+# -----------------------------------------------------------------------------
 """
-    cusisine
-    ~~~~~~~~
+    Cuisine
+    ~~~~~~~
 
     ``cuisine`` makes it easy to write automatic server installation and
     configuration recipies by wrapping common administrative tasks
