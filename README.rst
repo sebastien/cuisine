@@ -1,5 +1,11 @@
-Cusisine -- Chef-like functionality for Fabric
-==============================================
+::
+
+               /      /
+     ___         ___    ___  ___
+    |    |   )| |___ | |   )|___)
+    |__  |__/ |  __/ | |  / |__
+
+    -- Chef-like functionality for Fabric
 
 
 About
