@@ -27,8 +27,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import base64
-import bz2
 import crypt
 import os
 import random
@@ -104,56 +102,9 @@ def local_read( location ):
 	f.close()
 	return t
 
-def file_read( location ):
-	"""Reads the *remote* file at the given location."""
-	return run("cat '%s'" % (location))
-
-def file_exists( location ):
-	"""Tests if there is a *remote* file at the given location."""
-	return run("test -f '%s' && echo OK ; true" % (location)) == "OK"
-
-def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
-	"""Updates the mode/owner/group for the remote file at the given location."""
-	recursive = recursive and "-R " or ""
-	if mode:  run("chmod %s %s '%s'" % (recursive, mode,  location))
-	if owner: run("chown %s %s '%s'" % (recursive, owner, location))
-	if group: run("chgrp %s %s '%s'" % (recursive, group, location))
-
-def file_write( location, content, mode=None, owner=None, group=None ):
-	"""Writes the given content to the file at the given remote location, optionally
-	setting mode/owner/group."""
-	# Hides the output, which is especially important
-	with fabric.context_managers.settings(
-		fabric.api.hide('warnings', 'running', 'stdout'),
-		warn_only=True
-    ):
-		# We use bz2 compression
-		run("echo '%s' | base64 -d | bzcat > \"%s\"" % (base64.b64encode(bz2.compress(content)), location))
-		file_attribs(location, mode, owner, group)
-
-def file_update( location, updater=lambda x:x):
-	"""Updates the content of the given by passing the existing content of the remote file
-	at the given location to the 'updater' function.
-
-	For instance, if you'd like to convert an existing file to all uppercase, simply do:
-
-	>   file_update("/etc/myfile", lambda _:_.upper())
-	"""
-	assert file_exists(location), "File does not exists: " + location
-	new_content = updater(file_read(location))
-	assert type(new_content) in (str, unicode, fabric.operations._AttributeString) \
-	,"Updater must be like (string)->string, got: %s() = %s" % (updater, type(new_content))
-	run("echo '%s' | base64 -d > \"%s\"" % (base64.b64encode(new_content), location))
-
-def file_append( location, content, mode=None, owner=None, group=None ):
-	"""Appends the given content to the remote file at the given location, optionally
-	updating its mode/owner/group."""
-	run("echo '%s' | base64 -d >> \"%s\"" % (base64.b64encode(content), location))
-	file_attribs(location, mode, owner, group)
-
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
-	file_attribs(location, mode, owner, group, recursive)
+	file.attrs(location, mode, owner, group, recursive)
 
 def dir_exists( location ):
 	"""Tells if there is a remote directory at the given location."""

@@ -50,3 +50,6 @@ API
 
 .. automodule:: cuisine.text
     :members:
+
+.. automodule:: cuisine.file
+    :members:
