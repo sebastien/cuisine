@@ -47,3 +47,6 @@ API
 
 .. automodule:: cuisine
     :members:
+
+.. automodule:: cuisine.text
+    :members:

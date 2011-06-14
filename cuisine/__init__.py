@@ -27,8 +27,18 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import os, base64, bz2, string, re, time, random, crypt
-import fabric, fabric.api, fabric.context_managers
+import base64
+import bz2
+import crypt
+import os
+import random
+import re
+import string
+from functools import wraps
+
+import fabric
+import fabric.api
+import fabric.context_managers
 
 
 VERSION   = "0.0.3"
@@ -41,95 +51,51 @@ def mode_user():
 	global MODE
 	MODE = "user"
 
+
 def mode_sudo():
 	"""Cuisine functions will be executed with sudo."""
 	global MODE
 	MODE = "sudo"
 
+
 def run(*args, **kwargs):
-	"""A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE' global
-	to tell wether the command should be run as regular user or sudo."""
+	"""A wrapper around :func:`~fabric.api.sudo` and
+    :func:`~fabric.api.run`, which uses an appropriate command, based
+    on the value of ``cuisine.MOD`` global.
+    """
 	if MODE == "sudo":
 		return fabric.api.sudo(*args, **kwargs)
 	else:
 		return fabric.api.run(*args, **kwargs)
 
-def sudo(*args, **kwargs):
-	"""A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE' global
-	to tell wether the command should be run as regular user or sudo."""
-	return fabric.api.sudo(*args, **kwargs)
+sudo = fabric.api.sudo
 
 
-def multiargs(function):
-	"""Decorated functions will be 'map'ed to every element of the first argument
-	if it is a list or a tuple, otherwise the function will execute normally."""
-	def wrapper(*args, **kwargs):
-		if len(args) == 0:
-			return function()
-		arg = args[0] ; args = args[1:]
-		if type(arg) in (tuple, list):
-			return map(lambda _:function(_,*args,**kwargs), arg)
-		else:
-			return function(arg, *args, **kwargs)
-	return wrapper
+def multiargs(func):
+    """Decorator changing the decorated function to accept multiple
+    arguments. When called with a sequence type as first argument,
+    applies the decorated function to each of the sequence items,
+    otherwise executes it `normaly` (i.e. with the given arguments).
 
-def text_get_line(text, predicate):
-	"""Returns the first line that matches the given predicate."""
-	for line in text.split("\n"):
-		if predicate(line):
-			return line
-	return ""
+    >>> @multiargs
+    ... def foo(arg):
+    ...    print(arg)
+    ...
+    >>> foo("bar")
+    bar
+    >>> foo(["bar", "baz"])
+    bar
+    baz
+    [None, None]
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        if args and isinstance(args[0], (list, tuple)):
+            return map(lambda a: func(a, *args[1:], **kwargs), args[0])
+        else:
+            return func(*args, **kwargs)
+    return inner
 
-def text_normalize(text):
-	"""Converts tabs and spaces to single space and strips the text."""
-	return RE_SPACES.sub(" ", text).strip()
-
-def text_nospace(text):
-	"""Converts tabs and spaces to single space and strips the text."""
-	return RE_SPACES.sub("", text).strip()
-
-def text_replace_line(text, old, new, find=lambda old,new:old == new, process=lambda _:_):
-	"""Replaces lines equal to 'old' with 'new', returning the new text and the
-	count of replacements."""
-	res = []
-	replaced = 0
-	for line in text.split("\n"):
-		if find(process(line), process(old)):
-			res.append(new)
-			replaced += 1
-		else:
-			res.append(line)
-	return "\n".join(res), replaced
-
-def text_ensure_line(text, *lines):
-	"""Ensures that the given lines are present in the given text, otherwise appends the lines
-	that are not already in the text at the end of it."""
-	res = list(text.split("\n"))
-	for line in lines:
-		assert line.find("\n") == -1, "No EOL allowed in lines parameter: " + repr(line)
-		found = False
-		for l in res:
-			if l == res:
-				found = True
-				break
-		if not found:
-			res.append(line)
-	return "\n".join(res)
-
-def text_strip_margin( text, margin="|"):
-	res = []
-	for line in text.split("\n"):
-		l = line.split(margin,1)
-		if len(l) == 2:
-			_, line = l
-			res.append(line)
-	return "\n".join(res)
-
-def text_template( text, variables ):
-	"""Substitutes '${PLACEHOLDER}'s within the text with the
-	corresponding values from variables."""
-	template = string.Template(text)
-	return template.safe_substitute(variables)
 
 def local_read( location ):
 	"""Reads a *local* file from the given location, expanding '~' and shell variables."""
