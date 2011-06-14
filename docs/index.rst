@@ -1,4 +1,4 @@
-Cusisine -- Chef-like functionality for Fabric
+Cuisine -- Chef-like functionality for Fabric
 ==============================================
 
 
@@ -57,5 +57,14 @@ API
 .. automodule:: cuisine.file
     :members:
 
+.. automodule:: cuisine.user
+    :members:
+
+.. automodule:: cuisine.group
+    :members:
+
 .. automodule:: cuisine.ssh
+    :members:
+
+.. automodule:: cuisine.package
     :members:

@@ -169,4 +169,7 @@ htmlhelp_basename = 'cuisinedoc'
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'http://docs.python.org/': None,
+                       'http://docs.fabfile.org/en/1.0.1/': None}
+
+autodoc_member_order = 'bysource'

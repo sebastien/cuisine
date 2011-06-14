@@ -11,7 +11,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from . import user_check, run, dir, file
+from . import user as _user, run, dir, file
 
 
 def keygen(user, keytype="dsa"):
@@ -21,7 +21,7 @@ def keygen(user, keytype="dsa"):
     :param unicode keytype: see :man ssh-keygen(1): for details.
     :raises ValueError: when a given user doesn't exist.
     """
-    userdata = user_check(user)
+    userdata = _user.check(user)
     if not userdata:
         raise ValueError("User %r doesn't exist" % user)
 
@@ -40,7 +40,7 @@ def authorize(user, key):
     :param unicode key: SSH public key string.
     :raises ValueError: when a given user doesn't exist.
     """
-    userdata = user_check(user)
+    userdata = _user.check(user)
     if not userdata:
         raise ValueError("User %r doesn't exist" % user)
 
