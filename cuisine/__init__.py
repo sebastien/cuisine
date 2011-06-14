@@ -10,19 +10,25 @@
 # Last mod  : 09-Jun-2011
 # -----------------------------------------------------------------------------
 
-import fabric, fabric.api, fabric.context_managers
-import os, base64, bz2, string, re, time, random, crypt
-
-__doc__ = """
-Cuisine makes it easy to write automatic server installation and configuration
-recipies by wrapping common administrative tasks (installing packages, creating users
-and groups) in Python functions.
-
-Cuisine is designed to work with Fabric and provide all you need for getting
-your new server up and running in minutes.
-
-Note that right now, Cuisine only supports Debian-based Linux systems.
 """
+    cusisine
+    ~~~~~~~~
+
+    ``cuisine`` makes it easy to write automatic server installation and
+    configuration recipies by wrapping common administrative tasks
+    (installing packages, creating users and groups) in Python functions.
+
+    ``cuisine`` is designed to work with Fabric and provide all you need
+    for getting your new server up and running in minutes.
+
+    Note, that right now, Cuisine only supports Debian-based Linux systems.
+
+    :copyright: (c) 2011 by Sebastien Pierre, see AUTHORS for more details.
+    :license: ???
+"""
+
+import os, base64, bz2, string, re, time, random, crypt
+import fabric, fabric.api, fabric.context_managers
 
 # See <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric/>
 # and <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1/>

@@ -17,7 +17,7 @@ and deployment scripts.
 
 Cuisine's features are:
 
-* Small, easy to read, a single file API
+* Small, easy to read, a single file :ref:`API`
 * Covers file/dir operations, user/group operations, package operations
 * Text processing and template functions
 * All functions are lazy: they will actually only do things when the change
