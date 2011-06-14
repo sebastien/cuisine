@@ -12,6 +12,17 @@
 
     Note, that right now, Cuisine only supports Debian-based Linux systems.
 
+    .. seealso::
+
+       `Deploying Django with Fabric
+       <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric>`_
+
+       `Notes on Python Fabric 0.9b1
+       <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1>`_
+
+       `EC2, fabric, and "err: stdin: is not a tty"
+       <http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
+
     :copyright: (c) 2011 by Sebastien Pierre, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
@@ -19,9 +30,6 @@
 import os, base64, bz2, string, re, time, random, crypt
 import fabric, fabric.api, fabric.context_managers
 
-# See <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric/>
-# and <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1/>
-# http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html
 
 VERSION   = "0.0.3"
 MODE      = "user"
