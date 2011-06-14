@@ -1,32 +1,35 @@
-# -----------------------------------------------------------------------------
-# Project   : Cuisine - Functions to write Fabric recipies
-# -----------------------------------------------------------------------------
-# Author    : Sebastien Pierre                            <sebastien@ffctn.com>
-# Author    : Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
-# Author    : Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
-# License   : Revised BSD License
-# -----------------------------------------------------------------------------
-# Creation  : 26-Apr-2010
-# Last mod  : 09-Jun-2011
-# -----------------------------------------------------------------------------
+# -*- coding: utf-8 -*-
+"""
+    cusisine
+    ~~~~~~~~
 
-import fabric, fabric.api, fabric.context_managers
-import os, base64, bz2, string, re, time, random, crypt
+    ``cuisine`` makes it easy to write automatic server installation and
+    configuration recipies by wrapping common administrative tasks
+    (installing packages, creating users and groups) in Python functions.
 
-__doc__ = """
-Cuisine makes it easy to write automatic server installation and configuration
-recipies by wrapping common administrative tasks (installing packages, creating users
-and groups) in Python functions.
+    ``cuisine`` is designed to work with Fabric and provide all you need
+    for getting your new server up and running in minutes.
 
-Cuisine is designed to work with Fabric and provide all you need for getting
-your new server up and running in minutes.
+    Note, that right now, Cuisine only supports Debian-based Linux systems.
 
-Note that right now, Cuisine only supports Debian-based Linux systems.
+    .. seealso::
+
+       `Deploying Django with Fabric
+       <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric>`_
+
+       `Notes on Python Fabric 0.9b1
+       <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1>`_
+
+       `EC2, fabric, and "err: stdin: is not a tty"
+       <http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
+
+    :copyright: (c) 2011 by Sebastien Pierre, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 
-# See <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric/>
-# and <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1/>
-# http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html
+import os, base64, bz2, string, re, time, random, crypt
+import fabric, fabric.api, fabric.context_managers
+
 
 VERSION   = "0.0.3"
 MODE      = "user"
