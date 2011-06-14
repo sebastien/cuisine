@@ -14,7 +14,21 @@ __all__ = ["attrs", "exists", "ensure"]
 from fabric.api import sudo
 
 from . import run
-from .file import attrs
+
+
+def attrs(location, mode=None, owner=None, group=None, recursive=False):
+    """Updates the mode, owner and group for the remote directory at
+    the given location.
+
+    :raises ValueError: when directory doesn't exist.
+    """
+    if not exists(location):
+        raise ValueError("Directory %r doesn't exist." % location)
+
+    recursive = recursive and "-R " or ""
+    if mode:  run("chmod %s %s %r" % (recursive, mode,  location))
+    if owner: run("chown %s %s %r" % (recursive, owner, location))
+    if group: run("chgrp %s %s %r" % (recursive, group, location))
 
 
 def exists(location):

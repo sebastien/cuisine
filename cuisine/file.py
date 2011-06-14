@@ -32,19 +32,18 @@ def ensure(location):
     run("touch %r" % location)
 
 
-def attrs(location, mode=None, owner=None, group=None, recursive=False):
+def attrs(location, mode=None, owner=None, group=None):
     """Updates the mode, owner and group for the remote file at the given
     location.
 
     :raises ValueError: there's no file at a given location.
     """
     if not exists(location):
-        raise ValueError("%r doesn't exist" % location)
+        raise ValueError("File %r doesn't exist." % location)
 
-    recursive = recursive and "-R " or ""
-    if mode:  run("chmod %s %s '%s'" % (recursive, mode,  location))
-    if owner: run("chown %s %s '%s'" % (recursive, owner, location))
-    if group: run("chgrp %s %s '%s'" % (recursive, group, location))
+    if mode:  run("chmod %s %r" % (mode,  location))
+    if owner: run("chown %s %r" % (owner, location))
+    if group: run("chgrp %s %r" % (group, location))
 
 
 def read(location):
@@ -53,7 +52,7 @@ def read(location):
     :raises ValueError: there's no file at a given location.
     """
     if not exists(location):
-        raise ValueError("%r doesn't exist" % location)
+        raise ValueError("File %r doesn't exist." % location)
 
     return run("cat %r" % location)
 
@@ -76,7 +75,7 @@ def append(location, content, **acl):
     :raises ValueError: there's no file at a given location.
     """
     if not exists(location):
-        raise ValueError("%r doesn't exist" % location)
+        raise ValueError("File %r doesn't exist." % location)
 
     run("echo %r | base64 -d >> \"%s\"" % (base64.b64encode(content), location))
     attrs(location, **acl)
