@@ -36,7 +36,7 @@ def keygen(user, keytype="dsa"):
 def authorize(user, key):
     """Adds a given key to the user's ``~/.ssh/authorized_keys``.
 
-    :param unicode user: name of the user to generate key for.
+    :param unicode user: name of the user to add a key for.
     :param unicode key: SSH public key string.
     :raises ValueError: when a given user doesn't exist.
     """
