@@ -41,7 +41,6 @@ import fabric.api
 import fabric.context_managers
 
 
-VERSION   = "0.0.3"
 MODE      = "user"
 RE_SPACES = re.compile("[\s\t]+")
 
