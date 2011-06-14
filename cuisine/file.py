@@ -9,6 +9,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
+__all__ = ["exists", "ensure", "attrs", "read", "write", "append", "update"]
+
 import bz2
 import base64
 

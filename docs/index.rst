@@ -51,5 +51,11 @@ API
 .. automodule:: cuisine.text
     :members:
 
+.. automodule:: cuisine.dir
+    :members:
+
 .. automodule:: cuisine.file
+    :members:
+
+.. automodule:: cuisine.ssh
     :members:
