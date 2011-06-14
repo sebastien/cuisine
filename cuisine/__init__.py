@@ -27,7 +27,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import bz2
 import crypt
 import os
 import random
@@ -38,6 +37,8 @@ from functools import wraps
 import fabric
 import fabric.api
 import fabric.context_managers
+
+from . import file
 
 
 MODE      = "user"
@@ -103,27 +104,6 @@ def local_read( location ):
 	f.close()
 	return t
 
-def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
-	"""Updates the mode/owner/group for the given remote directory."""
-	file.attrs(location, mode, owner, group, recursive)
-
-def dir_exists( location ):
-	"""Tells if there is a remote directory at the given location."""
-	return run("test -d '%s' && echo OK ; true" % (location)).endswith("OK")
-
-def dir_ensure( location, recursive=False, mode=None, owner=None, group=None ):
-	"""Ensures that there is a remote directory at the given location, optionnaly
-	updating its mode/owner/group.
-
-	If we are not updating the owner/group then this can be done as a single
-	ssh call, so use that method, otherwise set owner/group after creation."""
-	if mode:
-		mode_arg = "-m %s" % (mode)
-	else:
-		mode_arg = ""
-	sudo("(test -d '%s' || mkdir %s %s '%s') && echo OK ; true" % (location, recursive and "-p" or "", mode_arg, location))
-	if owner or group:
-		dir_attribs(location, owner=owner, group=group)
 
 def command_check( command ):
 	"""Tests if the given command is available on the system."""
@@ -264,7 +244,7 @@ def group_user_add( group, user ):
 	assert group_check(group), "Group does not exist: %s" % (group)
 	if not group_user_check(group, user):
 		lines = []
-		for line in file_read("/etc/group").split("\n"):
+		for line in file.read("/etc/group").split("\n"):
 			if line.startswith(group + ":"):
 				if line.strip().endswith(":"):
 					line = line + user
@@ -272,7 +252,7 @@ def group_user_add( group, user ):
 					line = line + "," + user
 			lines.append(line)
 		text = "\n".join(lines)
-		file_write("/etc/group", text)
+		file.write("/etc/group", text)
 
 def group_user_ensure( group, user):
 	"""Ensure that a given user is a member of a given group."""
@@ -285,21 +265,21 @@ def ssh_keygen( user, keytype="dsa" ):
 	d = user_check(user)
 	assert d, "User does not exist: %s" % (user)
 	home = d["home"]
-	if not file_exists(home + "/.ssh/id_%s.pub" % keytype):
-		dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
+	if not file.exists(home + "/.ssh/id_%s.pub" % keytype):
+		dir.ensure(home + "/.ssh", mode="0700", owner=user, group=user)
 		run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" % (home, keytype, keytype))
-		file_attribs(home + "/.ssh/id_%s" % keytype,     owner=user, group=user)
-		file_attribs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
+		file.attrs(home + "/.ssh/id_%s" % keytype,     owner=user, group=user)
+		file.attrs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
 
 def ssh_authorize( user, key ):
 	"""Adds the given key to the '.ssh/authorized_keys' for the given user."""
 	d    = user_check(user)
 	keyf = d["home"] + "/.ssh/authorized_keys"
-	if file_exists(keyf):
-		if file_read(keyf).find(key) == -1:
-			file_append(keyf, key)
+	if file.exists(keyf):
+		if file.read(keyf).find(key) == -1:
+			file.append(keyf, key)
 	else:
-		file_write(keyf, key)
+		file.write(keyf, key)
 
 def upstart_ensure( name ):
 	"""Ensures that the given upstart service is running, restarting it if necessary"""
