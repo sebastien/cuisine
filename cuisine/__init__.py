@@ -215,7 +215,7 @@ def dir_ensure( location, recursive=False, mode=None, owner=None, group=None ):
 		mode_arg = "-m %s" % (mode)
 	else:
 		mode_arg = ""
-	sudo("(test -d '%s' || mkdir %s %s '%s') && echo OK ; true" % (location, recursive and "-p" or "", mode_arg, location))
+	sudo("test -d '%s' || mkdir %s %s '%s' && echo OK ; true" % (location, recursive and "-p" or "", mode_arg, location))
 	if owner or group:
 		dir_attribs(location, owner=owner, group=group)
 
