@@ -371,16 +371,7 @@ def group_user_add( group, user ):
 	"""Adds the given user/list of users to the given group/groups."""
 	assert group_check(group), "Group does not exist: %s" % (group)
 	if not group_user_check(group, user):
-		lines = []
-		for line in file_read("/etc/group").split("\n"):
-			if line.startswith(group + ":"):
-				if line.strip().endswith(":"):
-					line = line + user
-				else:
-					line = line + "," + user
-			lines.append(line)
-		text = "\n".join(lines)
-		file_write("/etc/group", text)
+		sudo("usermod -a -G '%s' '%s'" % (group, user))
 
 def group_user_ensure( group, user):
 	"""Ensure that a given user is a member of a given group."""
