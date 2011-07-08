@@ -42,9 +42,12 @@ import os, base64, bz2, string, re, time, random, crypt
 import fabric, fabric.api, fabric.context_managers
 
 
-VERSION   = "0.0.3"
-MODE      = "user"
-RE_SPACES = re.compile("[\s\t]+")
+VERSION     = "0.0.4"
+MODE        = "user"
+RE_SPACES   = re.compile("[\s\t]+")
+WINDOWS_EOL = "\r\n"
+UNIX_EOL    = "\n"
+MAC_EOL     = "\n"
 
 
 def mode_user():
@@ -84,6 +87,13 @@ def multiargs(function):
 			return function(arg, *args, **kwargs)
 	return wrapper
 
+def text_detect_eol(text):
+	# FIXME: Should look at the first line
+	if text.find("\r\n") != -1: return WINDOWS_EOL
+	elif text.find("\n") != -1: return UNIX_EOL
+	elif text.find("\r") != -1: return MAC_EOL
+	else: return "\n"
+
 def text_get_line(text, predicate):
 	"""Returns the first line that matches the given predicate."""
 	for line in text.split("\n"):
@@ -102,22 +112,25 @@ def text_nospace(text):
 def text_replace_line(text, old, new, find=lambda old,new:old == new, process=lambda _:_):
 	"""Replaces lines equal to 'old' with 'new', returning the new text and the
 	count of replacements."""
-	res = []
+	res      = []
 	replaced = 0
-	for line in text.split("\n"):
+	eol      = text_detect_eol(text)
+	for line in text.split(eol):
 		if find(process(line), process(old)):
 			res.append(new)
 			replaced += 1
 		else:
 			res.append(line)
-	return "\n".join(res), replaced
+	return eol.join(res), replaced
 
 def text_ensure_line(text, *lines):
 	"""Ensures that the given lines are present in the given text, otherwise appends the lines
 	that are not already in the text at the end of it."""
-	res = list(text.split("\n"))
+	eol = text_detect_eol(text)
+	res = list(text.split(eol))
+	print "EOL", repr(eol)
 	for line in lines:
-		assert line.find("\n") == -1, "No EOL allowed in lines parameter: " + repr(line)
+		assert line.find(eol) == -1, "No EOL allowed in lines parameter: " + repr(line)
 		found = False
 		for l in res:
 			if l == res:
@@ -125,16 +138,17 @@ def text_ensure_line(text, *lines):
 				break
 		if not found:
 			res.append(line)
-	return "\n".join(res)
+	return eol.join(res)
 
 def text_strip_margin( text, margin="|"):
 	res = []
-	for line in text.split("\n"):
+	eol = text_detect_eol(text)
+	for line in text.split(eol):
 		l = line.split(margin,1)
 		if len(l) == 2:
 			_, line = l
 			res.append(line)
-	return "\n".join(res)
+	return eol.join(res)
 
 def text_template( text, variables ):
 	"""Substitutes '${PLACEHOLDER}'s within the text with the
