@@ -8,8 +8,9 @@ VERSION     = `grep VERSION src/cuisine.py | cut -d '=' -f2  | xargs echo`
 all: MANIFEST doc
 
 release:
-	git tag $(VERSION)
+	git tag $(VERSION) ; true
 	git push --tags
+	python setup.py register
 
 clean:
 	@rm -rf api/ build dist MANIFEST ; true

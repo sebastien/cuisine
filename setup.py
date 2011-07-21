@@ -11,7 +11,7 @@ setup(
 	author           = "Sébastien Pierre",
 	author_email     = "sebastien.pierre@gmail.com",
 	url              = "http://github.com/sebastien",
-	download_url     = "https://github.com/sebastien/cuisine",
+	download_url     = "https://github.com/sebastien/cuisine/tarball/%s" % (VERSION),
 	install_requires = ['fabric',],
 	keywords         = ["fabric", "chef", "ssh",],
 	classifiers      = [
