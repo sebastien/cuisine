@@ -1,0 +1,137 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Cuisine – Chef-like functionality for Fabric &mdash; cuisine v0.0.3 documentation</title>
+    <link rel="stylesheet" href="_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cuisine v0.0.3 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="#">cuisine v0.0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="cuisine-chef-like-functionality-for-fabric">
+<h1>Cuisine &#8211; Chef-like functionality for Fabric<a class="headerlink" href="#cuisine-chef-like-functionality-for-fabric" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about">
+<h2>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://fabfile.org">Fabric</a> is an incredible tool to automate administration
+of remote machines. As Fabric&#8217;s function are rather low-level, you&#8217;ll probably
+quickly see a need for more high-level functions such as add/remove users and
+groups, install/upgrade packages, etc.</p>
+<p>Cuisine is a small set of functions that sit on top of Fabric, to abstract
+common administration operations such as file/dir operations, user/group creation,
+package install/upgrade, making it easier to write portable administration
+and deployment scripts.</p>
+<p>Cuisine&#8217;s features are:</p>
+<ul class="simple">
+<li>Small, easy to read, a single file <em class="xref std std-ref">API</em></li>
+<li>Covers file/dir operations, user/group operations, package operations</li>
+<li>Text processing and template functions</li>
+<li>All functions are lazy: they will actually only do things when the change
+is required.</li>
+</ul>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>If you have <a class="reference external" href="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</a>
+you can use <tt class="docutils literal"><span class="pre">easy_install</span> <span class="pre">-U</span> <span class="pre">cuisine</span></tt>. Otherwise, you can download the
+source from <a class="reference external" href="http://github.com/sebastien/cuisine">GitHub</a> and run <tt class="docutils literal"><span class="pre">python</span>
+<span class="pre">setup.py</span> <span class="pre">install</span></tt>.</p>
+</div>
+<div class="section" id="more">
+<h2>More?<a class="headerlink" href="#more" title="Permalink to this headline">¶</a></h2>
+<p>If you want more information, you can:</p>
+<ul class="simple">
+<li>Check out Cuisine&#8217;s <em class="xref std std-ref">API</em> documentation below</li>
+<li>Read the <a class="reference external" href="http://ur1.ca/45ku5">presentation on Cuisine</a></li>
+</ul>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Cuisine &#8211; Chef-like functionality for Fabric</a><ul>
+<li><a class="reference internal" href="#about">About</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#more">More?</a></li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="#">cuisine v0.0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Sebastien Pierre.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+    </div>
+  </body>
+</html>
