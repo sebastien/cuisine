@@ -128,7 +128,6 @@ def text_ensure_line(text, *lines):
 	that are not already in the text at the end of it."""
 	eol = text_detect_eol(text)
 	res = list(text.split(eol))
-	print "EOL", repr(eol)
 	for line in lines:
 		assert line.find(eol) == -1, "No EOL allowed in lines parameter: " + repr(line)
 		found = False
