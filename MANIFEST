@@ -1,5 +1,5 @@
-README
-cuisine-api.html
+AUTHORS.rst
+LICENSE
+README.rst
 setup.py
-cuisine/__init__.py
-cuisine/cuisine.py
+src/cuisine.py

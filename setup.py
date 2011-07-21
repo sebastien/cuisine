@@ -2,7 +2,7 @@
 #encoding: utf-8
 from distutils.core import setup
 import os, sys
-VERSION = eval(filter(lambda _:_.startswith("VERSION"), file("cuisine/__init__.py").readlines())[0].split("=")[1])
+VERSION = eval(filter(lambda _:_.startswith("VERSION"), file("src/cuisine.py").readlines())[0].split("=")[1])
 setup(
 	name             = "cuisine",
 	packages         = ["cuisine",],
