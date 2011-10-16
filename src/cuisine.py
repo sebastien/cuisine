@@ -42,7 +42,7 @@ import os, base64, bz2, string, re, time, random, crypt
 import fabric, fabric.api, fabric.context_managers
 
 
-VERSION     = "0.0.7"
+VERSION     = "0.0.8"
 MODE        = "user"
 RE_SPACES   = re.compile("[\s\t]+")
 WINDOWS_EOL = "\r\n"
@@ -50,15 +50,33 @@ UNIX_EOL    = "\n"
 MAC_EOL     = "\n"
 
 
-def mode_user():
+class mode_user():
 	"""Cuisine functions will be executed as the current user."""
-	global MODE
-	MODE = "user"
+	def __init__(self):
+		global MODE
+		self._old_mode = MODE
+		MODE = "user"
 
-def mode_sudo():
+	def __enter__(self):
+		pass
+
+	def __exit__(self, *args, **kws):
+		global MODE
+		MODE = self._old_mode
+
+class mode_sudo():
 	"""Cuisine functions will be executed with sudo."""
-	global MODE
-	MODE = "sudo"
+	def __init__(self):
+		global MODE
+		self._old_mode = MODE
+		MODE = "sudo"
+
+	def __enter__(self):
+		pass
+
+	def __exit__(self, *args, **kws):
+		global MODE
+		MODE = self._old_mode
 
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE' global

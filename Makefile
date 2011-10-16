@@ -20,7 +20,7 @@ check:
 	pychecker $(SOURCES)
 
 doc: $(DOC_SOURCES)
-	sphinx-build -b html docs api
+	#sphinx-build -b html docs api
 	sdoc         -m rst src/cuisine.py api/cuisine-api.html
 
 MANIFEST: $(MANIFEST)
