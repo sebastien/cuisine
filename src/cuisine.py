@@ -421,22 +421,32 @@ def ssh_keygen( user, keytype="dsa" ):
 	"""Generates a pair of ssh keys in the user's home .ssh directory."""
 	d = user_check(user)
 	assert d, "User does not exist: %s" % (user)
-	home = d["home"]
-	if not file_exists(home + "/.ssh/id_%s.pub" % keytype):
+	home     = d["home"]
+	key_file = home + "/.ssh/id_%s.pub" % keytype
+	if not file_exists(key_file):
 		dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
-		run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" % (home, keytype, keytype))
+		run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" % (keytype, home, keytype))
 		file_attribs(home + "/.ssh/id_%s" % keytype,     owner=user, group=user)
 		file_attribs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
+		return False
+	else:
+		return True
 
 def ssh_authorize( user, key ):
 	"""Adds the given key to the '.ssh/authorized_keys' for the given user."""
 	d    = user_check(user)
 	keyf = d["home"] + "/.ssh/authorized_keys"
+	if key[-1] != "\n": key += "\n"
 	if file_exists(keyf):
-		if file_read(keyf).find(key) == -1:
+		d = file_read(keyf)
+		if file_read(keyf).find(key[:-1]) == -1:
 			file_append(keyf, key)
+			return False
+		else:
+			return True
 	else:
 		file_write(keyf, key)
+		return False
 
 def upstart_ensure( name ):
 	"""Ensures that the given upstart service is running, restarting it if necessary"""
