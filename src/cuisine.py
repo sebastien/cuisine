@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 09-Jun-2011
+# Last mod  : 16-Oct-2011
 # -----------------------------------------------------------------------------
 """
     Cuisine
@@ -132,7 +132,7 @@ def text_ensure_line(text, *lines):
 		assert line.find(eol) == -1, "No EOL allowed in lines parameter: " + repr(line)
 		found = False
 		for l in res:
-			if l == res:
+			if l == line:
 				found = True
 				break
 		if not found:
@@ -178,6 +178,13 @@ def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	if owner: run("chown %s %s '%s'" % (recursive, owner, location))
 	if group: run("chgrp %s %s '%s'" % (recursive, group, location))
 
+def file_attribs_get(location):
+	"""Get the mode, owner, and group for a remote file."""
+	fs_check = sudo("test -e '%s' && find '%s' -prune -printf '%s %U %G\n'")
+	if len(fs_check) > 0:
+		(mode, owner, group) = fs_check.split("")
+		return {'mode': mode, 'owner': owner, 'group':group }
+
 def file_write( location, content, mode=None, owner=None, group=None ):
 	"""Writes the given content to the file at the given remote location, optionally
 	setting mode/owner/group."""
@@ -209,6 +216,13 @@ def file_append( location, content, mode=None, owner=None, group=None ):
 	updating its mode/owner/group."""
 	run("echo '%s' | base64 -d >> \"%s\"" % (base64.b64encode(content), location))
 	file_attribs(location, mode, owner, group)
+
+# TODO: From McCoy's version, consider merging
+# def file_append( location, content, use_sudo=False, partial=False, escape=True):
+# 	"""Wrapper for fabric.contrib.files.append."""
+# 	fabric.contrib.files.append(location, content, use_sudo, partial, escape)
+
+
 
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
