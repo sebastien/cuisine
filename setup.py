@@ -5,12 +5,14 @@ import os, sys
 VERSION = eval(filter(lambda _:_.startswith("VERSION"), file("src/cuisine.py").readlines())[0].split("=")[1])
 setup(
 	name             = "cuisine",
-	packages         = ["cuisine",],
 	version          = VERSION,
+	packages         = ["cuisine",],
+	py_modules       = ["cuisine",],
+	package_dir      = {'':'src'},
 	description      = "Chef-like functionality for Fabric",
 	author           = "Sébastien Pierre",
 	author_email     = "sebastien.pierre@gmail.com",
-	url              = "http://github.com/sebastien",
+	url              = "http://github.com/sebastien/cuisine",
 	download_url     = "https://github.com/sebastien/cuisine/tarball/%s" % (VERSION),
 	install_requires = ['fabric',],
 	keywords         = ["fabric", "chef", "ssh",],

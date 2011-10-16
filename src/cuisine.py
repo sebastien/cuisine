@@ -42,7 +42,7 @@ import os, base64, bz2, string, re, time, random, crypt
 import fabric, fabric.api, fabric.context_managers
 
 
-VERSION     = "0.0.4"
+VERSION     = "0.0.5"
 MODE        = "user"
 RE_SPACES   = re.compile("[\s\t]+")
 WINDOWS_EOL = "\r\n"
