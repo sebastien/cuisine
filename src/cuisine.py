@@ -42,7 +42,8 @@ import os, base64, bz2, string, re, time, random, crypt
 import fabric, fabric.api, fabric.context_managers
 
 
-VERSION     = "0.0.8"
+VERSION     = "0.0.9"
+# FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
 MODE        = "user"
 RE_SPACES   = re.compile("[\s\t]+")
 WINDOWS_EOL = "\r\n"
@@ -50,8 +51,9 @@ UNIX_EOL    = "\n"
 MAC_EOL     = "\n"
 
 
-class mode_user():
+class mode_user(object):
 	"""Cuisine functions will be executed as the current user."""
+
 	def __init__(self):
 		global MODE
 		self._old_mode = MODE
@@ -64,8 +66,9 @@ class mode_user():
 		global MODE
 		MODE = self._old_mode
 
-class mode_sudo():
+class mode_sudo(object):
 	"""Cuisine functions will be executed with sudo."""
+
 	def __init__(self):
 		global MODE
 		self._old_mode = MODE
@@ -288,9 +291,12 @@ def package_install( package, update=False ):
 def package_ensure( package ):
 	"""Tests if the given package is installed, and installes it in case it's not
 	already there."""
-	if run("dpkg-query -W -f='${Status}' %s ; true" %
-			package).find("not-installed") != -1:
+	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
+	if status.find("not-installed") != -1 or status.find("installed") == -1:
 		package_install(package)
+		return False
+	else:
+		return True
 
 def command_ensure( command, package=None ):
 	"""Ensures that the given command is present, if not installs the package with the given
