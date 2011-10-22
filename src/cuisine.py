@@ -67,32 +67,32 @@ class mode_user(object):
     """Cuisine functions will be executed as the current user."""
 
     def __init__(self):
-            global MODE
-            self._old_mode = MODE
-            MODE = "user"
+        global MODE
+        self._old_mode = MODE
+        MODE = "user"
 
     def __enter__(self):
-            pass
+        pass
 
     def __exit__(self, *args, **kws):
-            global MODE
-            MODE = self._old_mode
+        global MODE
+        MODE = self._old_mode
 
 
 class mode_sudo(object):
     """Cuisine functions will be executed with sudo."""
 
     def __init__(self):
-            global MODE
-            self._old_mode = MODE
-            MODE = "sudo"
+        global MODE
+        self._old_mode = MODE
+        MODE = "sudo"
 
     def __enter__(self):
-            pass
+        pass
 
     def __exit__(self, *args, **kws):
-            global MODE
-            MODE = self._old_mode
+        global MODE
+        MODE = self._old_mode
 
 
 def run(*args, **kwargs):
@@ -100,9 +100,9 @@ def run(*args, **kwargs):
     'cuisine.MODE' global to tell wether the command should be run as
     regular user or sudo."""
     if MODE == "sudo":
-            return fabric.api.sudo(*args, **kwargs)
+        return fabric.api.sudo(*args, **kwargs)
     else:
-            return fabric.api.run(*args, **kwargs)
+        return fabric.api.run(*args, **kwargs)
 
 
 def sudo(*args, **kwargs):
@@ -117,14 +117,14 @@ def multiargs(function):
     first argument if it is a list or a tuple, otherwise the function
     will execute normally."""
     def wrapper(*args, **kwargs):
-            if len(args) == 0:
-                    return function()
-            arg = args[0]
-            args = args[1:]
-            if type(arg) in (tuple, list):
-                    return map(lambda _: function(_, *args, **kwargs), arg)
-            else:
-                    return function(arg, *args, **kwargs)
+        if len(args) == 0:
+            return function()
+        arg = args[0]
+        args = args[1:]
+        if type(arg) in (tuple, list):
+            return map(lambda _: function(_, *args, **kwargs), arg)
+        else:
+            return function(arg, *args, **kwargs)
     return wrapper
 
 
@@ -181,15 +181,15 @@ def text_ensure_line(text, *lines):
     eol = text_detect_eol(text)
     res = list(text.split(eol))
     for line in lines:
-        assert line.find(eol) == -1,\
-               "No EOL allowed in lines parameter: " + repr(line)
+        assert (line.find(eol) == -1,
+               "No EOL allowed in lines parameter: " + repr(line))
         found = False
         for l in res:
             if l == line:
                 found = True
                 break
         if not found:
-                res.append(line)
+            res.append(line)
     return eol.join(res)
 
 
@@ -257,12 +257,11 @@ def file_write(location, content, mode=None, owner=None, group=None):
     location, optionally setting mode/owner/group."""
     # Hides the output, which is especially important
     with fabric.context_managers.settings(
-        fabric.api.hide('warnings', 'running', 'stdout'),
-        warn_only=True):
-            # We use bz2 compression
-            run("echo '%s' | base64 -d | bzcat > \"%s\"" %
-                (base64.b64encode(bz2.compress(content)), location))
-            file_attribs(location, mode, owner, group)
+        fabric.api.hide('warnings', 'running', 'stdout'), warn_only=True):
+        # We use bz2 compression
+        run("echo '%s' | base64 -d | bzcat > \"%s\"" %
+            (base64.b64encode(bz2.compress(content)), location))
+        file_attribs(location, mode, owner, group)
 
 
 def file_update(location, updater=lambda x: x):
@@ -278,9 +277,9 @@ def file_update(location, updater=lambda x: x):
     assert file_exists(location), "File does not exists: " + location
     new_content = updater(file_read(location))
 
-    assert type(new_content) in (str, unicode, fabric.operations._AttributeString), \
-    "Updater must be like (string)->string, got: %s() = %s" %
-    (updater, type(new_content))
+    assert (type(new_content) in (str, unicode, fabric.operations._AttributeString),
+            "Updater must be like (string)->string, got: %s() = %s" %
+            (updater, type(new_content)))
     run("echo '%s' | base64 -d > \"%s\"" %
         (base64.b64encode(new_content), location))
 
@@ -288,7 +287,8 @@ def file_update(location, updater=lambda x: x):
 def file_append(location, content, mode=None, owner=None, group=None):
     """Appends the given content to the remote file at the given
     location, optionally updating its mode/owner/group."""
-    run("echo '%s' | base64 -d >> \"%s\"" % (base64.b64encode(content), location))
+    run("echo '%s' | base64 -d >> \"%s\"" %
+        (base64.b64encode(content), location))
     file_attribs(location, mode, owner, group)
 
 # TODO: From McCoy's version, consider merging
@@ -369,8 +369,8 @@ def command_ensure(command, package=None):
         package = command
     if not command_check(command):
         package_install(package)
-    assert command_check(command),\
-           "Command was not installed, check for errors: %s" % (command)
+    assert (command_check(command),
+           "Command was not installed, check for errors: %s" % (command))
 
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
