@@ -181,8 +181,8 @@ def text_ensure_line(text, *lines):
     eol = text_detect_eol(text)
     res = list(text.split(eol))
     for line in lines:
-        assert (line.find(eol) == -1,
-               "No EOL allowed in lines parameter: " + repr(line))
+        assert line.find(eol) == -1, \
+               "No EOL allowed in lines parameter: " + repr(line)
         found = False
         for l in res:
             if l == line:
@@ -277,9 +277,9 @@ def file_update(location, updater=lambda x: x):
     assert file_exists(location), "File does not exists: " + location
     new_content = updater(file_read(location))
 
-    assert (type(new_content) in (str, unicode, fabric.operations._AttributeString),
-            "Updater must be like (string)->string, got: %s() = %s" %
-            (updater, type(new_content)))
+    assert type(new_content) in (str, unicode, fabric.operations._AttributeString), \
+           "Updater must be like (string)->string, got: %s() = %s" % \
+           (updater, type(new_content))
     run("echo '%s' | base64 -d > \"%s\"" %
         (base64.b64encode(new_content), location))
 
@@ -369,8 +369,8 @@ def command_ensure(command, package=None):
         package = command
     if not command_check(command):
         package_install(package)
-    assert (command_check(command),
-           "Command was not installed, check for errors: %s" % (command))
+    assert command_check(command), \
+           "Command was not installed, check for errors: %s" % (command)
 
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
@@ -538,7 +538,7 @@ def ssh_authorize(user, key):
             file_append(keyf, key)
             return False
         else:
-                return True
+            return True
     else:
         file_write(keyf, key)
         return False
