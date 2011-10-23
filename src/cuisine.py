@@ -42,7 +42,7 @@ import os, base64, bz2, string, re, time, random, crypt
 import fabric, fabric.api, fabric.context_managers
 
 
-VERSION     = "0.0.9"
+VERSION     = "0.1.0"
 # FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
 MODE        = "user"
 RE_SPACES   = re.compile("[\s\t]+")
@@ -445,7 +445,7 @@ def ssh_authorize( user, key ):
 		else:
 			return True
 	else:
-		file_write(keyf, key)
+		file_write(keyf, key, owner=user, group=user)
 		return False
 
 def upstart_ensure( name ):
@@ -454,5 +454,22 @@ def upstart_ensure( name ):
 		sudo("restart " + name)
 	else:
 		sudo("start " + name)
+
+def system_uuid_alias_add():
+	"""Adds system UUID alias to /etc/hosts.
+
+	Some tools/processes rely/want the hostname as an alias in
+	/etc/hosts e.g. 127.0.0.1 localhost <hostname>.
+
+	"""
+	with mode_sudo(), cd('/etc'):
+		old = "127.0.0.1 localhost"
+		new = old + " " + system_uuid()
+		file_update('hosts', lambda x: text_replace_line(x, old, new)[0])
+
+def system_uuid():
+	"""Gets a machines UUID (Universally Unique Identifier)."""
+	return sudo('dmidecode -s system-uuid | tr "[A-Z]" "[a-z]"')
+
 
 # EOF - vim: ts=4 sw=4 noet

@@ -12,10 +12,25 @@ def custom_run( cmd ):
 def custom_sudo( cmd ):
 	return os.popen("sudo " + cmd).read()[:-1]
 
+class Text(unittest.TestCase):
+
+	def testEnsureLine( self ):
+		some_text = "foo"
+		some_text = cuisine.text_ensure_line(some_text, "bar")
+		assert some_text == 'foo\nbar'
+		some_text = cuisine.text_ensure_line(some_text, "bar")
+		assert some_text == 'foo\nbar'
+
+class Users(unittest.TestCase):
+
+	def testUserCheck( self ):
+		user_data = cuisine.user_check(USER)
+		print "USER_DATA", user_data
+
 class Files(unittest.TestCase):
 
 	def testB( self ):
-		print cuisine.file_read("/etc/passwd")
+		cuisine.file_read("/etc/passwd")
 
 	def testC( self ):
 		pass
@@ -23,8 +38,9 @@ class Files(unittest.TestCase):
 class Packages(unittest.TestCase):
 
 	def testInstall( self ):
-		with cuisine.mode_sudo():
-			cuisine.package_ensure("tmux")
+		pass
+		#with cuisine.mode_sudo():
+		#	cuisine.package_ensure("tmux")
 
 class SSHKeys(unittest.TestCase):
 
