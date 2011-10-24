@@ -323,11 +323,6 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
         dir_attribs(location, owner=owner, group=group)
 
 
-def command_check(command):
-    """Tests if the given command is available on the system."""
-    return run("which '%s' >& /dev/null && echo OK ; true" % command).endswith("OK")
-
-
 def package_update(package=None):
     """Updates the package database (when no argument) or update the package
     or list of packages given as argument."""
@@ -359,6 +354,11 @@ def package_ensure(package):
         return False
     else:
         return True
+
+
+def command_check(command):
+    """Tests if the given command is available on the system."""
+    return run("which '%s' >& /dev/null && echo OK ; true" % command).endswith("OK")
 
 
 def command_ensure(command, package=None):
