@@ -10,7 +10,6 @@
 
 About
 -----
-
 `Fabric <http://fabfile.org>`_ is an incredible tool to automate administration
 of remote machines. As Fabric's function are rather low-level, you'll probably
 quickly see a need for more high-level functions such as add/remove users and
@@ -35,16 +34,14 @@ Cuisine's features are:
 
 Installation
 ------------
-
-If you have `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
-you can use ``easy_install -U cuisine``. Otherwise, you can download the
-source from `GitHub <http://github.com/sebastien/cuisine>`_ and run ``python
-setup.py install``.
+cuisine is on PyPI so you can either use ``easy_install -U cuisine``
+or ``pip install cuisine`` to install it. Otherwise, you can download
+the source from `GitHub <http://github.com/sebastien/cuisine>`_ and
+run ``python setup.py install``.
 
 
 More?
 -----
-
 If you want more information, you can:
 
 * Check out Cuisine's API documentation below
