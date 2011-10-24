@@ -23,11 +23,14 @@ and deployment scripts.
 
 Cuisine's features are:
 
-* Small, easy to read, a single file API
-* Covers file/dir operations, user/group operations, package operations
+* Small, easy to read, a single file API: <object>_<operation>() e.g.
+  dir_exists(location) tells if there is a remote directory at the
+  given location.
+* Covers file/dir operations, user/group operations, package
+  operations
 * Text processing and template functions
-* All functions are lazy: they will actually only do things when the change
-  is required.
+* All functions are lazy: they will actually only do things when the
+  change is required.
 
 
 Installation

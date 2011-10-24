@@ -63,6 +63,12 @@ UNIX_EOL = "\n"
 WINDOWS_EOL = "\r\n"
 
 
+# context managers and wrappers around fabric's run/sudo; used to
+# either execute cuisine functions with sudo or as current user:
+#
+# with mode_sudo():
+#     pass
+
 class mode_user(object):
     """Cuisine functions will be executed as the current user."""
 
@@ -112,6 +118,8 @@ def sudo(*args, **kwargs):
     return fabric.api.sudo(*args, **kwargs)
 
 
+### decorators
+
 def multiargs(function):
     """Decorated functions will be 'map'ed to every element of the
     first argument if it is a list or a tuple, otherwise the function
@@ -127,6 +135,8 @@ def multiargs(function):
             return function(arg, *args, **kwargs)
     return wrapper
 
+
+### text_<operation> functions
 
 def text_detect_eol(text):
     # FIXME: Should look at the first line
@@ -211,7 +221,9 @@ def text_template(text, variables):
     return template.safe_substitute(variables)
 
 
-def local_read(location):
+### file_<operation> functions
+
+def file_local_read(location):
     """Reads a *local* file from the given location, expanding '~' and
     shell variables."""
     p = os.path.expandvars(os.path.expanduser(location))
@@ -297,6 +309,9 @@ def file_append(location, content, mode=None, owner=None, group=None):
 #       fabric.contrib.files.append(location, content, use_sudo, partial, escape)
 
 
+
+### dir_<operation> functions
+
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
     """Updates the mode/owner/group for the given remote directory."""
     file_attribs(location, mode, owner, group, recursive)
@@ -322,6 +337,8 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
     if owner or group:
         dir_attribs(location, owner=owner, group=group)
 
+
+### package_<operation> functions
 
 def package_update(package=None):
     """Updates the package database (when no argument) or update the package
@@ -356,6 +373,8 @@ def package_ensure(package):
         return True
 
 
+### command_<operation> functions
+
 def command_check(command):
     """Tests if the given command is available on the system."""
     return run("which '%s' >& /dev/null && echo OK ; true" % command).endswith("OK")
@@ -372,6 +391,8 @@ def command_ensure(command, package=None):
     assert command_check(command), \
            "Command was not installed, check for errors: %s" % (command)
 
+
+### user_<operation> functions
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
                 uid_min=None, uid_max=None):
@@ -450,6 +471,8 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
             sudo("usermod %s '%s'" % (" ".join(options), name))
 
 
+### group_<operation> functions
+
 def group_create(name, gid=None):
     """Creates a group with the given name, and optionally given gid."""
     options = []
@@ -507,6 +530,8 @@ def group_user_ensure(group, user):
         group_user_add(group, user)
 
 
+### ssh_<operation> functions
+
 def ssh_keygen(user, keytype="dsa"):
     """Generates a pair of ssh keys in the user's home .ssh directory."""
     d = user_check(user)
@@ -543,6 +568,8 @@ def ssh_authorize(user, key):
         return False
 
 
+### miscellaneous (utility/helper) functions
+
 def upstart_ensure(name):
     """Ensures that the given upstart service is running, restarting
     it if necessary"""
@@ -550,6 +577,7 @@ def upstart_ensure(name):
         sudo("restart " + name)
     else:
         sudo("start " + name)
+
 
 def system_uuid_alias_add():
     """Adds system UUID alias to /etc/hosts.
@@ -562,6 +590,7 @@ def system_uuid_alias_add():
         old = "127.0.0.1 localhost"
         new = old + " " + system_uuid()
         file_update('hosts', lambda x: text_replace_line(x, old, new)[0])
+
 
 def system_uuid():
     """Gets a machines UUID (Universally Unique Identifier)."""
