@@ -223,12 +223,12 @@ def local_read(location):
 
 def file_read(location):
     """Reads the *remote* file at the given location."""
-    return run("cat '%s'" % (location))
+    return run('cat "%s"' % (location))
 
 
 def file_exists(location):
     """Tests if there is a *remote* file at the given location."""
-    return run("test -f '%s' && echo OK ; true" % (location)) == "OK"
+    return run('test -f "%s" && echo OK ; true' % (location)) == "OK"
 
 
 def file_attribs(location, mode=None, owner=None, group=None,
@@ -237,16 +237,16 @@ def file_attribs(location, mode=None, owner=None, group=None,
     location."""
     recursive = recursive and "-R " or ""
     if mode:
-        run("chmod %s %s '%s'" % (recursive, mode,  location))
+        run('chmod %s %s "%s"' % (recursive, mode,  location))
     if owner:
-        run("chown %s %s '%s'" % (recursive, owner, location))
+        run('chown %s %s "%s"' % (recursive, owner, location))
     if group:
-        run("chgrp %s %s '%s'" % (recursive, group, location))
+        run('chgrp %s %s "%s"' % (recursive, group, location))
 
 
 def file_attribs_get(location):
     """Get the mode, owner, and group for a remote file."""
-    fs_check = sudo("test -e '%s' && find '%s' -prune -printf '%s %U %G\n'")
+    fs_check = sudo('test -e "%s" && find "%s" -prune -printf \'%s %U %G\n\'')
     if len(fs_check) > 0:
         (mode, owner, group) = fs_check.split("")
         return {'mode': mode, 'owner': owner, 'group': group}
@@ -259,7 +259,7 @@ def file_write(location, content, mode=None, owner=None, group=None):
     with fabric.context_managers.settings(
         fabric.api.hide('warnings', 'running', 'stdout'), warn_only=True):
         # We use bz2 compression
-        run("echo '%s' | base64 -d | bzcat > \"%s\"" %
+        run('echo "%s" | base64 -d | bzcat > "%s"' %
             (base64.b64encode(bz2.compress(content)), location))
         file_attribs(location, mode, owner, group)
 
@@ -280,14 +280,14 @@ def file_update(location, updater=lambda x: x):
     assert type(new_content) in (str, unicode, fabric.operations._AttributeString), \
            "Updater must be like (string)->string, got: %s() = %s" % \
            (updater, type(new_content))
-    run("echo '%s' | base64 -d > \"%s\"" %
+    run('echo "%s" | base64 -d > "%s"' %
         (base64.b64encode(new_content), location))
 
 
 def file_append(location, content, mode=None, owner=None, group=None):
     """Appends the given content to the remote file at the given
     location, optionally updating its mode/owner/group."""
-    run("echo '%s' | base64 -d >> \"%s\"" %
+    run('echo "%s" | base64 -d >> "%s"' %
         (base64.b64encode(content), location))
     file_attribs(location, mode, owner, group)
 
@@ -304,7 +304,7 @@ def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 
 def dir_exists(location):
     """Tells if there is a remote directory at the given location."""
-    return run("test -d '%s' && echo OK ; true" % (location)).endswith("OK")
+    return run('test -d "%s" && echo OK ; true' % (location)).endswith("OK")
 
 
 def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
@@ -317,7 +317,7 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
         mode_arg = "-m %s" % (mode)
     else:
         mode_arg = ""
-    run("test -d '%s' || mkdir %s %s '%s' && echo OK ; true" %
+    run('test -d "%s" || mkdir %s %s "%s" && echo OK ; true' %
         (location, recursive and "-p" or "", mode_arg, location))
     if owner or group:
         dir_attribs(location, owner=owner, group=group)
