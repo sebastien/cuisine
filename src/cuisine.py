@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 23-Oct-2011
+# Last mod  : 31-Oct-2011
 # -----------------------------------------------------------------------------
 """
     Cuisine
@@ -40,27 +40,17 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import base64
-import bz2
-import crypt
-import os
-import random
-import re
-import string
-import time
+import base64, bz2, crypt, os, random, re, string, time
+import fabric, fabric.api, fabric.context_managers
 
-import fabric
-import fabric.api
-import fabric.context_managers
+VERSION     = "0.1.1"
 
-
-VERSION = "0.1.0"
-# FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
-MAC_EOL = "\n"
-MODE = "user"
-RE_SPACES = re.compile("[\s\t]+")
-UNIX_EOL = "\n"
+RE_SPACES   = re.compile("[\s\t]+")
+MAC_EOL     = "\n"
+UNIX_EOL    = "\n"
 WINDOWS_EOL = "\r\n"
+# FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
+MODE        = "user"
 
 
 # context managers and wrappers around fabric's run/sudo; used to
@@ -235,7 +225,8 @@ def file_local_read(location):
 
 def file_read(location):
     """Reads the *remote* file at the given location."""
-    return run('cat "%s"' % (location))
+    # NOTE: We use base64 here to be sure to preserve the encoding (UNIX/DOC/MAC) of EOLs
+    return base64.b64decode(run('cat "%s" | base64' % (location)))
 
 
 def file_exists(location):
