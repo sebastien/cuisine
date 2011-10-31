@@ -21,7 +21,7 @@ check:
 
 doc: $(DOC_SOURCES)
 	#sphinx-build -b html docs api
-	sdoc         -m rst src/cuisine.py api/cuisine-api.html
+	sdoc         --markup=texto src/cuisine.py api/cuisine-api.html
 
 MANIFEST: $(MANIFEST)
 	echo $(MANIFEST) | xargs -n1 | sort | uniq > $@

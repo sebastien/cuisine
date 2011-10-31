@@ -10,38 +10,36 @@
 # Creation  : 26-Apr-2010
 # Last mod  : 31-Oct-2011
 # -----------------------------------------------------------------------------
+
 """
-    Cuisine
-    ~~~~~~~
+`cuisine` makes it easy to write automatic server installation
+and configuration recipies by wrapping common administrative tasks
+(installing packages, creating users and groups) in Python
+functions.
 
-    ``cuisine`` makes it easy to write automatic server installation
-    and configuration recipies by wrapping common administrative tasks
-    (installing packages, creating users and groups) in Python
-    functions.
+`cuisine` is designed to work with Fabric and provide all you
+need for getting your new server up and running in minutes.
 
-    ``cuisine`` is designed to work with Fabric and provide all you
-    need for getting your new server up and running in minutes.
+Note, that right now, Cuisine only supports Debian-based Linux
+systems.
 
-    Note, that right now, Cuisine only supports Debian-based Linux
-    systems.
+See also:
 
-    see also::
+- Deploying Django with Fabric
+  <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric>
 
-       `Deploying Django with Fabric
-       <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric>`_
+- Notes on Python Fabric 0.9b1
+  <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1>`_
 
-       `Notes on Python Fabric 0.9b1
-       <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1>`_
+- EC2, fabric, and "err: stdin: is not a tty"
+  <http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
 
-       `EC2, fabric, and "err: stdin: is not a tty"
-       <http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
-
-    :copyright: (c) 2011 by Sebastien Pierre, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2011 by Sébastien Pierre, see AUTHORS for more details.
+:license:   BSD, see LICENSE for more details.
 """
 
-import base64, bz2, crypt, os, random, re, string, time
-import fabric, fabric.api, fabric.context_managers
+import base64, bz2, crypt, hashlib, os, random, re, string, tempfile
+import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION     = "0.1.1"
 
@@ -50,7 +48,9 @@ MAC_EOL     = "\n"
 UNIX_EOL    = "\n"
 WINDOWS_EOL = "\r\n"
 # FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
-MODE        = "user"
+MODE_USER   = "user"
+MODE_SUDO   = "sudo"
+MODE        = MODE_USER
 
 
 # context managers and wrappers around fabric's run/sudo; used to
@@ -65,7 +65,7 @@ class mode_user(object):
     def __init__(self):
         global MODE
         self._old_mode = MODE
-        MODE = "user"
+        MODE = MODE_USER
 
     def __enter__(self):
         pass
@@ -81,7 +81,7 @@ class mode_sudo(object):
     def __init__(self):
         global MODE
         self._old_mode = MODE
-        MODE = "sudo"
+        MODE = MODE_SUDO
 
     def __enter__(self):
         pass
@@ -95,7 +95,7 @@ def run(*args, **kwargs):
     """A wrapper to Fabric's run/sudo commands, using the
     'cuisine.MODE' global to tell wether the command should be run as
     regular user or sudo."""
-    if MODE == "sudo":
+    if MODE == MODE_SUDO:
         return fabric.api.sudo(*args, **kwargs)
     else:
         return fabric.api.run(*args, **kwargs)
@@ -248,24 +248,42 @@ def file_attribs(location, mode=None, owner=None, group=None,
 
 
 def file_attribs_get(location):
-    """Get the mode, owner, and group for a remote file."""
-    fs_check = sudo('test -e "%s" && find "%s" -prune -printf \'%s %U %G\n\'')
-    if len(fs_check) > 0:
-        (mode, owner, group) = fs_check.split("")
+    """Return mode, owner, and group for remote path.
+    Return mode, owner, and group if remote path exists, 'None'
+    otherwise.
+    """
+    if file_exists(location):
+        fs_check = run('stat %s %s' % (location, '--format="%a %U %G"'))
+        (mode, owner, group) = fs_check.split(' ')
         return {'mode': mode, 'owner': owner, 'group': group}
-
+    else:
+        return None
 
 def file_write(location, content, mode=None, owner=None, group=None):
     """Writes the given content to the file at the given remote
     location, optionally setting mode/owner/group."""
-    # Hides the output, which is especially important
-    with fabric.context_managers.settings(
-        fabric.api.hide('warnings', 'running', 'stdout'), warn_only=True):
-        # We use bz2 compression
-        run('echo "%s" | base64 -d | bzcat > "%s"' %
-            (base64.b64encode(bz2.compress(content)), location))
-        file_attribs(location, mode, owner, group)
+    # Gets the content signature and write it to a secure tempfile
+    sig            = hashlib.sha256(content).hexdigest()
+    fd, local_path = tempfile.mkstemp()
+    os.write(fd, content)
+    # Upload the content if necessary
+    if not file_exists(location) or sig != file_sha256(location):
+        fabric.operations.put(local_path, location, use_sudo=(MODE == MODE_SUDO))
+    # Remove the local temp file
+    os.close(fd)
+    os.unlink(local_path)
+    # Ensure that the signature matches
+    assert sig == file_sha256(location)
 
+def file_upload(remote, local):
+    """Uploads the local file to the remote location only if the remote location does not
+    exists or the content are different."""
+    f       = file(local, 'rb')
+    content = f.read()
+    f.close()
+    sig     = hashlib.sha256(content).hexdigest()
+    if not file_exists(remote) or sig != file_sha256(remote):
+        fabric.operations.put(local, remote, use_sudo=(MODE == MODE_SUDO))
 
 def file_update(location, updater=lambda x: x):
     """Updates the content of the given by passing the existing
@@ -293,6 +311,10 @@ def file_append(location, content, mode=None, owner=None, group=None):
     run('echo "%s" | base64 -d >> "%s"' %
         (base64.b64encode(content), location))
     file_attribs(location, mode, owner, group)
+
+def file_sha256(location):
+    """Returns the SHA-256 sum (as a hex string) for the remote file at the given location"""
+    return run('sha256sum "%s" | cut -d" " -f1' % (location))
 
 # TODO: From McCoy's version, consider merging
 # def file_append( location, content, use_sudo=False, partial=False, escape=True):
@@ -574,7 +596,7 @@ def system_uuid_alias_add():
     """Adds system UUID alias to /etc/hosts.
 
     Some tools/processes rely/want the hostname as an alias in
-    /etc/hosts e.g. 127.0.0.1 localhost <hostname>.
+    /etc/hosts e.g. `127.0.0.1 localhost <hostname>`.
 
     """
     with mode_sudo(), cd('/etc'):
