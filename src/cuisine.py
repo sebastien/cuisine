@@ -51,6 +51,7 @@ import string
 import fabric
 import fabric.api
 import fabric.context_managers
+from fabric.contrib.files import exists
 
 
 VERSION = "0.1.0"
@@ -256,11 +257,18 @@ def file_attribs(location, mode=None, owner=None, group=None,
 
 
 def file_attribs_get(location):
-    """Get the mode, owner, and group for a remote file."""
-    fs_check = sudo('test -e "%s" && find "%s" -prune -printf \'%s %U %G\n\'')
-    if len(fs_check) > 0:
-        (mode, owner, group) = fs_check.split("")
+    """Return mode, owner, and group for remote path.
+
+    Return mode, owner, and group if remote path exists, 'None'
+    otherwise.
+
+    """
+    if exists(location):
+        fs_check = run('stat %s %s' % (location, '--format="%a %U %G"'))
+        (mode, owner, group) = fs_check.split(' ')
         return {'mode': mode, 'owner': owner, 'group': group}
+    else:
+        return None
 
 
 def file_write(location, content, mode=None, owner=None, group=None):
