@@ -367,10 +367,15 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 ### package_<operation> functions
 
 def package_update(package=None):
-    """Updates the package database (when no argument) or update the package
-    or list of packages given as argument."""
+    """Updates the package database"""
+    sudo("apt-get --yes update")
+
+
+def package_upgrade(package=None):
+    """Upgrades all installed packages (when no argument) or upgrades
+    the package or list of packages given as argument."""
     if package == None:
-        sudo("apt-get --yes update")
+        sudo("apt-get --yes upgrade")
     else:
         if type(package) in (list, tuple):
             package = " ".join(package)
