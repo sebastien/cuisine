@@ -26,20 +26,31 @@ systems.
 See also:
 
 - Deploying Django with Fabric
-  <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric>
+<http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric>
 
 - Notes on Python Fabric 0.9b1
-  <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1>`_
+<http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1>`_
 
 - EC2, fabric, and "err: stdin: is not a tty"
-  <http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
+<http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
 
 :copyright: (c) 2011 by Sébastien Pierre, see AUTHORS for more details.
 :license:   BSD, see LICENSE for more details.
 """
 
-import base64, bz2, crypt, hashlib, os, random, re, string, tempfile
-import fabric, fabric.api, fabric.operations, fabric.context_managers
+import base64
+import crypt
+import hashlib
+import os
+import random
+import re
+import string
+import tempfile
+
+import fabric
+import fabric.api
+import fabric.context_managers
+import fabric.operations
 
 VERSION     = "0.1.1"
 
@@ -182,7 +193,7 @@ def text_ensure_line(text, *lines):
     res = list(text.split(eol))
     for line in lines:
         assert line.find(eol) == -1, \
-               "No EOL allowed in lines parameter: " + repr(line)
+            "No EOL allowed in lines parameter: " + repr(line)
         found = False
         for l in res:
             if l == line:
@@ -240,7 +251,7 @@ def file_attribs(location, mode=None, owner=None, group=None,
     location."""
     recursive = recursive and "-R " or ""
     if mode:
-        run('chmod %s %s "%s"' % (recursive, mode,  location))
+        run('chmod %s %s "%s"' % (recursive, mode, location))
     if owner:
         run('chown %s %s "%s"' % (recursive, owner, location))
     if group:
@@ -259,6 +270,7 @@ def file_attribs_get(location):
     else:
         return None
 
+
 def file_write(location, content, mode=None, owner=None, group=None):
     """Writes the given content to the file at the given remote
     location, optionally setting mode/owner/group."""
@@ -275,6 +287,7 @@ def file_write(location, content, mode=None, owner=None, group=None):
     # Ensure that the signature matches
     assert sig == file_sha256(location)
 
+
 def file_upload(remote, local):
     """Uploads the local file to the remote location only if the remote location does not
     exists or the content are different."""
@@ -284,6 +297,7 @@ def file_upload(remote, local):
     sig     = hashlib.sha256(content).hexdigest()
     if not file_exists(remote) or sig != file_sha256(remote):
         fabric.operations.put(local, remote, use_sudo=(MODE == MODE_SUDO))
+
 
 def file_update(location, updater=lambda x: x):
     """Updates the content of the given by passing the existing
@@ -299,8 +313,8 @@ def file_update(location, updater=lambda x: x):
     new_content = updater(file_read(location))
 
     assert type(new_content) in (str, unicode, fabric.operations._AttributeString), \
-           "Updater must be like (string)->string, got: %s() = %s" % \
-           (updater, type(new_content))
+        "Updater must be like (string)->string, got: %s() = %s" % \
+        (updater, type(new_content))
     run('echo "%s" | base64 -d > "%s"' %
         (base64.b64encode(new_content), location))
 
@@ -312,6 +326,7 @@ def file_append(location, content, mode=None, owner=None, group=None):
         (base64.b64encode(content), location))
     file_attribs(location, mode, owner, group)
 
+
 def file_sha256(location):
     """Returns the SHA-256 sum (as a hex string) for the remote file at the given location"""
     return run('sha256sum "%s" | cut -d" " -f1' % (location))
@@ -322,9 +337,7 @@ def file_sha256(location):
 #       fabric.contrib.files.append(location, content, use_sudo, partial, escape)
 
 
-
 ### dir_<operation> functions
-
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
     """Updates the mode/owner/group for the given remote directory."""
     file_attribs(location, mode, owner, group, recursive)
@@ -354,10 +367,15 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 ### package_<operation> functions
 
 def package_update(package=None):
-    """Updates the package database (when no argument) or update the package
-    or list of packages given as argument."""
+    """Updates the package database"""
+    sudo("apt-get --yes update")
+
+
+def package_upgrade(package=None):
+    """Upgrades all installed packages (when no argument) or upgrades
+    the package or list of packages given as argument."""
     if package == None:
-        sudo("apt-get --yes update")
+        sudo("apt-get --yes upgrade")
     else:
         if type(package) in (list, tuple):
             package = " ".join(package)
@@ -402,7 +420,7 @@ def command_ensure(command, package=None):
     if not command_check(command):
         package_install(package)
     assert command_check(command), \
-           "Command was not installed, check for errors: %s" % (command)
+        "Command was not installed, check for errors: %s" % (command)
 
 
 ### user_<operation> functions
@@ -599,7 +617,7 @@ def system_uuid_alias_add():
     /etc/hosts e.g. `127.0.0.1 localhost <hostname>`.
 
     """
-    with mode_sudo(), cd('/etc'):
+    with mode_sudo(), fabric.api.cd('/etc'):
         old = "127.0.0.1 localhost"
         new = old + " " + system_uuid()
         file_update('hosts', lambda x: text_replace_line(x, old, new)[0])
