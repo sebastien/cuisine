@@ -38,8 +38,19 @@ See also:
 :license:   BSD, see LICENSE for more details.
 """
 
-import base64, bz2, crypt, hashlib, os, random, re, string, tempfile
-import fabric, fabric.api, fabric.operations, fabric.context_managers
+import base64
+import crypt
+import hashlib
+import os
+import random
+import re
+import string
+import tempfile
+
+import fabric
+import fabric.api
+import fabric.context_managers
+import fabric.operations
 
 VERSION     = "0.1.1"
 
@@ -240,7 +251,7 @@ def file_attribs(location, mode=None, owner=None, group=None,
     location."""
     recursive = recursive and "-R " or ""
     if mode:
-        run('chmod %s %s "%s"' % (recursive, mode,  location))
+        run('chmod %s %s "%s"' % (recursive, mode, location))
     if owner:
         run('chown %s %s "%s"' % (recursive, owner, location))
     if group:
@@ -259,6 +270,7 @@ def file_attribs_get(location):
     else:
         return None
 
+
 def file_write(location, content, mode=None, owner=None, group=None):
     """Writes the given content to the file at the given remote
     location, optionally setting mode/owner/group."""
@@ -275,6 +287,7 @@ def file_write(location, content, mode=None, owner=None, group=None):
     # Ensure that the signature matches
     assert sig == file_sha256(location)
 
+
 def file_upload(remote, local):
     """Uploads the local file to the remote location only if the remote location does not
     exists or the content are different."""
@@ -284,6 +297,7 @@ def file_upload(remote, local):
     sig     = hashlib.sha256(content).hexdigest()
     if not file_exists(remote) or sig != file_sha256(remote):
         fabric.operations.put(local, remote, use_sudo=(MODE == MODE_SUDO))
+
 
 def file_update(location, updater=lambda x: x):
     """Updates the content of the given by passing the existing
@@ -312,6 +326,7 @@ def file_append(location, content, mode=None, owner=None, group=None):
         (base64.b64encode(content), location))
     file_attribs(location, mode, owner, group)
 
+
 def file_sha256(location):
     """Returns the SHA-256 sum (as a hex string) for the remote file at the given location"""
     return run('sha256sum "%s" | cut -d" " -f1' % (location))
@@ -322,9 +337,7 @@ def file_sha256(location):
 #       fabric.contrib.files.append(location, content, use_sudo, partial, escape)
 
 
-
 ### dir_<operation> functions
-
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
     """Updates the mode/owner/group for the given remote directory."""
     file_attribs(location, mode, owner, group, recursive)
