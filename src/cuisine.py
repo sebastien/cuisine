@@ -599,7 +599,7 @@ def system_uuid_alias_add():
     /etc/hosts e.g. `127.0.0.1 localhost <hostname>`.
 
     """
-    with mode_sudo(), cd('/etc'):
+    with mode_sudo(), fabric.api.cd('/etc'):
         old = "127.0.0.1 localhost"
         new = old + " " + system_uuid()
         file_update('hosts', lambda x: text_replace_line(x, old, new)[0])
