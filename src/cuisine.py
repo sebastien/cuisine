@@ -26,13 +26,13 @@ systems.
 See also:
 
 - Deploying Django with Fabric
-  <http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric>
+<http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric>
 
 - Notes on Python Fabric 0.9b1
-  <http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1>`_
+<http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1>`_
 
 - EC2, fabric, and "err: stdin: is not a tty"
-  <http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
+<http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
 
 :copyright: (c) 2011 by Sébastien Pierre, see AUTHORS for more details.
 :license:   BSD, see LICENSE for more details.
@@ -193,7 +193,7 @@ def text_ensure_line(text, *lines):
     res = list(text.split(eol))
     for line in lines:
         assert line.find(eol) == -1, \
-               "No EOL allowed in lines parameter: " + repr(line)
+            "No EOL allowed in lines parameter: " + repr(line)
         found = False
         for l in res:
             if l == line:
@@ -313,8 +313,8 @@ def file_update(location, updater=lambda x: x):
     new_content = updater(file_read(location))
 
     assert type(new_content) in (str, unicode, fabric.operations._AttributeString), \
-           "Updater must be like (string)->string, got: %s() = %s" % \
-           (updater, type(new_content))
+        "Updater must be like (string)->string, got: %s() = %s" % \
+        (updater, type(new_content))
     run('echo "%s" | base64 -d > "%s"' %
         (base64.b64encode(new_content), location))
 
@@ -415,7 +415,7 @@ def command_ensure(command, package=None):
     if not command_check(command):
         package_install(package)
     assert command_check(command), \
-           "Command was not installed, check for errors: %s" % (command)
+        "Command was not installed, check for errors: %s" % (command)
 
 
 ### user_<operation> functions
