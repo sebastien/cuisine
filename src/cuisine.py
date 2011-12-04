@@ -38,7 +38,7 @@ See also:
 :license:   BSD, see LICENSE for more details.
 """
 
-import base64, bz2, crypt, hashlib, os, random, re, string, tempfile
+import base64, bz2, crypt, hashlib, os, random, re, string, tempfile, subprocess
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION     = "0.1.1"
@@ -99,6 +99,14 @@ def run(*args, **kwargs):
         return fabric.api.sudo(*args, **kwargs)
     else:
         return fabric.api.run(*args, **kwargs)
+
+def run_local(command):
+    """A wrapper around subprocess"""
+    pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout
+    res = pipe.read()
+    # FIXME: Should stream the pipe, and only print it if fabric's properties allow it
+    print res
+    return pipe
 
 
 def sudo(*args, **kwargs):
@@ -262,6 +270,7 @@ def file_attribs_get(location):
 def file_write(location, content, mode=None, owner=None, group=None):
     """Writes the given content to the file at the given remote
     location, optionally setting mode/owner/group."""
+    # FIXME: Big files are never transferred properly!
     # Gets the content signature and write it to a secure tempfile
     sig            = hashlib.sha256(content).hexdigest()
     fd, local_path = tempfile.mkstemp()
@@ -275,9 +284,19 @@ def file_write(location, content, mode=None, owner=None, group=None):
     # Ensure that the signature matches
     assert sig == file_sha256(location)
 
+def file_ensure(location, mode=None, owner=None, group=None,
+                 recursive=False):
+    """Updates the mode/owner/group for the remote file at the given
+    location."""
+    if file_exists(location):
+        file_attribs(mode=mode,owner=owner,group=group)
+    else:
+        file_write(location,"",mode=mode,owner=owner,group=group)
+
 def file_upload(remote, local):
     """Uploads the local file to the remote location only if the remote location does not
     exists or the content are different."""
+    # FIXME: Big files are never transferred properly!
     f       = file(local, 'rb')
     content = f.read()
     f.close()
@@ -312,6 +331,15 @@ def file_append(location, content, mode=None, owner=None, group=None):
         (base64.b64encode(content), location))
     file_attribs(location, mode, owner, group)
 
+def file_link(source, destination, symbolic=True, mode=None, owner=None, group=None):
+    """Creates a (symbolic) link between source and destination on the remote host,
+    optionally setting its mode/owner/group."""
+    if symbolic:
+        run('ln -sf "%s" "%s"' % (source, destination))
+    else:
+        run('ln -f "%s" "%s"' % (source, destination))
+    file_attribs(destination, mode, owner, group)
+
 def file_sha256(location):
     """Returns the SHA-256 sum (as a hex string) for the remote file at the given location"""
     return run('sha256sum "%s" | cut -d" " -f1' % (location))
@@ -320,7 +348,6 @@ def file_sha256(location):
 # def file_append( location, content, use_sudo=False, partial=False, escape=True):
 #       """Wrapper for fabric.contrib.files.append."""
 #       fabric.contrib.files.append(location, content, use_sudo, partial, escape)
-
 
 
 ### dir_<operation> functions
