@@ -289,7 +289,7 @@ def file_ensure(location, mode=None, owner=None, group=None,
     """Updates the mode/owner/group for the remote file at the given
     location."""
     if file_exists(location):
-        file_attribs(mode=mode,owner=owner,group=group)
+        file_attribs(location,mode=mode,owner=owner,group=group)
     else:
         file_write(location,"",mode=mode,owner=owner,group=group)
 
@@ -613,11 +613,10 @@ def ssh_authorize(user, key):
 def upstart_ensure(name):
     """Ensures that the given upstart service is running, restarting
     it if necessary"""
-    if sudo("status " + name).find("/running") >= 0:
-        sudo("restart " + name)
+    if sudo("service %s status" % name).find("is running") >= 0:
+        sudo("service %s restart" % name)
     else:
-        sudo("start " + name)
-
+        sudo("service %s start" % name)
 
 def system_uuid_alias_add():
     """Adds system UUID alias to /etc/hosts.
