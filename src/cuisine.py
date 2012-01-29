@@ -265,7 +265,7 @@ def file_write(location, content, mode=None, owner=None, group=None):
 	os.write(fd, content)
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
-		fabric.operations.put(local_path, location, use_sudo=(MODE == MODE_SUDO))
+		fabric.operations.put(local_path, location, use_sudo=(mode == MODE_SUDO))
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
