@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 17-Jan-2012
+# Last mod  : 05-Feb-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -38,10 +38,10 @@ See also:
 :license:   BSD, see LICENSE for more details.
 """
 
-import base64, bz2, crypt, hashlib, os, random, re, string, tempfile, subprocess
+import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.1.2"
+VERSION     = "0.2.0"
 
 RE_SPACES   = re.compile("[\s\t]+")
 MAC_EOL     = "\n"
@@ -49,14 +49,55 @@ UNIX_EOL    = "\n"
 WINDOWS_EOL = "\r\n"
 # FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
 MODE_USER   = "user"
+MODE_LOCAL  = False
 MODE_SUDO   = "sudo"
 MODE        = MODE_USER
+DEFAULT_OPTIONS = dict(
+	package="apt"
+)
 
 # context managers and wrappers around fabric's run/sudo; used to
 # either execute cuisine functions with sudo or as current user:
 #
 # with mode_sudo():
 #     pass
+
+def mode_local():
+	"""Sets Cuisine into local mode, where run/sudo won't go through
+	Fabric's API, but directly through a popen. This allows you to
+	easily test your Cuisine scripts without using Fabric"""
+	global MODE_LOCAL
+	if MODE_LOCAL is False:
+		def custom_run( cmd ):
+			global MODE
+			if MODE == "sudo":
+				return os.popen(cmd).read()[:-1]
+			else:
+				return os.popen("sudo " + cmd).read()[:-1]
+		def custom_sudo( cmd ):
+			return os.popen("sudo " + cmd).read()[:-1]
+		module   = sys.modules[__name__]
+		old_run  = getattr(module, "run")
+		old_sudo = getattr(module, "sudo")
+		setattr(module, "run",  custom_run)
+		setattr(module, "sudo", custom_sudo)
+		MODE_LOCAL = (old_run, old_sudo)
+		return True
+	else:
+		return False
+
+def mode_remote():
+	"""Comes back to Fabric's API for run/sudo. This basically reverts
+	the effect of calling `mode_local()`."""
+	global MODE_LOCAL
+	if not (MODE_LOCAL is False):
+		setattr(module, "run",  MODE_LOCAL[0])
+		setattr(module, "sudo", MODE_LOCAL[1])
+		MODE_LOCAL = False
+		return True
+	else:
+		return False
+
 
 class mode_user(object):
 	"""Cuisine functions will be executed as the current user."""
@@ -88,6 +129,24 @@ class mode_sudo(object):
 		global MODE
 		MODE = self._old_mode
 
+# =============================================================================
+#
+# OPTIONS
+#
+# =============================================================================
+
+def select_package( option ):
+	supported = ["apt"]
+	assert option in supported, "Option must be one of: %s"  % (supported)
+	fabric.api.env["option_package"] = option
+
+
+# =============================================================================
+#
+# RUN/SUDO METHODS
+#
+# =============================================================================
+
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
 	'cuisine.MODE' global to tell wether the command should be run as
@@ -111,24 +170,40 @@ def sudo(*args, **kwargs):
 	regular user or sudo."""
 	return fabric.api.sudo(*args, **kwargs)
 
-### decorators
+# =============================================================================
+#
+# DECORATORS
+#
+# =============================================================================
 
-def multiargs(function):
-	"""Decorated functions will be 'map'ed to every element of the
-	first argument if it is a list or a tuple, otherwise the function
-	will execute normally."""
+def dispatch(function):
+	"""Dispatches the current function to specific implementation. For instance
+	@dispatch("package_ensure", select="package_system").
+	"""
 	def wrapper(*args, **kwargs):
-		if len(args) == 0:
-			return function()
-		arg = args[0]
-		args = args[1:]
-		if type(arg) in (tuple, list):
-			return map(lambda _: function(_, *args, **kwargs), arg)
+		function_name = function.__name__
+		prefix        = function_name.split("_")[0]
+		select        = fabric.api.env.get("option_" + prefix)
+		assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (prefix, prefix)
+		function_name = function.__name__ + "_" + select
+		specific      = eval(function_name)
+		if specific:
+			if type(specific) == types.FunctionType:
+				return specific(*args, **kwargs)
+			else:
+				raise Exception("Function expected for: " + function_name)
 		else:
-			return function(arg, *args, **kwargs)
+			raise Exception("Function variant not defined: " + function_name)
+	# We copy name and docstring
+	wrapper.__name__ = function.__name__
+	wrapper.__doc__  = function.__doc__
 	return wrapper
 
-### text_<operation> functions
+# =============================================================================
+#
+# TEXT PROCESSING
+#
+# =============================================================================
 
 def text_detect_eol(text):
 	# FIXME: Should look at the first line
@@ -203,7 +278,11 @@ def text_template(text, variables):
 	template = string.Template(text)
 	return template.safe_substitute(variables)
 
-### file_<operation> functions
+# =============================================================================
+#
+# FILE OPERATIONS
+#
+# =============================================================================
 
 def file_local_read(location):
 	"""Reads a *local* file from the given location, expanding '~' and
@@ -340,7 +419,11 @@ def file_sha256(location):
 #       """Wrapper for fabric.contrib.files.append."""
 #       fabric.contrib.files.append(location, content, use_sudo, partial, escape)
 
-### dir_<operation> functions
+# =============================================================================
+#
+# DIRECTOR OPERATIONS
+#
+# =============================================================================
 
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
@@ -365,11 +448,32 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	if owner or group:
 		dir_attribs(location, owner=owner, group=group)
 
-### package_<operation> functions
+# =============================================================================
+#
+# PACKAGE OPERATIONS
+#
+# =============================================================================
 
+@dispatch
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
 	or list of packages given as argument."""
+
+@dispatch
+def package_install(package, update=False):
+	"""Installs the given package/list of package, optionnaly updating
+	the package database."""
+
+@dispatch
+def package_ensure(package):
+	"""Tests if the given package is installed, and installes it in
+	case it's not already there."""
+
+# -----------------------------------------------------------------------------
+# APT PACKAGE (DEBIAN/UBUNTU)
+# -----------------------------------------------------------------------------
+
+def package_update_apt(package=None):
 	if package == None:
 		sudo("apt-get --yes update")
 	else:
@@ -377,20 +481,15 @@ def package_update(package=None):
 			package = " ".join(package)
 		sudo("apt-get --yes upgrade " + package)
 
-
-def package_install(package, update=False):
-	"""Installs the given package/list of package, optionnaly updating
-	the package database."""
+def package_install_apt(package, update=False):
 	if update:
 		sudo("apt-get --yes update")
 	if type(package) in (list, tuple):
 		package = " ".join(package)
 	sudo("apt-get --yes install %s" % (package))
 
-@multiargs
-def package_ensure(package):
-	"""Tests if the given package is installed, and installes it in
-	case it's not already there."""
+
+def package_ensure_apt(package):
 	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
 	if status.find("not-installed") != -1 or status.find("installed") == -1:
 		package_install(package)
@@ -398,7 +497,11 @@ def package_ensure(package):
 	else:
 		return True
 
-### command_<operation> functions
+# =============================================================================
+#
+# SHELL COMMANDS
+#
+# =============================================================================
 
 def command_check(command):
 	"""Tests if the given command is available on the system."""
@@ -416,7 +519,11 @@ def command_ensure(command, package=None):
 	assert command_check(command), \
 		"Command was not installed, check for errors: %s" % (command)
 
-### user_<operation> functions
+# =============================================================================
+#
+# USER OPERATIONS
+#
+# =============================================================================
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 				uid_min=None, uid_max=None):
@@ -492,7 +599,11 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 		if options:
 			sudo("usermod %s '%s'" % (" ".join(options), name))
 
-### group_<operation> functions
+# =============================================================================
+#
+# GROUP OPERATIONS
+#
+# =============================================================================
 
 def group_create(name, gid=None):
 	"""Creates a group with the given name, and optionally given gid."""
@@ -563,6 +674,12 @@ def ssh_keygen(user, keytype="dsa"):
 	else:
 		return True
 
+# =============================================================================
+#
+# MISC
+#
+# =============================================================================
+
 def ssh_authorize(user, key):
 	"""Adds the given key to the '.ssh/authorized_keys' for the given
 	user."""
@@ -581,7 +698,6 @@ def ssh_authorize(user, key):
 		file_write(keyf, key)
 		return False
 
-### miscellaneous (utility/helper) functions
 
 def upstart_ensure(name):
 	"""Ensures that the given upstart service is running, restarting
@@ -605,5 +721,9 @@ def system_uuid_alias_add():
 def system_uuid():
 	"""Gets a machines UUID (Universally Unique Identifier)."""
 	return sudo('dmidecode -s system-uuid | tr "[A-Z]" "[a-z]"')
+
+# Sets up the default options so that @dispatch'ed functions work
+for option, value in DEFAULT_OPTIONS.items():
+	eval("select_" + option)(value)
 
 # EOF - vim: ts=4 sw=4 noet
