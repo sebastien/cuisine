@@ -135,10 +135,12 @@ class mode_sudo(object):
 #
 # =============================================================================
 
-def select_package( option ):
+def select_package( option=None ):
 	supported = ["apt"]
-	assert option in supported, "Option must be one of: %s"  % (supported)
-	fabric.api.env["option_package"] = option
+	if not (option is None):
+		assert option in supported, "Option must be one of: %s"  % (supported)
+		fabric.api.env["option_package"] = option
+	return (fabric.api.env["option_package"], supported)
 
 
 # =============================================================================
