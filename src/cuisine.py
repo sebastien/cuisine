@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 05-Feb-2012
+# Last mod  : 06-Feb-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -41,7 +41,7 @@ See also:
 import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.2.0"
+VERSION     = "0.2.1"
 
 RE_SPACES   = re.compile("[\s\t]+")
 MAC_EOL     = "\n"
@@ -715,10 +715,10 @@ def system_uuid_alias_add():
 	Some tools/processes rely/want the hostname as an alias in
 	/etc/hosts e.g. `127.0.0.1 localhost <hostname>`.
 	"""
-	with mode_sudo(), cd('/etc'):
-			old = "127.0.0.1 localhost"
-			new = old + " " + system_uuid()
-			file_update('hosts', lambda x: text_replace_line(x, old, new)[0])
+	with mode_sudo():
+		old = "127.0.0.1 localhost"
+		new = old + " " + system_uuid()
+		file_update('/etc/hosts', lambda x: text_replace_line(x, old, new)[0])
 
 def system_uuid():
 	"""Gets a machines UUID (Universally Unique Identifier)."""
