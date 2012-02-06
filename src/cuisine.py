@@ -672,9 +672,9 @@ def ssh_keygen(user, keytype="dsa"):
 			(keytype, home, keytype))
 		file_attribs(home + "/.ssh/id_%s" % keytype, owner=user, group=user)
 		file_attribs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
-		return False
+		return key_file
 	else:
-		return True
+		return key_file
 
 # =============================================================================
 #
