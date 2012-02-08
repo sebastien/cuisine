@@ -253,7 +253,7 @@ def text_ensure_line(text, *lines):
 	the end of it."""
 	eol = text_detect_eol(text)
 	res = list(text.split(eol))
-	if res[0] is '' and len(res)=1:
+	if res[0] is '' and len(res) is 1:
 		res = list()
 	for line in lines:
 		assert line.find(eol) == -1, "No EOL allowed in lines parameter: " + repr(line)
