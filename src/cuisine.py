@@ -65,7 +65,7 @@ DEFAULT_OPTIONS = dict(
 def mode_local():
 	"""Sets Cuisine into local mode, where run/sudo won't go through
 	Fabric's API, but directly through a popen. This allows you to
-	easily test your Cuisine scripts without using Fabric"""
+	easily test your Cuisine scripts without using Fabric."""
 	global MODE_LOCAL
 	if MODE_LOCAL is False:
 		def custom_run( cmd ):
@@ -159,7 +159,7 @@ def run(*args, **kwargs):
 		return fabric.api.run(*args, **kwargs)
 
 def run_local(command):
-	"""A wrapper around subprocess"""
+	"""A wrapper around subprocess."""
 	pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout
 	res = pipe.read()
 	# FIXME: Should stream the pipe, and only print it if fabric's properties allow it
@@ -413,7 +413,7 @@ def file_link(source, destination, symbolic=True, mode=None, owner=None, group=N
 	file_attribs(destination, mode, owner, group)
 
 def file_sha256(location):
-	"""Returns the SHA-256 sum (as a hex string) for the remote file at the given location"""
+	"""Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
 	return run('sha256sum "%s" | cut -d" " -f1' % (location))
 
 # TODO: From McCoy's version, consider merging
@@ -437,7 +437,7 @@ def dir_exists(location):
 
 def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	"""Ensures that there is a remote directory at the given location,
-	optionnaly updating its mode/owner/group.
+	optionally updating its mode/owner/group.
 
 	If we are not updating the owner/group then this can be done as a single
 	ssh call, so use that method, otherwise set owner/group after creation."""
@@ -463,7 +463,7 @@ def package_update(package=None):
 
 @dispatch
 def package_install(package, update=False):
-	"""Installs the given package/list of package, optionnaly updating
+	"""Installs the given package/list of package, optionally updating
 	the package database."""
 
 @dispatch
@@ -703,7 +703,7 @@ def ssh_authorize(user, key):
 
 def upstart_ensure(name):
 	"""Ensures that the given upstart service is running, restarting
-	it if necessary"""
+	it if necessary."""
 	status = sudo("service %s status" % name)
 	if status.find("is running") >= 0 or status.find("/running") >= 0:
 		sudo("service %s restart" % name)
