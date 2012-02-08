@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 06-Feb-2012
+# Last mod  : 08-Feb-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -253,6 +253,8 @@ def text_ensure_line(text, *lines):
 	the end of it."""
 	eol = text_detect_eol(text)
 	res = list(text.split(eol))
+	if res[0] is '' and len(res)=1:
+		res = list()
 	for line in lines:
 		assert line.find(eol) == -1, "No EOL allowed in lines parameter: " + repr(line)
 		found = False
