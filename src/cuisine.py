@@ -476,7 +476,7 @@ def package_ensure(package):
 # -----------------------------------------------------------------------------
 
 def aptrepo_ensure(aptrepo):
-	sudo("add-apt-repository " + package)
+	sudo("add-apt-repository " + aptrepo)
 
 def package_update_apt(package=None):
 	if package == None:
