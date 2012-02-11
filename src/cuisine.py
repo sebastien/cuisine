@@ -539,6 +539,9 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 		options.append("-d '%s'" % (home))
 	if uid:
 		options.append("-u '%s'" % (uid))
+	#if group exists already but is not specified, useradd fails
+	if not gid and group_check(name):
+		gid = name
 	if gid:
 		options.append("-g '%s'" % (gid))
 	if shell:
