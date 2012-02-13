@@ -491,6 +491,10 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 # =============================================================================
 
 @dispatch
+def package_upgrade():
+	"""Updates every package present on the system."""
+
+@dispatch
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
 	or list of packages given as argument."""
@@ -512,6 +516,9 @@ def package_ensure(package, update=False):
 
 def repository_ensure_apt(repository):
 	sudo("add-apt-repository " + repository)
+
+def package_upgrade_apt():
+	sudo("apt-get --yes upgrade")
 
 def package_update_apt(package=None):
 	if package == None:
