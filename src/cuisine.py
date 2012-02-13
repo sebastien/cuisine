@@ -717,8 +717,24 @@ def system_uuid():
 	"""Gets a machines UUID (Universally Unique Identifier)."""
 	return sudo('dmidecode -s system-uuid | tr "[A-Z]" "[a-z]"')
 
+#Only tested on Ubuntu!
+def locale_check(locale):
+	locale_data = sudo("locale -a | egrep '^%s$' ; true" % (locale,))
+	return locale_data == locale
+
+def locale_ensure(locale):
+	if locale_check(locale):
+		return
+	with fabric.context_managers.settings(warn_only=True):
+		sudo("/usr/share/locales/install-language-pack %s" % (locale,))
+	sudo("dpkg-reconfigure locales")
+
+
 # Sets up the default options so that @dispatch'ed functions work
 for option, value in DEFAULT_OPTIONS.items():
 	eval("select_" + option)(value)
+
+
+
 
 # EOF - vim: ts=4 sw=4 noet
