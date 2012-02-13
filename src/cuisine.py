@@ -473,8 +473,8 @@ def package_ensure(package):
 # APT PACKAGE (DEBIAN/UBUNTU)
 # -----------------------------------------------------------------------------
 
-def aptrepo_ensure(aptrepo):
-	sudo("add-apt-repository " + aptrepo)
+def repository_ensure_apt(repository):
+	sudo("add-apt-repository " + repository)
 
 def package_update_apt(package=None):
 	if package == None:
