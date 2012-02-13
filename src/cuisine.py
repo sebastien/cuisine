@@ -473,6 +473,9 @@ def package_ensure(package):
 # APT PACKAGE (DEBIAN/UBUNTU)
 # -----------------------------------------------------------------------------
 
+def aptrepo_ensure(aptrepo):
+	sudo("add-apt-repository " + aptrepo)
+
 def package_update_apt(package=None):
 	if package == None:
 		sudo("apt-get --yes update")
@@ -530,16 +533,13 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	"""Creates the user with the given name, optionally giving a
 	specific password/home/uid/gid/shell."""
 	options = ["-m"]
-	if passwd:
-		method = 6
-		saltchars = string.ascii_letters + string.digits + './'
-		salt = ''.join([random.choice(saltchars) for x in range(8)])
-		passwd_crypted = crypt.crypt(passwd, '$%s$%s' % (method, salt))
-		options.append("-p '%s'" % (passwd_crypted))
 	if home:
 		options.append("-d '%s'" % (home))
 	if uid:
 		options.append("-u '%s'" % (uid))
+	#if group exists already but is not specified, useradd fails
+	if not gid and group_check(name):
+		gid = name
 	if gid:
 		options.append("-g '%s'" % (gid))
 	if shell:
@@ -549,6 +549,9 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	if uid_max:
 		options.append("-K UID_MAX='%s'" % (uid_max))
 	sudo("useradd %s '%s'" % (" ".join(options), name))
+	if passwd:
+		sudo("echo %s:%s | chpasswd" % (name, passwd))
+
 
 def user_check(name):
 	"""Checks if there is a user defined with the given name,
@@ -576,18 +579,6 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 		user_create(name, passwd, home, uid, gid, shell)
 	else:
 		options = []
-		if passwd != None and d.get('passwd') != None:
-			method, salt = d.get('passwd').split('$')[1:3]
-			passwd_crypted = crypt.crypt(passwd, '$%s$%s' % (method, salt))
-			if passwd_crypted != d.get('passwd'):
-				options.append("-p '%s'" % (passwd_crypted))
-		if passwd != None and d.get('passwd') is None:
-			# user doesn't have passwd
-			method = 6
-			saltchars = string.ascii_letters + string.digits + './'
-			salt = ''.join([random.choice(saltchars) for x in range(8)])
-			passwd_crypted = crypt.crypt(passwd, '$%s$%s' % (method, salt))
-			options.append("-p '%s'" % (passwd_crypted))
 		if home != None and d.get("home") != home:
 			options.append("-d '%s'" % (home))
 		if uid != None and d.get("uid") != uid:
@@ -598,6 +589,8 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 			options.append("-s '%s'" % (shell))
 		if options:
 			sudo("usermod %s '%s'" % (" ".join(options), name))
+		if passwd:
+			sudo("echo %s:%s | chpasswd" % (name, passwd))
 
 # =============================================================================
 #
