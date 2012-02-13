@@ -608,6 +608,7 @@ def user_check(name):
 	results = {}
 	if d:
 		d = d.split(":")
+		assert len(d) >= 7, "/etc/passwd entry is expected to have at least 7 fields, got %s in: %s" % (len(d), d.join(":"))
 		results = dict(name=d[0], uid=d[2], gid=d[3], home=d[5], shell=d[6])
 	if s:
 		results['passwd'] = s
