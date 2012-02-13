@@ -381,12 +381,16 @@ def file_write(location, content, mode=None, owner=None, group=None):
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
 		if MODE == MODE_SUDO: mode = MODE_SUDO
-		fabric.operations.put(local_path, location, use_sudo=(mode == MODE_SUDO))
+		try:
+			fabric.operations.put(local_path, location, use_sudo=(mode == MODE_SUDO))
+		except Exception, e:
+			print "cuisine.file_write exception:"
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
-	# Ensure that the signature matches
+	# Ensures that the signature matches
 	assert sig == file_sha256(location)
+	file_attribs(location, mode=mode, owner=owner, group=group)
 
 def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
