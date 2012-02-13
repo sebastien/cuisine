@@ -38,7 +38,7 @@ See also:
 :license:   BSD, see LICENSE for more details.
 """
 
-import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types
+import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION     = "0.2.2"
@@ -224,8 +224,7 @@ def dispatch(prefix=None):
 			else:
 				raise Exception("Function variant not defined: " + function_name)
 		# We copy name and docstring
-		wrapper.__name__ = function.__name__
-		wrapper.__doc__  = function.__doc__
+		functools.update_wrapper(wrapper, function)
 		return wrapper
 	if type(prefix) == types.FunctionType:
 		return dispatch_wrapper(prefix, None)
