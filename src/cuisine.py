@@ -458,6 +458,9 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
 	or list of packages given as argument."""
+@dispatch
+def package_update(package=None):
+	"""Upgrade the system."""
 
 @dispatch
 def package_install(package, update=False):
@@ -483,6 +486,9 @@ def package_update_apt(package=None):
 		if type(package) in (list, tuple):
 			package = " ".join(package)
 		sudo("apt-get --yes upgrade " + package)
+
+def package_upgrade_apt(package=None):
+	sudo("apt-get --yes upgrade")
 
 def package_install_apt(package, update=False):
 	if update:
