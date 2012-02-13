@@ -497,9 +497,10 @@ def package_install(package, update=False):
 	the package database."""
 
 @dispatch
-def package_ensure(package):
-	"""Tests if the given package is installed, and installes it in
-	case it's not already there."""
+def package_ensure(package, update=False):
+	"""Tests if the given package is installed, and installs it in
+	case it's not already there. If `update` is true, then the
+	package will be updated if it already exists."""
 
 # -----------------------------------------------------------------------------
 # APT PACKAGE (DEBIAN/UBUNTU)
@@ -524,12 +525,13 @@ def package_install_apt(package, update=False):
 	sudo("apt-get --yes install %s" % (package))
 
 
-def package_ensure_apt(package):
+def package_ensure_apt(package, update=False):
 	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
 	if status.find("not-installed") != -1 or status.find("installed") == -1:
 		package_install(package)
 		return False
 	else:
+		if update: package_update(package)
 		return True
 
 # =============================================================================
