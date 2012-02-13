@@ -695,8 +695,8 @@ def ssh_authorize(user, key):
 			return True
 	else:
 		# Make sure that .ssh directory exists, see #42
-		dir_ensure(os.path.dirname(keyf), user=user, group=user, mode="700")
-		file_write(keyf, key,             user=user, group=user, mode="600")
+		dir_ensure(os.path.dirname(keyf), owner=user, group=user, mode="700")
+		file_write(keyf, key,             owner=user, group=user, mode="600")
 		return False
 
 def upstart_ensure(name):
