@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 08-Feb-2012
+# Last mod  : 13-Feb-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -34,14 +34,14 @@ See also:
 - EC2, fabric, and "err: stdin: is not a tty"
   <http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
 
-:copyright: (c) 2011 by Sébastien Pierre, see AUTHORS for more details.
+:copyright: (c) 2011,2012 by Sébastien Pierre.
 :license:   BSD, see LICENSE for more details.
 """
 
 import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.2.1"
+VERSION     = "0.2.2"
 
 RE_SPACES   = re.compile("[\s\t]+")
 MAC_EOL     = "\n"
