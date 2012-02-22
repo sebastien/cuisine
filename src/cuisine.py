@@ -636,7 +636,7 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 			sudo("usermod %s '%s'" % (" ".join(options), name))
 		if passwd:
 			encoded_password = base64.b64encode("%s:%s" % (name, passwd))
-			sudo("echo %s | base64 --decode | chpasswd" % (encoded_password,name, passwd))
+			sudo("echo %s | base64 --decode | chpasswd" % encoded_password)
 
 # =============================================================================
 #
