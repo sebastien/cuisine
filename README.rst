@@ -46,6 +46,7 @@ How to get started
 Open up a python shell and type:
 
 ::
+
     import cuisine
 
 Cuisine is designed to be a flat-file module, where all functions are prefixed
@@ -84,6 +85,7 @@ If you're using an interactive Python shell such as
 functions by using tab-completion.
 
 ::
+
     In [2]: cuisine.file_
     cuisine.file_append       cuisine.file_is_file      cuisine.file_unlink
     cuisine.file_attribs      cuisine.file_is_link      cuisine.file_update
@@ -99,6 +101,7 @@ If you would like to use cuisine without using a `fabfile`, you can call the
 `mode_local()` function.
 
 ::
+
     import cuisine
     cuisine.mode_local()
     print cuisine.run("echo Hello")
@@ -107,6 +110,7 @@ If you want to use cuisine within a `fabfile`, simply create a `fabfile`
 with the following content:
 
 ::
+
     from cuisine import *
 
     def setup():
@@ -145,6 +149,7 @@ To use a specific backend implementation of a set of features, use the
 `select_*` functions.
 
 ::
+
     # To use the 'apt' backend
     cuisine.select_package("apt")
     # To see the available backends
