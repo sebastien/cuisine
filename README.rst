@@ -82,7 +82,7 @@ by the type of functionality they offer (ie. `file` for file operations,
 
 if you're using an interactive Python shell such as
 `IPython <http://ipython.org/>`_ you can easily browse the available
-functions by using tab-completetion.
+functions by using tab-completion.
 
 ::
     In [2]: cuisine.file_
@@ -123,7 +123,7 @@ easily be adapted to other distributions or Unix flavor, the only caveat being
 that the shell is expected to be bash-compatible.
 
 If you want to implement a specific variant of some functions for a specific
-platform, you should do the folowing.
+platform, you should do the following.
 
 1) Open the `cuisine.py` source and look for the definition of the function
    that you would like to specialize.

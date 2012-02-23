@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Project   : Cuisine - Functions to write Fabric recipies
+# Project   : Cuisine - Functions to write Fabric recipes
 # -----------------------------------------------------------------------------
 # Author    : Sebastien Pierre                            <sebastien@ffctn.com>
 # Author    : Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
@@ -13,7 +13,7 @@
 
 """
 `cuisine` makes it easy to write automatic server installation
-and configuration recipies by wrapping common administrative tasks
+and configuration recipes by wrapping common administrative tasks
 (installing packages, creating users and groups) in Python
 functions.
 
@@ -151,7 +151,7 @@ def select_package( option=None ):
 
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
-	'cuisine.MODE' global to tell wether the command should be run as
+	'cuisine.MODE' global to tell whether the command should be run as
 	regular user or sudo."""
 	if MODE == MODE_SUDO:
 		return fabric.api.sudo(*args, **kwargs)
@@ -168,7 +168,7 @@ def run_local(command):
 
 def sudo(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
-	'cuisine.MODE' global to tell wether the command should be run as
+	'cuisine.MODE' global to tell whether the command should be run as
 	regular user or sudo."""
 	return fabric.api.sudo(*args, **kwargs)
 
