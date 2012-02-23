@@ -12,7 +12,7 @@ About
 -----
 
 `Fabric <http://fabfile.org>`_ is an incredible tool to automate administration
-of remote machines. As Fabric's function are rather low-level, you'll probably
+of remote machines. As Fabric's functions are rather low-level, you'll probably
 quickly see a need for more high-level functions such as add/remove users and
 groups, install/upgrade packages, etc.
 
@@ -26,8 +26,7 @@ Cuisine's features are:
 * Small, easy to read, a single file API: <object>_<operation>() e.g.
   dir_exists(location) tells if there is a remote directory at the
   given location.
-* Covers file/dir operations, user/group operations, package
-  operations
+* Covers file/dir operations, user/group operations, package operations
 * Text processing and template functions
 * All functions are lazy: they will actually only do things when the
   change is required.
@@ -36,7 +35,7 @@ Cuisine's features are:
 Installation
 ------------
 
-cuisine is on PyPI so you can either use ``easy_install -U cuisine``
+Cuisine is on PyPI so you can either use ``easy_install -U cuisine``
 or ``pip install cuisine`` to install it. Otherwise, you can download
 the source from `GitHub <http://github.com/sebastien/cuisine>`_ and
 run ``python setup.py install``.
@@ -44,14 +43,14 @@ run ``python setup.py install``.
 How to get started
 ------------------
 
-Open up a python shell and type the following:
+Open up a python shell and type:
 
 ::
     import cuisine
 
 Cuisine is designed to be a flat-file module, where all functions are prefixed
-by the type of functionality they offer (ie. `file` for file operations,
-`user` for user operations, etc.). The available groups are the following:
+by the type of functionality they offer (e.g., `file` for file operations,
+`user` for user operations). The available groups are:
 
     `text_*`
         Text-processing functions
@@ -80,7 +79,7 @@ by the type of functionality they offer (ie. `file` for file operations,
     `select_*`
         Selects a specific option, such as package back-end (`apt` or `yum`)
 
-if you're using an interactive Python shell such as
+If you're using an interactive Python shell such as
 `IPython <http://ipython.org/>`_ you can easily browse the available
 functions by using tab-completion.
 
@@ -93,7 +92,7 @@ functions by using tab-completion.
     cuisine.file_exists       cuisine.file_read
     cuisine.file_is_dir       cuisine.file_sha256
 
-as the functions are prefixed by they type of functionality, it is very
+As the functions are prefixed by they type of functionality, it is very
 easy to get started using an interactive shell.
 
 If you would like to use cuisine without using a `fabfile`, you can call the
@@ -104,7 +103,7 @@ If you would like to use cuisine without using a `fabfile`, you can call the
     cuisine.mode_local()
     print cuisine.run("echo Hello")
 
-if you want to use cuisine within a `fabfile`, simply create a `fabfile`
+If you want to use cuisine within a `fabfile`, simply create a `fabfile`
 with the following content:
 
 ::
@@ -123,7 +122,7 @@ easily be adapted to other distributions or Unix flavor, the only caveat being
 that the shell is expected to be bash-compatible.
 
 If you want to implement a specific variant of some functions for a specific
-platform, you should do the following.
+platform, you should do the following:
 
 1) Open the `cuisine.py` source and look for the definition of the function
    that you would like to specialize.
