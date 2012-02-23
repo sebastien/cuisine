@@ -160,5 +160,4 @@ More?
 
 If you want more information, you can:
 
-* Check out Cuisine's API documentation below
 * Read the `presentation on Cuisine <http://ur1.ca/45ku5>`_
