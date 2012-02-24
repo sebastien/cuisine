@@ -41,7 +41,7 @@ See also:
 import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.2.2"
+VERSION     = "0.2.3"
 
 RE_SPACES   = re.compile("[\s\t]+")
 MAC_EOL     = "\n"
