@@ -3,15 +3,6 @@ import cuisine
 
 USER = os.popen("whoami").read()[:-1]
 
-def custom_run( cmd ):
-	if cuisine.MODE == "sudo":
-		return os.popen(cmd).read()[:-1]
-	else:
-		return os.popen("sudo " + cmd).read()[:-1]
-
-def custom_sudo( cmd ):
-	return os.popen("sudo " + cmd).read()[:-1]
-
 class Text(unittest.TestCase):
 
 	def testEnsureLine( self ):
@@ -57,8 +48,7 @@ class SSHKeys(unittest.TestCase):
 
 if __name__ == "__main__":
 	# We bypass fabric as we want the tests to be run locally
-	setattr(cuisine, "run",  custom_run)
-	setattr(cuisine, "sudo", custom_sudo)
+	cuisine.mode_local()
 	unittest.main()
 
 # EOF

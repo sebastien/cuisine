@@ -48,10 +48,8 @@ MAC_EOL     = "\n"
 UNIX_EOL    = "\n"
 WINDOWS_EOL = "\r\n"
 # FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
-MODE_USER   = "user"
 MODE_LOCAL  = False
-MODE_SUDO   = "sudo"
-MODE        = MODE_USER
+MODE_SUDO   = False
 DEFAULT_OPTIONS = dict(
 	package="apt"
 )
@@ -69,11 +67,11 @@ def mode_local():
 	global MODE_LOCAL
 	if MODE_LOCAL is False:
 		def custom_run( cmd ):
-			global MODE
-			if MODE == "sudo":
-				return os.popen(cmd).read()[:-1]
-			else:
+			global MODE_SUDO
+			if MODE_SUDO:
 				return os.popen("sudo " + cmd).read()[:-1]
+			else:
+				return os.popen(cmd).read()[:-1]
 		def custom_sudo( cmd ):
 			return os.popen("sudo " + cmd).read()[:-1]
 		module   = sys.modules[__name__]
@@ -104,31 +102,31 @@ class mode_user(object):
 	"""Cuisine functions will be executed as the current user."""
 
 	def __init__(self):
-		global MODE
-		self._old_mode = MODE
-		MODE = MODE_USER
+		global MODE_SUDO
+		self._old_mode = MODE_SUDO
+		MODE_SUDO = False
 
 	def __enter__(self):
 		pass
 
 	def __exit__(self, *args, **kws):
-		global MODE
-		MODE = self._old_mode
+		global MODE_SUDO
+		MODE_SUDO = self._old_mode
 
 class mode_sudo(object):
 	"""Cuisine functions will be executed with sudo."""
 
 	def __init__(self):
-		global MODE
-		self._old_mode = MODE
-		MODE = MODE_SUDO
+		global MODE_SUDO
+		self._old_mode = MODE_SUDO
+		MODE_SUDO = True
 
 	def __enter__(self):
 		pass
 
 	def __exit__(self, *args, **kws):
-		global MODE
-		MODE = self._old_mode
+		global MODE_SUDO
+		MODE_SUDO = self._old_mode
 
 # =============================================================================
 #
@@ -154,7 +152,7 @@ def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
 	'cuisine.MODE' global to tell whether the command should be run as
 	regular user or sudo."""
-	if MODE == MODE_SUDO:
+	if MODE_SUDO:
 		return fabric.api.sudo(*args, **kwargs)
 	else:
 		return fabric.api.run(*args, **kwargs)
@@ -169,7 +167,7 @@ def run_local(command):
 
 def sudo(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
-	'cuisine.MODE' global to tell whether the command should be run as
+	'cuisine.MODE_SUDO' global to tell whether the command should be run as
 	regular user or sudo."""
 	return fabric.api.sudo(*args, **kwargs)
 
@@ -370,7 +368,7 @@ def file_attribs_get(location):
 	else:
 		return None
 
-def file_write(location, content, mode=None, owner=None, group=None):
+def file_write(location, content, mode=None, owner=None, group=None, sudo=None):
 	"""Writes the given content to the file at the given remote
 	location, optionally setting mode/owner/group."""
 	# FIXME: Big files are never transferred properly!
@@ -380,9 +378,9 @@ def file_write(location, content, mode=None, owner=None, group=None):
 	os.write(fd, content)
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
-		if MODE == MODE_SUDO: mode = MODE_SUDO
+		if MODE_SUDO: sudo = MODE_SUDO
 		try:
-			fabric.operations.put(local_path, location, use_sudo=(mode == MODE_SUDO))
+			fabric.operations.put(local_path, location, use_sudo=sudo)
 		except Exception, e:
 			print "cuisine.file_write exception:"
 	# Remove the local temp file
@@ -400,7 +398,7 @@ def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
 	else:
 		file_write(location,"",mode=mode,owner=owner,group=group)
 
-def file_upload(remote, local):
+def file_upload(remote, local, sudo=None):
 	"""Uploads the local file to the remote location only if the remote location does not
 	exists or the content are different."""
 	# FIXME: Big files are never transferred properly!
@@ -408,8 +406,9 @@ def file_upload(remote, local):
 	content = f.read()
 	f.close()
 	sig     = hashlib.sha256(content).hexdigest()
+	if MODE_SUDO: sudo = MODE_SUDO
 	if not file_exists(remote) or sig != file_sha256(remote):
-		fabric.operations.put(local, remote, use_sudo=(MODE == MODE_SUDO))
+		fabric.operations.put(local, remote, use_sudo=sudo)
 
 def file_update(location, updater=lambda x: x):
 	"""Updates the content of the given by passing the existing
