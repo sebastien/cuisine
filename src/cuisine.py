@@ -497,6 +497,9 @@ def package_upgrade():
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
 	or list of packages given as argument."""
+@dispatch
+def package_update(package=None):
+	"""Upgrade the system."""
 
 @dispatch
 def package_install(package, update=False):
@@ -526,6 +529,9 @@ def package_update_apt(package=None):
 		if type(package) in (list, tuple):
 			package = " ".join(package)
 		sudo("apt-get --yes upgrade " + package)
+
+def package_upgrade_apt(package=None):
+	sudo("apt-get --yes upgrade")
 
 def package_install_apt(package, update=False):
 	if update:
@@ -735,8 +741,8 @@ def ssh_authorize(user, key):
 			return True
 	else:
 		# Make sure that .ssh directory exists, see #42
-		dir_ensure(os.path.dirname(keyf), user=user, group=user, mode="700")
-		file_write(keyf, key,             user=user, group=user, mode="600")
+		dir_ensure(os.path.dirname(keyf), owner=user, group=user, mode="700")
+		file_write(keyf, key,             owner=user, group=user, mode="600")
 		return False
 
 def upstart_ensure(name):
