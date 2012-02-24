@@ -748,11 +748,12 @@ def ssh_authorize(user, key):
 def upstart_ensure(name):
 	"""Ensures that the given upstart service is running, restarting
 	it if necessary."""
-	status = sudo("service %s status" % name)
-	if status.find("is running") >= 0 or status.find("/running") >= 0:
-		sudo("service %s restart" % name)
-	else:
+	with fabric.api.settings(warn_only=True):
+		status = sudo("service %s status" % name)
+	if status.failed:
 		sudo("service %s start" % name)
+	else:
+		sudo("service %s restart" % name)
 
 def system_uuid_alias_add():
 	"""Adds system UUID alias to /etc/hosts.
