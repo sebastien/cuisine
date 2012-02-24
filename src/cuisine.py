@@ -91,6 +91,7 @@ def mode_remote():
 	the effect of calling `mode_local()`."""
 	global MODE_LOCAL
 	if not (MODE_LOCAL is False):
+		module = sys.modules[__name__]
 		setattr(module, "run",  MODE_LOCAL[0])
 		setattr(module, "sudo", MODE_LOCAL[1])
 		MODE_LOCAL = False
