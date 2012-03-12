@@ -647,6 +647,14 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 		if passwd:
 			user_passwd(name, passwd)
 
+def user_remove(name, rmhome=None):
+	"""Removes the user with the given name, optionally 
+	removing the home directory and mail spool."""
+	options = ["-f"]
+	if rmhome:
+		options.append("-r")
+	sudo("userdel %s '%s'" % (" ".join(options), name))
+
 # =============================================================================
 #
 # GROUP OPERATIONS
