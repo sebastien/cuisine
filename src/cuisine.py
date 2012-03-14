@@ -452,7 +452,10 @@ def file_link(source, destination, symbolic=True, mode=None, owner=None, group=N
 
 def file_sha256(location):
 	"""Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
-	return run('sha256sum "%s" | cut -d" " -f1' % (location))
+	# NOTE: In some cases, sudo can output errors in here -- but the errors will
+	# appear before the result, so we simply split and get the last line to
+	# be on the safe side.
+	return run('sha256sum "%s" | cut -d" " -f1' % (location)).split("\n")[-1]
 
 # TODO: From McCoy's version, consider merging
 # def file_append( location, content, use_sudo=False, partial=False, escape=True):
