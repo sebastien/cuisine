@@ -50,6 +50,7 @@ WINDOWS_EOL = "\r\n"
 # FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
 MODE_LOCAL  = False
 MODE_SUDO   = False
+SUDO_PASSWORD = None
 DEFAULT_OPTIONS = dict(
 	package="apt"
 )
@@ -60,20 +61,27 @@ DEFAULT_OPTIONS = dict(
 # with mode_sudo():
 #     pass
 
+def sudo_password(password):
+    global SUDO_PASSWORD
+    SUDO_PASSWORD= password
+
 def mode_local():
 	"""Sets Cuisine into local mode, where run/sudo won't go through
 	Fabric's API, but directly through a popen. This allows you to
 	easily test your Cuisine scripts without using Fabric."""
-	global MODE_LOCAL
+	global MODE_LOCAL, SUDO_PASSWORD	
+	sudo_cmd = "sudo "
+	if not SUDO_PASSWORD is None:
+		sudo_cmd= "echo %s|sudo -S -p '' "%SUDO_PASSWORD
 	if MODE_LOCAL is False:
 		def custom_run( cmd ):
 			global MODE_SUDO
 			if MODE_SUDO:
-				return os.popen("sudo " + cmd).read()[:-1]
+				return os.popen(sudo_cmd + cmd).read()[:-1]
 			else:
 				return os.popen(cmd).read()[:-1]
 		def custom_sudo( cmd ):
-			return os.popen("sudo " + cmd).read()[:-1]
+			return os.popen(sudo_cmd + cmd).read()[:-1]
 		module   = sys.modules[__name__]
 		old_run  = getattr(module, "run")
 		old_sudo = getattr(module, "sudo")
@@ -379,10 +387,13 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None):
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
 		if MODE_SUDO: sudo = MODE_SUDO
-		try:
-			fabric.operations.put(local_path, location, use_sudo=sudo)
-		except Exception, e:
-			print "cuisine.file_write exception:"
+        if MODE_LOCAL:
+            run('cp "%s" "%s"'%(local_path,location))
+        else:
+    		try:
+    			fabric.operations.put(local_path, location, use_sudo=sudo)
+    		except Exception, e:
+    			print "cuisine.file_write exception:"
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
@@ -464,7 +475,7 @@ def file_sha256(location):
 
 # =============================================================================
 #
-# DIRECTOR OPERATIONS
+# DIRECTORY OPERATIONS
 #
 # =============================================================================
 
@@ -649,6 +660,14 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 			sudo("usermod %s '%s'" % (" ".join(options), name))
 		if passwd:
 			user_passwd(name, passwd)
+
+def user_remove(name, rmhome=None):
+	"""Removes the user with the given name, optionally 
+	removing the home directory and mail spool."""
+	options = ["-f"]
+	if rmhome:
+		options.append("-r")
+	sudo("userdel %s '%s'" % (" ".join(options), name))
 
 # =============================================================================
 #
