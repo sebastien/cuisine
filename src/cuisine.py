@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 13-Feb-2012
+# Last mod  : 14-Mar-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -41,7 +41,7 @@ See also:
 import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.2.3"
+VERSION     = "0.2.4"
 
 RE_SPACES   = re.compile("[\s\t]+")
 MAC_EOL     = "\n"
@@ -105,7 +105,6 @@ def mode_remote():
 	else:
 		return False
 
-
 class mode_user(object):
 	"""Cuisine functions will be executed as the current user."""
 
@@ -148,7 +147,6 @@ def select_package( option=None ):
 		assert option in supported, "Option must be one of: %s"  % (supported)
 		fabric.api.env["option_package"] = option
 	return (fabric.api.env["option_package"], supported)
-
 
 # =============================================================================
 #
@@ -237,7 +235,6 @@ def dispatch(prefix=None):
 		return dispatch_wrapper(prefix, None)
 	else:
 		return dispatch_wrapper
-
 
 # =============================================================================
 #
@@ -386,14 +383,15 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None):
 	os.write(fd, content)
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
-		if MODE_SUDO: sudo = MODE_SUDO
-        if MODE_LOCAL:
-            run('cp "%s" "%s"'%(local_path,location))
-        else:
-    		try:
-    			fabric.operations.put(local_path, location, use_sudo=sudo)
-    		except Exception, e:
-    			print "cuisine.file_write exception:"
+		if MODE_LOCAL:
+			run('cp "%s" "%s"'%(local_path,location))
+		else:
+			if MODE_SUDO:
+				sudo = MODE_SUDO
+			try:
+				fabric.operations.put(local_path, location, use_sudo=sudo)
+			except Exception, e:
+				print "cuisine.file_write exception:"
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
@@ -419,7 +417,13 @@ def file_upload(remote, local, sudo=None):
 	sig     = hashlib.sha256(content).hexdigest()
 	if MODE_SUDO: sudo = MODE_SUDO
 	if not file_exists(remote) or sig != file_sha256(remote):
-		fabric.operations.put(local, remote, use_sudo=sudo)
+		if MODE_LOCAL:
+			if sudo:
+				sudo('cp "%s" "%s"'%(local,remote))
+			else:
+				run('cp "%s" "%s"'%(local,remote))
+		else:
+			fabric.operations.put(local, remote, use_sudo=sudo)
 
 def file_update(location, updater=lambda x: x):
 	"""Updates the content of the given by passing the existing
@@ -434,14 +438,12 @@ def file_update(location, updater=lambda x: x):
 	assert file_exists(location), "File does not exists: " + location
 	new_content = updater(file_read(location))
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
-	run('echo "%s" | base64 -d > "%s"' %
-		(base64.b64encode(new_content), location))
+	run('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
 
 def file_append(location, content, mode=None, owner=None, group=None):
 	"""Appends the given content to the remote file at the given
 	location, optionally updating its mode/owner/group."""
-	run('echo "%s" | base64 -d >> "%s"' %
-		(base64.b64encode(content), location))
+	run('echo "%s" | base64 -d >> "%s"' % (base64.b64encode(content), location))
 	file_attribs(location, mode, owner, group)
 
 def file_unlink(path):
@@ -467,11 +469,6 @@ def file_sha256(location):
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
 	return run('sha256sum "%s" | cut -d" " -f1' % (location)).split("\n")[-1]
-
-# TODO: From McCoy's version, consider merging
-# def file_append( location, content, use_sudo=False, partial=False, escape=True):
-#       """Wrapper for fabric.contrib.files.append."""
-#       fabric.contrib.files.append(location, content, use_sudo, partial, escape)
 
 # =============================================================================
 #
@@ -554,7 +551,6 @@ def package_install_apt(package, update=False):
 		package = " ".join(package)
 	sudo("apt-get --yes install %s" % (package))
 
-
 def package_ensure_apt(package, update=False):
 	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
 	if status.find("not-installed") != -1 or status.find("installed") == -1:
@@ -573,7 +569,6 @@ def package_ensure_apt(package, update=False):
 def command_check(command):
 	"""Tests if the given command is available on the system."""
 	return run("which '%s' >& /dev/null && echo OK ; true" % command).endswith("OK")
-
 
 def command_ensure(command, package=None):
 	"""Ensures that the given command is present, if not installs the
@@ -810,8 +805,5 @@ def locale_ensure(locale):
 # Sets up the default options so that @dispatch'ed functions work
 for option, value in DEFAULT_OPTIONS.items():
 	eval("select_" + option)(value)
-
-
-
 
 # EOF - vim: ts=4 sw=4 noet
