@@ -387,10 +387,13 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None):
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
 		if MODE_SUDO: sudo = MODE_SUDO
-		try:
-			fabric.operations.put(local_path, location, use_sudo=sudo)
-		except Exception, e:
-			print "cuisine.file_write exception:"
+        if MODE_LOCAL:
+            run('mv "%s" "%s"'%(local_path,location))
+        else:
+    		try:
+    			fabric.operations.put(local_path, location, use_sudo=sudo)
+    		except Exception, e:
+    			print "cuisine.file_write exception:"
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
