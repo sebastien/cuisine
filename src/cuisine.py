@@ -388,7 +388,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None):
 	if not file_exists(location) or sig != file_sha256(location):
 		if MODE_SUDO: sudo = MODE_SUDO
         if MODE_LOCAL:
-            run('mv "%s" "%s"'%(local_path,location))
+            run('cp "%s" "%s"'%(local_path,location))
         else:
     		try:
     			fabric.operations.put(local_path, location, use_sudo=sudo)
