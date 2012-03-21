@@ -38,6 +38,8 @@ See also:
 :license:   BSD, see LICENSE for more details.
 """
 
+from __future__ import with_statement
+
 import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
