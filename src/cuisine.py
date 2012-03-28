@@ -38,7 +38,7 @@ See also:
 :license:   BSD, see LICENSE for more details.
 """
 
-import base64, bz2, crypt, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
+import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION     = "0.2.4"
