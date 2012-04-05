@@ -143,7 +143,7 @@ class mode_sudo(object):
 # =============================================================================
 
 def select_package( option=None ):
-	supported = ["apt"]
+	supported = ["apt", "yum"]
 	if not (option is None):
 		assert option in supported, "Option must be one of: %s"  % (supported)
 		fabric.api.env["option_package"] = option
@@ -525,6 +525,11 @@ def package_ensure(package, update=False):
 	case it's not already there. If `update` is true, then the
 	package will be updated if it already exists."""
 
+@dispatch
+def package_clean(package=None):
+        """Clean the repository for un-needed files
+        ."""
+
 # -----------------------------------------------------------------------------
 # APT PACKAGE (DEBIAN/UBUNTU)
 # -----------------------------------------------------------------------------
@@ -561,6 +566,50 @@ def package_ensure_apt(package, update=False):
 	else:
 		if update: package_update(package)
 		return True
+
+def package_clean_apt(package=None):
+    pass
+
+# -----------------------------------------------------------------------------
+# YUM PACKAGE (RedHat, CentOS)
+# added by Prune - 20120408 - v1.0
+# -----------------------------------------------------------------------------
+
+def repository_ensure_yum(repository):
+    pass
+
+def package_upgrade_yum():
+    sudo("yum --assumeyes update")
+
+def package_update_yum(package=None):
+    if package == None:
+        sudo("yum --assumeyes update")
+    else:
+        if type(package) in (list, tuple):
+            package = " ".join(package)
+        sudo("yum --assumeyes upgrade " + package)
+
+def package_upgrade_yum(package=None):
+    sudo("yum --assumeyes upgrade")
+
+def package_install_yum(package, update=False):
+    if update:
+        sudo("yum --assumeyes update")
+    if type(package) in (list, tuple):
+        package = " ".join(package)
+    sudo("yum --assumeyes install %s" % (package))
+
+def package_ensure_yum(package, update=False):
+    status = run("yum list installed %s ; true" % package)
+    if status.find("No matching Packages") != -1 or status.find(package) == -1:
+        package_install(package)
+        return False
+    else:
+        if update: package_update(package)
+        return True
+
+def package_clean_yum(package=None):
+    sudo("yum --assumeyes clean all")
 
 # =============================================================================
 #
