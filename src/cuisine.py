@@ -772,6 +772,14 @@ def group_user_ensure(group, user):
 	if user not in d["members"]:
 		group_user_add(group, user)
 
+def group_user_del(group, user):
+        """remove the given user from the given group."""
+        assert group_check(group), "Group does not exist: %s" % (group)
+        if group_user_check(group, user):
+                group_for_user = run("cat /etc/group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
+                if group_for_user:
+                        sudo("usermod -G '%s' '%s'" % (",".join(group_for_user), user))
+
 ### ssh_<operation> functions
 
 def ssh_keygen(user, keytype="dsa"):
