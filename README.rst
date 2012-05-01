@@ -155,6 +155,11 @@ To use a specific backend implementation of a set of features, use the
     # To see the available backends
     print cuisine.select_package()
 
+Modules
+-------
+
+Cuisine-PostgreSQL http://pypi.python.org/pypi/cuisine-postgresql/
+
 More?
 -----
 
