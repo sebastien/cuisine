@@ -9,8 +9,9 @@ PRODUCT     = MANIFEST doc
 all: $(PRODUCT)
 
 release: $(PRODUCT)
+	git commit -a -m "Release $(VERSION)"
 	git tag $(VERSION) ; true
-	git push --tags ; true
+	git push --all ; true
 	python setup.py clean sdist register upload
 
 clean:
