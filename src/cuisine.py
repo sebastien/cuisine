@@ -42,7 +42,7 @@ from __future__ import with_statement
 import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.2.6"
+VERSION     = "0.2.7"
 
 RE_SPACES   = re.compile("[\s\t]+")
 MAC_EOL     = "\n"
