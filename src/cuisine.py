@@ -354,10 +354,12 @@ def file_is_link(location):
 def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
+	# FIXME: Not sure this is the right way to do it, maybe we should
+	# have USER/SUDO/USER+SUDO modes instead?
 	def run_or_sudo(cmd):
 		with fabric.api.settings(warn_only=True):
 			r = run(cmd)
-        	if r.return_code != 0:
+			if r.return_code != 0:
 				sudo(cmd)
 	recursive = recursive and "-R " or ""
 	if mode:
