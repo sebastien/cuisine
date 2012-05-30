@@ -354,13 +354,18 @@ def file_is_link(location):
 def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
+	def run_or_sudo(cmd):
+		with fabric.api.settings(warn_only=True):
+			r = run(cmd)
+        	if r.return_code != 0:
+				sudo(cmd)
 	recursive = recursive and "-R " or ""
 	if mode:
-		run('chmod %s %s "%s"' % (recursive, mode,  location))
+		run_or_sudo('chmod %s %s "%s"' % (recursive, mode,  location))
 	if owner:
-		run('chown %s %s "%s"' % (recursive, owner, location))
+		run_or_sudo('chown %s %s "%s"' % (recursive, owner, location))
 	if group:
-		run('chgrp %s %s "%s"' % (recursive, group, location))
+		run_or_sudo('chgrp %s %s "%s"' % (recursive, group, location))
 
 def file_attribs_get(location):
 	"""Return mode, owner, and group for remote path.
