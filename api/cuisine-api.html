@@ -318,188 +318,188 @@ jQuery(document).ready(function(){
 </div></div><div id='d_e' class='description'><h1>wrapper_descriptor</h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><div class="section" level="1"><h1 class="heading"><span class="number"><span class="level0">1<span class="lastDot dot">.</span></span></span><span class='term'>str</span>_() &lt;==&gt; str(x)</h1><div class="level1"><div class='content'></div></div></div></div></div>
 
-</div></div><div id='d_b' class='description'><h1>Class <span class='name'>mode_sudo</span></h1><div class='representation'></div><div class='docstring'>
+</div></div><div id='d_b' class='description'><h1>Class <span class='name'>mode_local</span></h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Sets Cuisine into local mode, where run/sudo won't go through Fabric's API, but directly through a popen. This allows you to easily test your Cuisine scripts without using Fabric.</p></div></div>
+
+</div></div><div id='d_g' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_f' class='description'><h1>Class <span class='name'>mode_remote</span></h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Comes back to Fabric's API for run/sudo. This basically reverts the effect of calling <code>mode_local()</code>.</p></div></div>
+
+</div></div><div id='d_i' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_h' class='description'><h1>Class <span class='name'>mode_sudo</span></h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Cuisine functions will be executed with sudo.</p></div></div>
 
-</div></div><div id='d_g' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_f' class='description'><h1>Class <span class='name'>mode_user</span></h1><div class='representation'></div><div class='docstring'>
+</div></div><div id='d_k' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_j' class='description'><h1>Class <span class='name'>mode_user</span></h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Cuisine functions will be executed as the current user.</p></div></div>
 
-</div></div><div id='d_h' class='description'><h1>Function <span class='name'>command_check</span></h1><div class='representation'><code>command_check( command )</code></div><div class='docstring'>
+</div></div><div id='d_l' class='description'><h1>Function <span class='name'>command_check</span></h1><div class='representation'><code>command_check( command )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Tests if the given command is available on the system.</p></div></div>
 
-</div></div><div id='d_i' class='description'><h1>Function <span class='name'>command_ensure</span></h1><div class='representation'><code>command_ensure( command, package=None )</code></div><div class='docstring'>
+</div></div><div id='d_m' class='description'><h1>Function <span class='name'>command_ensure</span></h1><div class='representation'><code>command_ensure( command, package=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the given command is present, if not installs the package with the given name, which is the same as the command by default.</p></div></div>
 
-</div></div><div id='d_j' class='description'><h1>Function <span class='name'>dir_attribs</span></h1><div class='representation'><code>dir_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
+</div></div><div id='d_n' class='description'><h1>Function <span class='name'>dir_attribs</span></h1><div class='representation'><code>dir_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the given remote directory.</p></div></div>
 
-</div></div><div id='d_k' class='description'><h1>Function <span class='name'>dir_ensure</span></h1><div class='representation'><code>dir_ensure( location, recursive=False, mode=None, owner=None, group=None )</code></div><div class='docstring'>
+</div></div><div id='d_o' class='description'><h1>Function <span class='name'>dir_ensure</span></h1><div class='representation'><code>dir_ensure( location, recursive=False, mode=None, owner=None, group=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that there is a remote directory at the given location, optionally updating its mode/owner/group.</p><p>If we are not updating the owner/group then this can be done as a single ssh call, so use that method, otherwise set owner/group after creation.</p></div></div>
 
-</div></div><div id='d_l' class='description'><h1>Function <span class='name'>dir_exists</span></h1><div class='representation'><code>dir_exists( location )</code></div><div class='docstring'>
+</div></div><div id='d_p' class='description'><h1>Function <span class='name'>dir_exists</span></h1><div class='representation'><code>dir_exists( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Tells if there is a remote directory at the given location.</p></div></div>
 
-</div></div><div id='d_m' class='description'><h1>Function <span class='name'>dispatch</span></h1><div class='representation'><code>dispatch( prefix=None )</code></div><div class='docstring'>
+</div></div><div id='d_q' class='description'><h1>Function <span class='name'>dispatch</span></h1><div class='representation'><code>dispatch( prefix=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Dispatches the current function to specific implementation. The <code>prefix</code> parameter indicates the common option prefix, and the <code>option_select()</code> function will determine the function suffix.</p><p>For instance the package functions are defined like that:</p><p>{{{ @dispatch("package") def package<span class='term'>ensure(...): ... def package</span>ensure<span class='term'>apt(...): ... def package</span>ensure_yum(&hellip;): &hellip; }}}</p><p>and then when a user does</p><p>{{{ cuisine.option<span class='term'>select("package", "yum") cuisine.package</span>ensure(&hellip;) }}}</p><p>then the <code>dispatch</code> function will dispatch <code>package_ensure</code> to <code>package_ensure_yum</code>.</p><p>If your prefix is the first word of the function name before the first <code>_</code> then you can simply use <code>@dispatch</code> without parameters.</p></div></div>
 
-</div></div><div id='d_n' class='description'><h1>Function <span class='name'>file_append</span></h1><div class='representation'><code>file_append( location, content, mode=None, owner=None, group=None )</code></div><div class='docstring'>
+</div></div><div id='d_r' class='description'><h1>Function <span class='name'>file_append</span></h1><div class='representation'><code>file_append( location, content, mode=None, owner=None, group=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Appends the given content to the remote file at the given location, optionally updating its mode/owner/group.</p></div></div>
 
-</div></div><div id='d_o' class='description'><h1>Function <span class='name'>file_attribs</span></h1><div class='representation'><code>file_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
+</div></div><div id='d_s' class='description'><h1>Function <span class='name'>file_attribs</span></h1><div class='representation'><code>file_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the remote file at the given location.</p></div></div>
 
-</div></div><div id='d_p' class='description'><h1>Function <span class='name'>file_attribs_get</span></h1><div class='representation'><code>file_attribs_get( location )</code></div><div class='docstring'>
+</div></div><div id='d_t' class='description'><h1>Function <span class='name'>file_attribs_get</span></h1><div class='representation'><code>file_attribs_get( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Return mode, owner, and group for remote path. Return mode, owner, and group if remote path exists, <code>None</code> otherwise.</p></div></div>
 
-</div></div><div id='d_q' class='description'><h1>Function <span class='name'>file_ensure</span></h1><div class='representation'><code>file_ensure( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
+</div></div><div id='d_u' class='description'><h1>Function <span class='name'>file_ensure</span></h1><div class='representation'><code>file_ensure( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the remote file at the given location.</p></div></div>
 
-</div></div><div id='d_r' class='description'><h1>Function <span class='name'>file_exists</span></h1><div class='representation'><code>file_exists( location )</code></div><div class='docstring'>
+</div></div><div id='d_v' class='description'><h1>Function <span class='name'>file_exists</span></h1><div class='representation'><code>file_exists( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Tests if there is a <em>remote</em> file at the given location.</p></div></div>
 
-</div></div><div id='d_s' class='description'><h1>Function <span class='name'>file_is_dir</span></h1><div class='representation'><code>file_is_dir( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_t' class='description'><h1>Function <span class='name'>file_is_file</span></h1><div class='representation'><code>file_is_file( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_u' class='description'><h1>Function <span class='name'>file_is_link</span></h1><div class='representation'><code>file_is_link( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_v' class='description'><h1>Function <span class='name'>file_link</span></h1><div class='representation'><code>file_link( source, destination, symbolic=True, mode=None, owner=None, group=None )</code></div><div class='docstring'>
+</div></div><div id='d_w' class='description'><h1>Function <span class='name'>file_is_dir</span></h1><div class='representation'><code>file_is_dir( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_x' class='description'><h1>Function <span class='name'>file_is_file</span></h1><div class='representation'><code>file_is_file( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_y' class='description'><h1>Function <span class='name'>file_is_link</span></h1><div class='representation'><code>file_is_link( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_z' class='description'><h1>Function <span class='name'>file_link</span></h1><div class='representation'><code>file_link( source, destination, symbolic=True, mode=None, owner=None, group=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Creates a (symbolic) link between source and destination on the remote host, optionally setting its mode/owner/group.</p></div></div>
 
-</div></div><div id='d_w' class='description'><h1>Function <span class='name'>file_local_read</span></h1><div class='representation'><code>file_local_read( location )</code></div><div class='docstring'>
+</div></div><div id='d_A' class='description'><h1>Function <span class='name'>file_local_read</span></h1><div class='representation'><code>file_local_read( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Reads a <em>local</em> file from the given location, expanding <code>~</code> and shell variables.</p></div></div>
 
-</div></div><div id='d_x' class='description'><h1>Function <span class='name'>file_read</span></h1><div class='representation'><code>file_read( location )</code></div><div class='docstring'>
+</div></div><div id='d_B' class='description'><h1>Function <span class='name'>file_read</span></h1><div class='representation'><code>file_read( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Reads the <em>remote</em> file at the given location.</p></div></div>
 
-</div></div><div id='d_y' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
+</div></div><div id='d_C' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Returns the SHA-256 sum (as a hex string) for the remote file at the given location.</p></div></div>
 
-</div></div><div id='d_z' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_A' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x277c9b0> )</code></div><div class='docstring'>
+</div></div><div id='d_D' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_E' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x267faa0> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div></div>
 
-</div></div><div id='d_B' class='description'><h1>Function <span class='name'>file_upload</span></h1><div class='representation'><code>file_upload( remote, local, sudo=None )</code></div><div class='docstring'>
+</div></div><div id='d_F' class='description'><h1>Function <span class='name'>file_upload</span></h1><div class='representation'><code>file_upload( remote, local, sudo=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Uploads the local file to the remote location only if the remote location does not exists or the content are different.</p></div></div>
 
-</div></div><div id='d_C' class='description'><h1>Function <span class='name'>file_write</span></h1><div class='representation'><code>file_write( location, content, mode=None, owner=None, group=None, sudo=None )</code></div><div class='docstring'>
+</div></div><div id='d_G' class='description'><h1>Function <span class='name'>file_write</span></h1><div class='representation'><code>file_write( location, content, mode=None, owner=None, group=None, sudo=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Writes the given content to the file at the given remote location, optionally setting mode/owner/group.</p></div></div>
 
-</div></div><div id='d_D' class='description'><h1>Function <span class='name'>group_check</span></h1><div class='representation'><code>group_check( name )</code></div><div class='docstring'>
+</div></div><div id='d_H' class='description'><h1>Function <span class='name'>group_check</span></h1><div class='representation'><code>group_check( name )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Checks if there is a group defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"gid":&lt;str&gt;,"members":&lt;list[str]&gt;}</code> or <code>None</code> if the group does not exists.</p></div></div>
 
-</div></div><div id='d_E' class='description'><h1>Function <span class='name'>group_create</span></h1><div class='representation'><code>group_create( name, gid=None )</code></div><div class='docstring'>
+</div></div><div id='d_I' class='description'><h1>Function <span class='name'>group_create</span></h1><div class='representation'><code>group_create( name, gid=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Creates a group with the given name, and optionally given gid.</p></div></div>
 
-</div></div><div id='d_F' class='description'><h1>Function <span class='name'>group_ensure</span></h1><div class='representation'><code>group_ensure( name, gid=None )</code></div><div class='docstring'>
+</div></div><div id='d_J' class='description'><h1>Function <span class='name'>group_ensure</span></h1><div class='representation'><code>group_ensure( name, gid=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the group with the given name (and optional gid) exists.</p></div></div>
 
-</div></div><div id='d_G' class='description'><h1>Function <span class='name'>group_user_add</span></h1><div class='representation'><code>group_user_add( group, user )</code></div><div class='docstring'>
+</div></div><div id='d_K' class='description'><h1>Function <span class='name'>group_user_add</span></h1><div class='representation'><code>group_user_add( group, user )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Adds the given user/list of users to the given group/groups.</p></div></div>
 
-</div></div><div id='d_H' class='description'><h1>Function <span class='name'>group_user_check</span></h1><div class='representation'><code>group_user_check( group, user )</code></div><div class='docstring'>
+</div></div><div id='d_L' class='description'><h1>Function <span class='name'>group_user_check</span></h1><div class='representation'><code>group_user_check( group, user )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Checks if the given user is a member of the given group. It will return <code>False</code> if the group does not exist.</p></div></div>
 
-</div></div><div id='d_I' class='description'><h1>Function <span class='name'>group_user_del</span></h1><div class='representation'><code>group_user_del( group, user )</code></div><div class='docstring'>
+</div></div><div id='d_M' class='description'><h1>Function <span class='name'>group_user_del</span></h1><div class='representation'><code>group_user_del( group, user )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>remove the given user from the given group.</p></div></div>
 
-</div></div><div id='d_J' class='description'><h1>Function <span class='name'>group_user_ensure</span></h1><div class='representation'><code>group_user_ensure( group, user )</code></div><div class='docstring'>
+</div></div><div id='d_N' class='description'><h1>Function <span class='name'>group_user_ensure</span></h1><div class='representation'><code>group_user_ensure( group, user )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensure that a given user is a member of a given group.</p></div></div>
 
-</div></div><div id='d_K' class='description'><h1>Function <span class='name'>locale_check</span></h1><div class='representation'><code>locale_check( locale )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_L' class='description'><h1>Function <span class='name'>locale_ensure</span></h1><div class='representation'><code>locale_ensure( locale )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_M' class='description'><h1>Function <span class='name'>mode_local</span></h1><div class='representation'><code>mode_local(  )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Sets Cuisine into local mode, where run/sudo won't go through Fabric's API, but directly through a popen. This allows you to easily test your Cuisine scripts without using Fabric.</p></div></div>
-
-</div></div><div id='d_N' class='description'><h1>Function <span class='name'>mode_remote</span></h1><div class='representation'><code>mode_remote(  )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Comes back to Fabric's API for run/sudo. This basically reverts the effect of calling <code>mode_local()</code>.</p></div></div>
-
-</div></div><div id='d_O' class='description'><h1>Function <span class='name'>package_clean</span></h1><div class='representation'><code>package_clean( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_O' class='description'><h1>Function <span class='name'>locale_check</span></h1><div class='representation'><code>locale_check( locale )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_P' class='description'><h1>Function <span class='name'>locale_ensure</span></h1><div class='representation'><code>locale_ensure( locale )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Q' class='description'><h1>Function <span class='name'>package_clean</span></h1><div class='representation'><code>package_clean( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Clean the repository for un-needed files .</p></div></div>
 
-</div></div><div id='d_P' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Q' class='description'><h1>Function <span class='name'>package_clean_yum</span></h1><div class='representation'><code>package_clean_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_R' class='description'><h1>Function <span class='name'>package_ensure</span></h1><div class='representation'><code>package_ensure( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_R' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_S' class='description'><h1>Function <span class='name'>package_clean_yum</span></h1><div class='representation'><code>package_clean_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_T' class='description'><h1>Function <span class='name'>package_ensure</span></h1><div class='representation'><code>package_ensure( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Tests if the given package is installed, and installs it in case it's not already there. If <code>update</code> is true, then the package will be updated if it already exists.</p></div></div>
 
-</div></div><div id='d_S' class='description'><h1>Function <span class='name'>package_ensure_apt</span></h1><div class='representation'><code>package_ensure_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_T' class='description'><h1>Function <span class='name'>package_ensure_yum</span></h1><div class='representation'><code>package_ensure_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_U' class='description'><h1>Function <span class='name'>package_install</span></h1><div class='representation'><code>package_install( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_U' class='description'><h1>Function <span class='name'>package_ensure_apt</span></h1><div class='representation'><code>package_ensure_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_V' class='description'><h1>Function <span class='name'>package_ensure_yum</span></h1><div class='representation'><code>package_ensure_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_W' class='description'><h1>Function <span class='name'>package_install</span></h1><div class='representation'><code>package_install( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Installs the given package/list of package, optionally updating the package database.</p></div></div>
 
-</div></div><div id='d_V' class='description'><h1>Function <span class='name'>package_install_apt</span></h1><div class='representation'><code>package_install_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_W' class='description'><h1>Function <span class='name'>package_install_yum</span></h1><div class='representation'><code>package_install_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_X' class='description'><h1>Function <span class='name'>package_update</span></h1><div class='representation'><code>package_update( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_X' class='description'><h1>Function <span class='name'>package_install_apt</span></h1><div class='representation'><code>package_install_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Y' class='description'><h1>Function <span class='name'>package_install_yum</span></h1><div class='representation'><code>package_install_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Z' class='description'><h1>Function <span class='name'>package_update</span></h1><div class='representation'><code>package_update( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Upgrade the system.</p></div></div>
 
-</div></div><div id='d_Y' class='description'><h1>Function <span class='name'>package_update_apt</span></h1><div class='representation'><code>package_update_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Z' class='description'><h1>Function <span class='name'>package_update_yum</span></h1><div class='representation'><code>package_update_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ab' class='description'><h1>Function <span class='name'>package_upgrade</span></h1><div class='representation'><code>package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_ab' class='description'><h1>Function <span class='name'>package_update_apt</span></h1><div class='representation'><code>package_update_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_bb' class='description'><h1>Function <span class='name'>package_update_yum</span></h1><div class='representation'><code>package_update_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_cb' class='description'><h1>Function <span class='name'>package_upgrade</span></h1><div class='representation'><code>package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates every package present on the system.</p></div></div>
 
-</div></div><div id='d_bb' class='description'><h1>Function <span class='name'>package_upgrade_apt</span></h1><div class='representation'><code>package_upgrade_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_cb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_db' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_eb' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_fb' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_db' class='description'><h1>Function <span class='name'>package_upgrade_apt</span></h1><div class='representation'><code>package_upgrade_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_eb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_fb' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_gb' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_hb' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE' global to tell whether the command should be run as regular user or sudo.</p></div></div>
 
-</div></div><div id='d_gb' class='description'><h1>Function <span class='name'>run_local</span></h1><div class='representation'><code>run_local( command )</code></div><div class='docstring'>
+</div></div><div id='d_ib' class='description'><h1>Function <span class='name'>run_local</span></h1><div class='representation'><code>run_local( command )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>A wrapper around subprocess.</p></div></div>
 
-</div></div><div id='d_hb' class='description'><h1>Function <span class='name'>select_package</span></h1><div class='representation'><code>select_package( option=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ib' class='description'><h1>Function <span class='name'>ssh_authorize</span></h1><div class='representation'><code>ssh_authorize( user, key )</code></div><div class='docstring'>
+</div></div><div id='d_jb' class='description'><h1>Function <span class='name'>select_package</span></h1><div class='representation'><code>select_package( option=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_kb' class='description'><h1>Function <span class='name'>ssh_authorize</span></h1><div class='representation'><code>ssh_authorize( user, key )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Adds the given key to the <code>.ssh/authorized_keys</code> for the given user.</p></div></div>
 
-</div></div><div id='d_jb' class='description'><h1>Function <span class='name'>ssh_keygen</span></h1><div class='representation'><code>ssh_keygen( user, keytype='dsa' )</code></div><div class='docstring'>
+</div></div><div id='d_lb' class='description'><h1>Function <span class='name'>ssh_keygen</span></h1><div class='representation'><code>ssh_keygen( user, keytype='dsa' )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Generates a pair of ssh keys in the user's home .ssh directory.</p></div></div>
 
-</div></div><div id='d_kb' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_mb' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE_SUDO' global to tell whether the command should be run as regular user or sudo.</p></div></div>
 
-</div></div><div id='d_lb' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_mb' class='description'><h1>Function <span class='name'>system_uuid</span></h1><div class='representation'><code>system_uuid(  )</code></div><div class='docstring'>
+</div></div><div id='d_nb' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ob' class='description'><h1>Function <span class='name'>system_uuid</span></h1><div class='representation'><code>system_uuid(  )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Gets a machines UUID (Universally Unique Identifier).</p></div></div>
 
-</div></div><div id='d_nb' class='description'><h1>Function <span class='name'>system_uuid_alias_add</span></h1><div class='representation'><code>system_uuid_alias_add(  )</code></div><div class='docstring'>
+</div></div><div id='d_pb' class='description'><h1>Function <span class='name'>system_uuid_alias_add</span></h1><div class='representation'><code>system_uuid_alias_add(  )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Adds system UUID alias to /etc/hosts. Some tools/processes rely/want the hostname as an alias in /etc/hosts e.g. <code>127.0.0.1 localhost &lt;hostname&gt;</code>.</p></div></div>
 
-</div></div><div id='d_ob' class='description'><h1>Function <span class='name'>text_detect_eol</span></h1><div class='representation'><code>text_detect_eol( text )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_pb' class='description'><h1>Function <span class='name'>text_ensure_line</span></h1><div class='representation'><code>text_ensure_line( text, *lines )</code></div><div class='docstring'>
+</div></div><div id='d_qb' class='description'><h1>Function <span class='name'>text_detect_eol</span></h1><div class='representation'><code>text_detect_eol( text )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_rb' class='description'><h1>Function <span class='name'>text_ensure_line</span></h1><div class='representation'><code>text_ensure_line( text, *lines )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the given lines are present in the given text, otherwise appends the lines that are not already in the text at the end of it.</p></div></div>
 
-</div></div><div id='d_qb' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
+</div></div><div id='d_sb' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Returns the first line that matches the given predicate.</p></div></div>
 
-</div></div><div id='d_rb' class='description'><h1>Function <span class='name'>text_normalize</span></h1><div class='representation'><code>text_normalize( text )</code></div><div class='docstring'>
+</div></div><div id='d_tb' class='description'><h1>Function <span class='name'>text_normalize</span></h1><div class='representation'><code>text_normalize( text )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
 
-</div></div><div id='d_sb' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
+</div></div><div id='d_ub' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
 
-</div></div><div id='d_tb' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x277c1b8>, process=<function <lambda> at 0x277c230> )</code></div><div class='docstring'>
+</div></div><div id='d_vb' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x267f2a8>, process=<function <lambda> at 0x267f320> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div></div>
 
-</div></div><div id='d_ub' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_vb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
+</div></div><div id='d_wb' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_xb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Substitutes <code>${PLACEHOLDER}</code>s within the text with the corresponding values from variables.</p></div></div>
 
-</div></div><div id='d_wb' class='description'><h1>Function <span class='name'>upstart_ensure</span></h1><div class='representation'><code>upstart_ensure( name )</code></div><div class='docstring'>
+</div></div><div id='d_yb' class='description'><h1>Function <span class='name'>upstart_ensure</span></h1><div class='representation'><code>upstart_ensure( name )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the given upstart service is running, restarting it if necessary.</p></div></div>
 
-</div></div><div id='d_xb' class='description'><h1>Function <span class='name'>user_check</span></h1><div class='representation'><code>user_check( name )</code></div><div class='docstring'>
+</div></div><div id='d_zb' class='description'><h1>Function <span class='name'>user_check</span></h1><div class='representation'><code>user_check( name )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Checks if there is a user defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"uid":&lt;str&gt;,"gid":&lt;str&gt;,"home":&lt;str&gt;,"shell":&lt;str&gt;}</code> or <code>None</code> if the user does not exists.</p></div></div>
 
-</div></div><div id='d_yb' class='description'><h1>Function <span class='name'>user_create</span></h1><div class='representation'><code>user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None )</code></div><div class='docstring'>
+</div></div><div id='d_Ab' class='description'><h1>Function <span class='name'>user_create</span></h1><div class='representation'><code>user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Creates the user with the given name, optionally giving a specific password/home/uid/gid/shell.</p></div></div>
 
-</div></div><div id='d_zb' class='description'><h1>Function <span class='name'>user_ensure</span></h1><div class='representation'><code>user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None )</code></div><div class='docstring'>
+</div></div><div id='d_Bb' class='description'><h1>Function <span class='name'>user_ensure</span></h1><div class='representation'><code>user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the given users exists, optionally updating their passwd/home/uid/gid/shell.</p></div></div>
 
-</div></div><div id='d_Ab' class='description'><h1>Function <span class='name'>user_passwd</span></h1><div class='representation'><code>user_passwd( name, passwd )</code></div><div class='docstring'>
+</div></div><div id='d_Cb' class='description'><h1>Function <span class='name'>user_passwd</span></h1><div class='representation'><code>user_passwd( name, passwd )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Sets the given user password.</p></div></div>
 
-</div></div><div id='d_Bb' class='description'><h1>Function <span class='name'>user_remove</span></h1><div class='representation'><code>user_remove( name, rmhome=None )</code></div><div class='docstring'>
+</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>user_remove</span></h1><div class='representation'><code>user_remove( name, rmhome=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Removes the user with the given name, optionally removing the home directory and mail spool.</p></div></div>
 
-</div></div><div id='d_Cb' class='description'><h1>dict</h1><div class='representation'><code>{'package': 'apt'}</code></div><div class='docstring'>
+</div></div><div id='d_Eb' class='description'><h1>dict</h1><div class='representation'><code>{'package': 'apt'}</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
 
-</div></div><div id='d_Db' class='description'><h1>str</h1><div class='representation'><code>'\n'</code></div><div class='docstring'>
+</div></div><div id='d_Fb' class='description'><h1>str</h1><div class='representation'><code>'\n'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Eb' class='description'><h1>bool</h1><div class='representation'></div><div class='docstring'>
+</div></div><div id='d_Gb' class='description'><h1>bool</h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>bool(x) -&gt; bool</p><p>Returns True when the argument x is true, False otherwise. The builtins True and False are the only two instances of the class bool. The class bool is a subclass of the class int, and cannot be subclassed.</p></div></div>
 
-</div></div><div id='d_Fb' class='description'><h1>SRE_Pattern</h1><div class='representation'></div><div class='docstring'>
+</div></div><div id='d_Hb' class='description'><h1>SRE_Pattern</h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Compiled regular expression objects</p></div></div>
 
-</div></div><div id='d_Gb' class='description'><h1>NoneType</h1><div class='representation'></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Hb' class='description'><h1>str</h1><div class='representation'><code>'0.2.7'</code></div><div class='docstring'>
+</div></div><div id='d_Ib' class='description'><h1>NoneType</h1><div class='representation'></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Jb' class='description'><h1>str</h1><div class='representation'><code>'0.2.8'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Ib' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
+</div></div><div id='d_Kb' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Jb' class='description'><h1>str</h1><div class='representation'><code>'package'</code></div><div class='docstring'>
+</div></div><div id='d_Lb' class='description'><h1>str</h1><div class='representation'><code>'package'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Kb' class='description'><h1>str</h1><div class='representation'><code>'apt'</code></div><div class='docstring'>
+</div></div><div id='d_Mb' class='description'><h1>str</h1><div class='representation'><code>'apt'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
 </div></div><div id='d_a' class='description'><h1>Module <span class='name'>cuisine</span></h1><div class='representation'></div><div class='docstring'>
@@ -510,292 +510,298 @@ jQuery(document).ready(function(){
 </div>
 <div id='hidden'>
 	<!-- hidden-snip -->
-	<div id='d_M' class='description'><h1>Function <span class='name'>mode_local</span></h1><div class='representation'><code>mode_local(  )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Sets Cuisine into local mode, where run/sudo won't go through Fabric's API, but directly through a popen. This allows you to easily test your Cuisine scripts without using Fabric.</p></div></div>
-
-</div></div><div id='d_eb' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ub' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Db' class='description'><h1>str</h1><div class='representation'><code>'\n'</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
-
-</div></div><div id='d_mb' class='description'><h1>Function <span class='name'>system_uuid</span></h1><div class='representation'><code>system_uuid(  )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Gets a machines UUID (Universally Unique Identifier).</p></div></div>
-
-</div></div><div id='d_Z' class='description'><h1>Function <span class='name'>package_update_yum</span></h1><div class='representation'><code>package_update_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_X' class='description'><h1>Function <span class='name'>package_update</span></h1><div class='representation'><code>package_update( *args, **kwargs )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Upgrade the system.</p></div></div>
-
-</div></div><div id='d_Y' class='description'><h1>Function <span class='name'>package_update_apt</span></h1><div class='representation'><code>package_update_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_R' class='description'><h1>Function <span class='name'>package_ensure</span></h1><div class='representation'><code>package_ensure( *args, **kwargs )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Tests if the given package is installed, and installs it in case it's not already there. If <code>update</code> is true, then the package will be updated if it already exists.</p></div></div>
-
-</div></div><div id='d_S' class='description'><h1>Function <span class='name'>package_ensure_apt</span></h1><div class='representation'><code>package_ensure_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_P' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Q' class='description'><h1>Function <span class='name'>package_clean_yum</span></h1><div class='representation'><code>package_clean_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_V' class='description'><h1>Function <span class='name'>package_install_apt</span></h1><div class='representation'><code>package_install_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_W' class='description'><h1>Function <span class='name'>package_install_yum</span></h1><div class='representation'><code>package_install_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_T' class='description'><h1>Function <span class='name'>package_ensure_yum</span></h1><div class='representation'><code>package_ensure_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_U' class='description'><h1>Function <span class='name'>package_install</span></h1><div class='representation'><code>package_install( *args, **kwargs )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Installs the given package/list of package, optionally updating the package database.</p></div></div>
-
-</div></div><div id='d_J' class='description'><h1>Function <span class='name'>group_user_ensure</span></h1><div class='representation'><code>group_user_ensure( group, user )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensure that a given user is a member of a given group.</p></div></div>
-
-</div></div><div id='d_K' class='description'><h1>Function <span class='name'>locale_check</span></h1><div class='representation'><code>locale_check( locale )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_H' class='description'><h1>Function <span class='name'>group_user_check</span></h1><div class='representation'><code>group_user_check( group, user )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Checks if the given user is a member of the given group. It will return <code>False</code> if the group does not exist.</p></div></div>
-
-</div></div><div id='d_I' class='description'><h1>Function <span class='name'>group_user_del</span></h1><div class='representation'><code>group_user_del( group, user )</code></div><div class='docstring'>
+	<div id='d_M' class='description'><h1>Function <span class='name'>group_user_del</span></h1><div class='representation'><code>group_user_del( group, user )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>remove the given user from the given group.</p></div></div>
 
-</div></div><div id='d_N' class='description'><h1>Function <span class='name'>mode_remote</span></h1><div class='representation'><code>mode_remote(  )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Comes back to Fabric's API for run/sudo. This basically reverts the effect of calling <code>mode_local()</code>.</p></div></div>
+</div></div><div id='d_eb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Lb' class='description'><h1>str</h1><div class='representation'><code>'package'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_O' class='description'><h1>Function <span class='name'>package_clean</span></h1><div class='representation'><code>package_clean( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_ub' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
+
+</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>user_remove</span></h1><div class='representation'><code>user_remove( name, rmhome=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Removes the user with the given name, optionally removing the home directory and mail spool.</p></div></div>
+
+</div></div><div id='d_mb' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE_SUDO' global to tell whether the command should be run as regular user or sudo.</p></div></div>
+
+</div></div><div id='d_Z' class='description'><h1>Function <span class='name'>package_update</span></h1><div class='representation'><code>package_update( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Upgrade the system.</p></div></div>
+
+</div></div><div id='d_X' class='description'><h1>Function <span class='name'>package_install_apt</span></h1><div class='representation'><code>package_install_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Y' class='description'><h1>Function <span class='name'>package_install_yum</span></h1><div class='representation'><code>package_install_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_R' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_S' class='description'><h1>Function <span class='name'>package_clean_yum</span></h1><div class='representation'><code>package_clean_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_P' class='description'><h1>Function <span class='name'>locale_ensure</span></h1><div class='representation'><code>locale_ensure( locale )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Q' class='description'><h1>Function <span class='name'>package_clean</span></h1><div class='representation'><code>package_clean( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Clean the repository for un-needed files .</p></div></div>
 
-</div></div><div id='d_L' class='description'><h1>Function <span class='name'>locale_ensure</span></h1><div class='representation'><code>locale_ensure( locale )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_bb' class='description'><h1>Function <span class='name'>package_upgrade_apt</span></h1><div class='representation'><code>package_upgrade_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_B' class='description'><h1>Function <span class='name'>file_upload</span></h1><div class='representation'><code>file_upload( remote, local, sudo=None )</code></div><div class='docstring'>
+</div></div><div id='d_V' class='description'><h1>Function <span class='name'>package_ensure_yum</span></h1><div class='representation'><code>package_ensure_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_W' class='description'><h1>Function <span class='name'>package_install</span></h1><div class='representation'><code>package_install( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Installs the given package/list of package, optionally updating the package database.</p></div></div>
+
+</div></div><div id='d_T' class='description'><h1>Function <span class='name'>package_ensure</span></h1><div class='representation'><code>package_ensure( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Tests if the given package is installed, and installs it in case it's not already there. If <code>update</code> is true, then the package will be updated if it already exists.</p></div></div>
+
+</div></div><div id='d_U' class='description'><h1>Function <span class='name'>package_ensure_apt</span></h1><div class='representation'><code>package_ensure_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_J' class='description'><h1>Function <span class='name'>group_ensure</span></h1><div class='representation'><code>group_ensure( name, gid=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensures that the group with the given name (and optional gid) exists.</p></div></div>
+
+</div></div><div id='d_K' class='description'><h1>Function <span class='name'>group_user_add</span></h1><div class='representation'><code>group_user_add( group, user )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Adds the given user/list of users to the given group/groups.</p></div></div>
+
+</div></div><div id='d_H' class='description'><h1>Function <span class='name'>group_check</span></h1><div class='representation'><code>group_check( name )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Checks if there is a group defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"gid":&lt;str&gt;,"members":&lt;list[str]&gt;}</code> or <code>None</code> if the group does not exists.</p></div></div>
+
+</div></div><div id='d_I' class='description'><h1>Function <span class='name'>group_create</span></h1><div class='representation'><code>group_create( name, gid=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Creates a group with the given name, and optionally given gid.</p></div></div>
+
+</div></div><div id='d_N' class='description'><h1>Function <span class='name'>group_user_ensure</span></h1><div class='representation'><code>group_user_ensure( group, user )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensure that a given user is a member of a given group.</p></div></div>
+
+</div></div><div id='d_O' class='description'><h1>Function <span class='name'>locale_check</span></h1><div class='representation'><code>locale_check( locale )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_L' class='description'><h1>Function <span class='name'>group_user_check</span></h1><div class='representation'><code>group_user_check( group, user )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Checks if the given user is a member of the given group. It will return <code>False</code> if the group does not exist.</p></div></div>
+
+</div></div><div id='d_bb' class='description'><h1>Function <span class='name'>package_update_yum</span></h1><div class='representation'><code>package_update_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_B' class='description'><h1>Function <span class='name'>file_read</span></h1><div class='representation'><code>file_read( location )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Reads the <em>remote</em> file at the given location.</p></div></div>
+
+</div></div><div id='d_C' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Returns the SHA-256 sum (as a hex string) for the remote file at the given location.</p></div></div>
+
+</div></div><div id='d_A' class='description'><h1>Function <span class='name'>file_local_read</span></h1><div class='representation'><code>file_local_read( location )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Reads a <em>local</em> file from the given location, expanding <code>~</code> and shell variables.</p></div></div>
+
+</div></div><div id='d_F' class='description'><h1>Function <span class='name'>file_upload</span></h1><div class='representation'><code>file_upload( remote, local, sudo=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Uploads the local file to the remote location only if the remote location does not exists or the content are different.</p></div></div>
 
-</div></div><div id='d_C' class='description'><h1>Function <span class='name'>file_write</span></h1><div class='representation'><code>file_write( location, content, mode=None, owner=None, group=None, sudo=None )</code></div><div class='docstring'>
+</div></div><div id='d_G' class='description'><h1>Function <span class='name'>file_write</span></h1><div class='representation'><code>file_write( location, content, mode=None, owner=None, group=None, sudo=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Writes the given content to the file at the given remote location, optionally setting mode/owner/group.</p></div></div>
 
-</div></div><div id='d_A' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x277c9b0> )</code></div><div class='docstring'>
+</div></div><div id='d_D' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_E' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x267faa0> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div></div>
 
-</div></div><div id='d_F' class='description'><h1>Function <span class='name'>group_ensure</span></h1><div class='representation'><code>group_ensure( name, gid=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensures that the group with the given name (and optional gid) exists.</p></div></div>
-
-</div></div><div id='d_G' class='description'><h1>Function <span class='name'>group_user_add</span></h1><div class='representation'><code>group_user_add( group, user )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Adds the given user/list of users to the given group/groups.</p></div></div>
-
-</div></div><div id='d_D' class='description'><h1>Function <span class='name'>group_check</span></h1><div class='representation'><code>group_check( name )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Checks if there is a group defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"gid":&lt;str&gt;,"members":&lt;list[str]&gt;}</code> or <code>None</code> if the group does not exists.</p></div></div>
-
-</div></div><div id='d_E' class='description'><h1>Function <span class='name'>group_create</span></h1><div class='representation'><code>group_create( name, gid=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Creates a group with the given name, and optionally given gid.</p></div></div>
-
-</div></div><div id='d_z' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_x' class='description'><h1>Function <span class='name'>file_read</span></h1><div class='representation'><code>file_read( location )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Reads the <em>remote</em> file at the given location.</p></div></div>
-
-</div></div><div id='d_y' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Returns the SHA-256 sum (as a hex string) for the remote file at the given location.</p></div></div>
-
-</div></div><div id='d_rb' class='description'><h1>Function <span class='name'>text_normalize</span></h1><div class='representation'><code>text_normalize( text )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
-
-</div></div><div id='d_r' class='description'><h1>Function <span class='name'>file_exists</span></h1><div class='representation'><code>file_exists( location )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Tests if there is a <em>remote</em> file at the given location.</p></div></div>
-
-</div></div><div id='d_s' class='description'><h1>Function <span class='name'>file_is_dir</span></h1><div class='representation'><code>file_is_dir( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_p' class='description'><h1>Function <span class='name'>file_attribs_get</span></h1><div class='representation'><code>file_attribs_get( location )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Return mode, owner, and group for remote path. Return mode, owner, and group if remote path exists, <code>None</code> otherwise.</p></div></div>
-
-</div></div><div id='d_q' class='description'><h1>Function <span class='name'>file_ensure</span></h1><div class='representation'><code>file_ensure( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the remote file at the given location.</p></div></div>
-
-</div></div><div id='d_v' class='description'><h1>Function <span class='name'>file_link</span></h1><div class='representation'><code>file_link( source, destination, symbolic=True, mode=None, owner=None, group=None )</code></div><div class='docstring'>
+</div></div><div id='d_z' class='description'><h1>Function <span class='name'>file_link</span></h1><div class='representation'><code>file_link( source, destination, symbolic=True, mode=None, owner=None, group=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Creates a (symbolic) link between source and destination on the remote host, optionally setting its mode/owner/group.</p></div></div>
 
-</div></div><div id='d_w' class='description'><h1>Function <span class='name'>file_local_read</span></h1><div class='representation'><code>file_local_read( location )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Reads a <em>local</em> file from the given location, expanding <code>~</code> and shell variables.</p></div></div>
+</div></div><div id='d_x' class='description'><h1>Function <span class='name'>file_is_file</span></h1><div class='representation'><code>file_is_file( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_y' class='description'><h1>Function <span class='name'>file_is_link</span></h1><div class='representation'><code>file_is_link( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_rb' class='description'><h1>Function <span class='name'>text_ensure_line</span></h1><div class='representation'><code>text_ensure_line( text, *lines )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensures that the given lines are present in the given text, otherwise appends the lines that are not already in the text at the end of it.</p></div></div>
 
-</div></div><div id='d_t' class='description'><h1>Function <span class='name'>file_is_file</span></h1><div class='representation'><code>file_is_file( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_u' class='description'><h1>Function <span class='name'>file_is_link</span></h1><div class='representation'><code>file_is_link( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_j' class='description'><h1>Function <span class='name'>dir_attribs</span></h1><div class='representation'><code>dir_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the given remote directory.</p></div></div>
-
-</div></div><div id='d_k' class='description'><h1>Function <span class='name'>dir_ensure</span></h1><div class='representation'><code>dir_ensure( location, recursive=False, mode=None, owner=None, group=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensures that there is a remote directory at the given location, optionally updating its mode/owner/group.</p><p>If we are not updating the owner/group then this can be done as a single ssh call, so use that method, otherwise set owner/group after creation.</p></div></div>
-
-</div></div><div id='d_Eb' class='description'><h1>bool</h1><div class='representation'></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>bool(x) -&gt; bool</p><p>Returns True when the argument x is true, False otherwise. The builtins True and False are the only two instances of the class bool. The class bool is a subclass of the class int, and cannot be subclassed.</p></div></div>
-
-</div></div><div id='d_i' class='description'><h1>Function <span class='name'>command_ensure</span></h1><div class='representation'><code>command_ensure( command, package=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensures that the given command is present, if not installs the package with the given name, which is the same as the command by default.</p></div></div>
-
-</div></div><div id='d_n' class='description'><h1>Function <span class='name'>file_append</span></h1><div class='representation'><code>file_append( location, content, mode=None, owner=None, group=None )</code></div><div class='docstring'>
+</div></div><div id='d_r' class='description'><h1>Function <span class='name'>file_append</span></h1><div class='representation'><code>file_append( location, content, mode=None, owner=None, group=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Appends the given content to the remote file at the given location, optionally updating its mode/owner/group.</p></div></div>
 
-</div></div><div id='d_o' class='description'><h1>Function <span class='name'>file_attribs</span></h1><div class='representation'><code>file_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
+</div></div><div id='d_s' class='description'><h1>Function <span class='name'>file_attribs</span></h1><div class='representation'><code>file_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the remote file at the given location.</p></div></div>
 
-</div></div><div id='d_l' class='description'><h1>Function <span class='name'>dir_exists</span></h1><div class='representation'><code>dir_exists( location )</code></div><div class='docstring'>
+</div></div><div id='d_p' class='description'><h1>Function <span class='name'>dir_exists</span></h1><div class='representation'><code>dir_exists( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Tells if there is a remote directory at the given location.</p></div></div>
 
-</div></div><div id='d_m' class='description'><h1>Function <span class='name'>dispatch</span></h1><div class='representation'><code>dispatch( prefix=None )</code></div><div class='docstring'>
+</div></div><div id='d_q' class='description'><h1>Function <span class='name'>dispatch</span></h1><div class='representation'><code>dispatch( prefix=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Dispatches the current function to specific implementation. The <code>prefix</code> parameter indicates the common option prefix, and the <code>option_select()</code> function will determine the function suffix.</p><p>For instance the package functions are defined like that:</p><p>{{{ @dispatch("package") def package<span class='term'>ensure(...): ... def package</span>ensure<span class='term'>apt(...): ... def package</span>ensure_yum(&hellip;): &hellip; }}}</p><p>and then when a user does</p><p>{{{ cuisine.option<span class='term'>select("package", "yum") cuisine.package</span>ensure(&hellip;) }}}</p><p>then the <code>dispatch</code> function will dispatch <code>package_ensure</code> to <code>package_ensure_yum</code>.</p><p>If your prefix is the first word of the function name before the first <code>_</code> then you can simply use <code>@dispatch</code> without parameters.</p></div></div>
 
-</div></div><div id='d_b' class='description'><h1>Class <span class='name'>mode_sudo</span></h1><div class='representation'></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Cuisine functions will be executed with sudo.</p></div></div>
+</div></div><div id='d_v' class='description'><h1>Function <span class='name'>file_exists</span></h1><div class='representation'><code>file_exists( location )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Tests if there is a <em>remote</em> file at the given location.</p></div></div>
+
+</div></div><div id='d_w' class='description'><h1>Function <span class='name'>file_is_dir</span></h1><div class='representation'><code>file_is_dir( location )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_t' class='description'><h1>Function <span class='name'>file_attribs_get</span></h1><div class='representation'><code>file_attribs_get( location )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Return mode, owner, and group for remote path. Return mode, owner, and group if remote path exists, <code>None</code> otherwise.</p></div></div>
+
+</div></div><div id='d_u' class='description'><h1>Function <span class='name'>file_ensure</span></h1><div class='representation'><code>file_ensure( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the remote file at the given location.</p></div></div>
+
+</div></div><div id='d_j' class='description'><h1>Class <span class='name'>mode_user</span></h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Cuisine functions will be executed as the current user.</p></div></div>
+
+</div></div><div id='d_k' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Eb' class='description'><h1>dict</h1><div class='representation'><code>{'package': 'apt'}</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
+
+</div></div><div id='d_i' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_n' class='description'><h1>Function <span class='name'>dir_attribs</span></h1><div class='representation'><code>dir_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the given remote directory.</p></div></div>
+
+</div></div><div id='d_o' class='description'><h1>Function <span class='name'>dir_ensure</span></h1><div class='representation'><code>dir_ensure( location, recursive=False, mode=None, owner=None, group=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensures that there is a remote directory at the given location, optionally updating its mode/owner/group.</p><p>If we are not updating the owner/group then this can be done as a single ssh call, so use that method, otherwise set owner/group after creation.</p></div></div>
+
+</div></div><div id='d_l' class='description'><h1>Function <span class='name'>command_check</span></h1><div class='representation'><code>command_check( command )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Tests if the given command is available on the system.</p></div></div>
+
+</div></div><div id='d_m' class='description'><h1>Function <span class='name'>command_ensure</span></h1><div class='representation'><code>command_ensure( command, package=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensures that the given command is present, if not installs the package with the given name, which is the same as the command by default.</p></div></div>
+
+</div></div><div id='d_b' class='description'><h1>Class <span class='name'>mode_local</span></h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Sets Cuisine into local mode, where run/sudo won't go through Fabric's API, but directly through a popen. This allows you to easily test your Cuisine scripts without using Fabric.</p></div></div>
 
 </div></div><div id='d_c' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_a' class='description'><h1>Module <span class='name'>cuisine</span></h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p><code>cuisine</code> makes it easy to write automatic server installation and configuration recipes by wrapping common administrative tasks (installing packages, creating users and groups) in Python functions.</p><p><code>cuisine</code> is designed to work with Fabric and provide all you need for getting your new server up and running in minutes.</p><p>Note, that right now, Cuisine only supports Debian-based Linux systems.</p><p>See also:</p><ul><li>Deploying Django with Fabric <a href="http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric" target="_blank">http://lethain.com/entry/2008/nov/04/deploying-django-with-fabric</a></li></ul><ul><li>Notes on Python Fabric 0.9b1 <a href="http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1" target="_blank">http://www.saltycrane.com/blog/2009/10/notes-python-fabric-09b1</a>`_</li></ul><ul><li>EC2, fabric, and "err: stdin: is not a tty" <a href="http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html" target="_blank">http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html</a>`_</li></ul><p>:copyright: (c) 2011,2012 by Sébastien Pierre. :license: BSD, see LICENSE for more details.</p></div></div>
 
-</div></div><div id='d_f' class='description'><h1>Class <span class='name'>mode_user</span></h1><div class='representation'></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Cuisine functions will be executed as the current user.</p></div></div>
+</div></div><div id='d_f' class='description'><h1>Class <span class='name'>mode_remote</span></h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Comes back to Fabric's API for run/sudo. This basically reverts the effect of calling <code>mode_local()</code>.</p></div></div>
 
 </div></div><div id='d_g' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_d' class='description'><h1>wrapper_descriptor</h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><div class="section" level="1"><h1 class="heading"><span class="number"><span class="level0">1<span class="lastDot dot">.</span></span></span><span class='term'>repr</span>_() &lt;==&gt; repr(x)</h1><div class="level1"><div class='content'></div></div></div></div></div>
 
-</div></div><div id='d_jb' class='description'><h1>Function <span class='name'>ssh_keygen</span></h1><div class='representation'><code>ssh_keygen( user, keytype='dsa' )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Generates a pair of ssh keys in the user's home .ssh directory.</p></div></div>
+</div></div><div id='d_jb' class='description'><h1>Function <span class='name'>select_package</span></h1><div class='representation'><code>select_package( option=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='j' class='container'><div class='name'><a href='javascript:describeElement("j");'>mode_user</a></div><div class='title'>Methods</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("j","k");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("j","d");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("j","e");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_ob' class='description'><h1>Function <span class='name'>system_uuid</span></h1><div class='representation'><code>system_uuid(  )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Gets a machines UUID (Universally Unique Identifier).</p></div></div>
 
-</div></div><div id='d_ob' class='description'><h1>Function <span class='name'>text_detect_eol</span></h1><div class='representation'><code>text_detect_eol( text )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Ib' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
+</div></div><div id='d_Ib' class='description'><h1>NoneType</h1><div class='representation'></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_gb' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_wb' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_h' class='description'><h1>Class <span class='name'>mode_sudo</span></h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Cuisine functions will be executed with sudo.</p></div></div>
+
+</div></div><div id='d_Fb' class='description'><h1>str</h1><div class='representation'><code>'\n'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_gb' class='description'><h1>Function <span class='name'>run_local</span></h1><div class='representation'><code>run_local( command )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>A wrapper around subprocess.</p></div></div>
-
-</div></div><div id='d_wb' class='description'><h1>Function <span class='name'>upstart_ensure</span></h1><div class='representation'><code>upstart_ensure( name )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensures that the given upstart service is running, restarting it if necessary.</p></div></div>
-
-</div></div><div id='d_h' class='description'><h1>Function <span class='name'>command_check</span></h1><div class='representation'><code>command_check( command )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Tests if the given command is available on the system.</p></div></div>
-
-</div></div><div id='d_Fb' class='description'><h1>SRE_Pattern</h1><div class='representation'></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Compiled regular expression objects</p></div></div>
-
-</div></div><div id='d_db' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_tb' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x277c1b8>, process=<function <lambda> at 0x277c230> )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div></div>
-
-</div></div><div id='d_lb' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_e' class='description'><h1>wrapper_descriptor</h1><div class='representation'></div><div class='docstring'>
-<div class="textoContent"><div class='content'><div class="section" level="1"><h1 class="heading"><span class="number"><span class="level0">1<span class="lastDot dot">.</span></span></span><span class='term'>str</span>_() &lt;==&gt; str(x)</h1><div class="level1"><div class='content'></div></div></div></div></div>
-
-</div></div><div id='d_Gb' class='description'><h1>NoneType</h1><div class='representation'></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_xb' class='description'><h1>Function <span class='name'>user_check</span></h1><div class='representation'><code>user_check( name )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Checks if there is a user defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"uid":&lt;str&gt;,"gid":&lt;str&gt;,"home":&lt;str&gt;,"shell":&lt;str&gt;}</code> or <code>None</code> if the user does not exists.</p></div></div>
-
-</div></div><div id='d_ab' class='description'><h1>Function <span class='name'>package_upgrade</span></h1><div class='representation'><code>package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Updates every package present on the system.</p></div></div>
-
-</div></div><div id='d_Kb' class='description'><h1>str</h1><div class='representation'><code>'apt'</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
-
-</div></div><div id='d_pb' class='description'><h1>Function <span class='name'>text_ensure_line</span></h1><div class='representation'><code>text_ensure_line( text, *lines )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensures that the given lines are present in the given text, otherwise appends the lines that are not already in the text at the end of it.</p></div></div>
-
-</div></div><div id='d_ib' class='description'><h1>Function <span class='name'>ssh_authorize</span></h1><div class='representation'><code>ssh_authorize( user, key )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Adds the given key to the <code>.ssh/authorized_keys</code> for the given user.</p></div></div>
-
-</div></div><div id='d_nb' class='description'><h1>Function <span class='name'>system_uuid_alias_add</span></h1><div class='representation'><code>system_uuid_alias_add(  )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Adds system UUID alias to /etc/hosts. Some tools/processes rely/want the hostname as an alias in /etc/hosts e.g. <code>127.0.0.1 localhost &lt;hostname&gt;</code>.</p></div></div>
-
-</div></div><div id='d_yb' class='description'><h1>Function <span class='name'>user_create</span></h1><div class='representation'><code>user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Creates the user with the given name, optionally giving a specific password/home/uid/gid/shell.</p></div></div>
-
-</div></div><div id='d_Hb' class='description'><h1>str</h1><div class='representation'><code>'0.2.7'</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
-
-</div></div><div id='d_fb' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE' global to tell whether the command should be run as regular user or sudo.</p></div></div>
-
-</div></div><div id='d_qb' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Returns the first line that matches the given predicate.</p></div></div>
-
-</div></div><div id='b' class='container'><div class='name'><a href='javascript:describeElement("b");'>mode_sudo</a></div><div class='title'>Methods</div class='title'><div class='group'><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","c");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","d");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","e");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='f' class='container'><div class='name'><a href='javascript:describeElement("f");'>mode_user</a></div><div class='title'>Methods</div class='title'><div class='group'><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("f","g");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("f","d");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("f","e");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_vb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Substitutes <code>${PLACEHOLDER}</code>s within the text with the corresponding values from variables.</p></div></div>
-
-</div></div><div id='d_Ab' class='description'><h1>Function <span class='name'>user_passwd</span></h1><div class='representation'><code>user_passwd( name, passwd )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Sets the given user password.</p></div></div>
-
-</div></div><div id='d_cb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_zb' class='description'><h1>Function <span class='name'>user_ensure</span></h1><div class='representation'><code>user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensures that the given users exists, optionally updating their passwd/home/uid/gid/shell.</p></div></div>
-
-</div></div><div id='d_kb' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE_SUDO' global to tell whether the command should be run as regular user or sudo.</p></div></div>
-
-</div></div><div id='d_Bb' class='description'><h1>Function <span class='name'>user_remove</span></h1><div class='representation'><code>user_remove( name, rmhome=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Removes the user with the given name, optionally removing the home directory and mail spool.</p></div></div>
-
-</div></div><div id='d_sb' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
+</div></div><div id='d_db' class='description'><h1>Function <span class='name'>package_upgrade_apt</span></h1><div class='representation'><code>package_upgrade_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_tb' class='description'><h1>Function <span class='name'>text_normalize</span></h1><div class='representation'><code>text_normalize( text )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
 
-</div></div><div id='d_Jb' class='description'><h1>str</h1><div class='representation'><code>'package'</code></div><div class='docstring'>
+</div></div><div id='d_lb' class='description'><h1>Function <span class='name'>ssh_keygen</span></h1><div class='representation'><code>ssh_keygen( user, keytype='dsa' )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Generates a pair of ssh keys in the user's home .ssh directory.</p></div></div>
+
+</div></div><div id='d_e' class='description'><h1>wrapper_descriptor</h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><div class="section" level="1"><h1 class="heading"><span class="number"><span class="level0">1<span class="lastDot dot">.</span></span></span><span class='term'>str</span>_() &lt;==&gt; str(x)</h1><div class="level1"><div class='content'></div></div></div></div></div>
+
+</div></div><div id='d_Gb' class='description'><h1>bool</h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>bool(x) -&gt; bool</p><p>Returns True when the argument x is true, False otherwise. The builtins True and False are the only two instances of the class bool. The class bool is a subclass of the class int, and cannot be subclassed.</p></div></div>
+
+</div></div><div id='d_xb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Substitutes <code>${PLACEHOLDER}</code>s within the text with the corresponding values from variables.</p></div></div>
+
+</div></div><div id='d_ab' class='description'><h1>Function <span class='name'>package_update_apt</span></h1><div class='representation'><code>package_update_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Kb' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+
+</div></div><div id='d_pb' class='description'><h1>Function <span class='name'>system_uuid_alias_add</span></h1><div class='representation'><code>system_uuid_alias_add(  )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Adds system UUID alias to /etc/hosts. Some tools/processes rely/want the hostname as an alias in /etc/hosts e.g. <code>127.0.0.1 localhost &lt;hostname&gt;</code>.</p></div></div>
+
+</div></div><div id='d_ib' class='description'><h1>Function <span class='name'>run_local</span></h1><div class='representation'><code>run_local( command )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>A wrapper around subprocess.</p></div></div>
+
+</div></div><div id='h' class='container'><div class='name'><a href='javascript:describeElement("h");'>mode_sudo</a></div><div class='title'>Methods</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("h","i");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("h","d");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("h","e");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_nb' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_yb' class='description'><h1>Function <span class='name'>upstart_ensure</span></h1><div class='representation'><code>upstart_ensure( name )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensures that the given upstart service is running, restarting it if necessary.</p></div></div>
+
+</div></div><div id='d_Hb' class='description'><h1>SRE_Pattern</h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Compiled regular expression objects</p></div></div>
+
+</div></div><div id='d_fb' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_qb' class='description'><h1>Function <span class='name'>text_detect_eol</span></h1><div class='representation'><code>text_detect_eol( text )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='b' class='container'><div class='name'><a href='javascript:describeElement("b");'>mode_local</a></div><div class='title'>Methods</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","c");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","d");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","e");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='f' class='container'><div class='name'><a href='javascript:describeElement("f");'>mode_remote</a></div><div class='title'>Methods</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("f","g");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("f","d");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("f","e");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_vb' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x267f2a8>, process=<function <lambda> at 0x267f320> )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div></div>
+
+</div></div><div id='d_Ab' class='description'><h1>Function <span class='name'>user_create</span></h1><div class='representation'><code>user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Creates the user with the given name, optionally giving a specific password/home/uid/gid/shell.</p></div></div>
+
+</div></div><div id='d_cb' class='description'><h1>Function <span class='name'>package_upgrade</span></h1><div class='representation'><code>package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Updates every package present on the system.</p></div></div>
+
+</div></div><div id='d_zb' class='description'><h1>Function <span class='name'>user_check</span></h1><div class='representation'><code>user_check( name )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Checks if there is a user defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"uid":&lt;str&gt;,"gid":&lt;str&gt;,"home":&lt;str&gt;,"shell":&lt;str&gt;}</code> or <code>None</code> if the user does not exists.</p></div></div>
+
+</div></div><div id='d_Mb' class='description'><h1>str</h1><div class='representation'><code>'apt'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+
+</div></div><div id='d_kb' class='description'><h1>Function <span class='name'>ssh_authorize</span></h1><div class='representation'><code>ssh_authorize( user, key )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Adds the given key to the <code>.ssh/authorized_keys</code> for the given user.</p></div></div>
+
+</div></div><div id='d_Bb' class='description'><h1>Function <span class='name'>user_ensure</span></h1><div class='representation'><code>user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensures that the given users exists, optionally updating their passwd/home/uid/gid/shell.</p></div></div>
+
+</div></div><div id='d_sb' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Returns the first line that matches the given predicate.</p></div></div>
+
+</div></div><div id='d_Jb' class='description'><h1>str</h1><div class='representation'><code>'0.2.8'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
 </div></div><div id='a' class='root'><div class='name'><a href='javascript:describeElement("a");'>cuisine</a></div><div class='title'>Classes</div class='title'><div class='group'><div class='slot documented'><span
-					class='prefix'>&Tau;</span><a href='javascript:documentElement("a","b");'>mode_sudo</a></div><div class='slot documented'><span
-					class='prefix'>&Tau;</span><a href='javascript:documentElement("a","f");'>mode_user</a></div></div><div class='title'>Functions</div class='title'><div class='group'><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","h");'>command_check</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","i");'>command_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","j");'>dir_attribs</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","k");'>dir_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","l");'>dir_exists</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","m");'>dispatch</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","n");'>file_append</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","o");'>file_attribs</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","p");'>file_attribs_get</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","q");'>file_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","r");'>file_exists</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","s");'>file_is_dir</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","t");'>file_is_file</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","u");'>file_is_link</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","v");'>file_link</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","w");'>file_local_read</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","x");'>file_read</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","y");'>file_sha256</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","z");'>file_unlink</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","A");'>file_update</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","B");'>file_upload</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","C");'>file_write</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","D");'>group_check</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","E");'>group_create</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","F");'>group_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","G");'>group_user_add</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","H");'>group_user_check</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","I");'>group_user_del</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","J");'>group_user_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","K");'>locale_check</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","L");'>locale_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","M");'>mode_local</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","N");'>mode_remote</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","O");'>package_clean</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","P");'>package_clean_apt</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Q");'>package_clean_yum</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","R");'>package_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","S");'>package_ensure_apt</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","T");'>package_ensure_yum</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","U");'>package_install</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","V");'>package_install_apt</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","W");'>package_install_yum</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","X");'>package_update</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Y");'>package_update_apt</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Z");'>package_update_yum</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ab");'>package_upgrade</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","bb");'>package_upgrade_apt</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","cb");'>package_upgrade_yum</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","db");'>repository_ensure_apt</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","eb");'>repository_ensure_yum</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","fb");'>run</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","gb");'>run_local</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","hb");'>select_package</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ib");'>ssh_authorize</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","jb");'>ssh_keygen</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","kb");'>sudo</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","lb");'>sudo_password</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","mb");'>system_uuid</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","nb");'>system_uuid_alias_add</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ob");'>text_detect_eol</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","pb");'>text_ensure_line</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","qb");'>text_get_line</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","rb");'>text_normalize</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","sb");'>text_nospace</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","tb");'>text_replace_line</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ub");'>text_strip_margin</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","vb");'>text_template</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","wb");'>upstart_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","xb");'>user_check</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","yb");'>user_create</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","zb");'>user_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Ab");'>user_passwd</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Bb");'>user_remove</a></div></div><div class='title'>Values</div class='title'><div class='group'><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Cb");'>DEFAULT_OPTIONS</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Db");'>MAC_EOL</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Eb");'>MODE_LOCAL</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Eb");'>MODE_SUDO</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Fb");'>RE_SPACES</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Gb");'>SUDO_PASSWORD</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Db");'>UNIX_EOL</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Hb");'>VERSION</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Ib");'>WINDOWS_EOL</a></div><div class='slot documented'><span
-					class='prefix'>&sdot;</span><a href='javascript:documentElement("a","Jb");'>option</a></div><div class='slot documented'><span
-					class='prefix'>&sdot;</span><a href='javascript:documentElement("a","Kb");'>value</a></div></div></div><div id='d_Cb' class='description'><h1>dict</h1><div class='representation'><code>{'package': 'apt'}</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
+					class='prefix'>&Tau;</span><a href='javascript:documentElement("a","b");'>mode_local</a></div><div class='slot documented'><span
+					class='prefix'>&Tau;</span><a href='javascript:documentElement("a","f");'>mode_remote</a></div><div class='slot documented'><span
+					class='prefix'>&Tau;</span><a href='javascript:documentElement("a","h");'>mode_sudo</a></div><div class='slot documented'><span
+					class='prefix'>&Tau;</span><a href='javascript:documentElement("a","j");'>mode_user</a></div></div><div class='title'>Functions</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","l");'>command_check</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","m");'>command_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","n");'>dir_attribs</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","o");'>dir_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","p");'>dir_exists</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","q");'>dispatch</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","r");'>file_append</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","s");'>file_attribs</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","t");'>file_attribs_get</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","u");'>file_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","v");'>file_exists</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","w");'>file_is_dir</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","x");'>file_is_file</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","y");'>file_is_link</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","z");'>file_link</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","A");'>file_local_read</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","B");'>file_read</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","C");'>file_sha256</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","D");'>file_unlink</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","E");'>file_update</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","F");'>file_upload</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","G");'>file_write</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","H");'>group_check</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","I");'>group_create</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","J");'>group_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","K");'>group_user_add</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","L");'>group_user_check</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","M");'>group_user_del</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","N");'>group_user_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","O");'>locale_check</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","P");'>locale_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Q");'>package_clean</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","R");'>package_clean_apt</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","S");'>package_clean_yum</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","T");'>package_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","U");'>package_ensure_apt</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","V");'>package_ensure_yum</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","W");'>package_install</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","X");'>package_install_apt</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Y");'>package_install_yum</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Z");'>package_update</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ab");'>package_update_apt</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","bb");'>package_update_yum</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","cb");'>package_upgrade</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","db");'>package_upgrade_apt</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","eb");'>package_upgrade_yum</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","fb");'>repository_ensure_apt</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","gb");'>repository_ensure_yum</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","hb");'>run</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ib");'>run_local</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","jb");'>select_package</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","kb");'>ssh_authorize</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","lb");'>ssh_keygen</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","mb");'>sudo</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","nb");'>sudo_password</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ob");'>system_uuid</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","pb");'>system_uuid_alias_add</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","qb");'>text_detect_eol</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","rb");'>text_ensure_line</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","sb");'>text_get_line</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","tb");'>text_normalize</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ub");'>text_nospace</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","vb");'>text_replace_line</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","wb");'>text_strip_margin</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","xb");'>text_template</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","yb");'>upstart_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","zb");'>user_check</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Ab");'>user_create</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Bb");'>user_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Cb");'>user_passwd</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Db");'>user_remove</a></div></div><div class='title'>Values</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Eb");'>DEFAULT_OPTIONS</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Fb");'>MAC_EOL</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Gb");'>MODE_LOCAL</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Gb");'>MODE_SUDO</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Hb");'>RE_SPACES</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Ib");'>SUDO_PASSWORD</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Fb");'>UNIX_EOL</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Jb");'>VERSION</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Kb");'>WINDOWS_EOL</a></div><div class='slot documented'><span
+					class='prefix'>&sdot;</span><a href='javascript:documentElement("a","Lb");'>option</a></div><div class='slot documented'><span
+					class='prefix'>&sdot;</span><a href='javascript:documentElement("a","Mb");'>value</a></div></div></div><div id='d_Cb' class='description'><h1>Function <span class='name'>user_passwd</span></h1><div class='representation'><code>user_passwd( name, passwd )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Sets the given user password.</p></div></div>
 
-</div></div><div id='d_hb' class='description'><h1>Function <span class='name'>select_package</span></h1><div class='representation'><code>select_package( option=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div>
+</div></div><div id='d_hb' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE' global to tell whether the command should be run as regular user or sudo.</p></div></div>
+
+</div></div>
 	<!-- hidden-snip -->
 	<!-- hidden nodes will be moved here -->
 </div>
