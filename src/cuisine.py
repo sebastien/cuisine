@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 14-Mar-2012
+# Last mod  : 02-Jun-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -42,7 +42,7 @@ from __future__ import with_statement
 import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.2.7"
+VERSION     = "0.2.8"
 
 RE_SPACES   = re.compile("[\s\t]+")
 MAC_EOL     = "\n"
@@ -66,45 +66,66 @@ def sudo_password(password):
     global SUDO_PASSWORD
     SUDO_PASSWORD= password
 
-def mode_local():
+class mode_local(object):
 	"""Sets Cuisine into local mode, where run/sudo won't go through
 	Fabric's API, but directly through a popen. This allows you to
 	easily test your Cuisine scripts without using Fabric."""
-	global MODE_LOCAL, SUDO_PASSWORD	
-	sudo_cmd = "sudo "
-	if not SUDO_PASSWORD is None:
-		sudo_cmd= "echo %s|sudo -S -p '' "%SUDO_PASSWORD
-	if MODE_LOCAL is False:
-		def custom_run( cmd ):
-			global MODE_SUDO
-			if MODE_SUDO:
-				return os.popen(sudo_cmd + cmd).read()[:-1]
-			else:
-				return os.popen(cmd).read()[:-1]
-		def custom_sudo( cmd ):
-			return os.popen(sudo_cmd + cmd).read()[:-1]
-		module   = sys.modules[__name__]
-		old_run  = getattr(module, "run")
-		old_sudo = getattr(module, "sudo")
-		setattr(module, "run",  custom_run)
-		setattr(module, "sudo", custom_sudo)
-		MODE_LOCAL = (old_run, old_sudo)
-		return True
-	else:
-		return False
 
-def mode_remote():
+	def __init__( self ):
+		global MODE_LOCAL, SUDO_PASSWORD
+		sudo_cmd = "sudo "
+		if not SUDO_PASSWORD is None:
+			sudo_cmd= "echo %s|sudo -S -p '' "%SUDO_PASSWORD
+		if MODE_LOCAL is False:
+			def custom_run( cmd ):
+				global MODE_SUDO
+				if MODE_SUDO:
+					return os.popen(sudo_cmd + cmd).read()[:-1]
+				else:
+					return os.popen(cmd).read()[:-1]
+			def custom_sudo( cmd ):
+				return os.popen(sudo_cmd + cmd).read()[:-1]
+			module   = sys.modules[__name__]
+			old_run  = getattr(module, "run")
+			old_sudo = getattr(module, "sudo")
+			setattr(module, "run",  custom_run)
+			setattr(module, "sudo", custom_sudo)
+			MODE_LOCAL = (old_run, old_sudo)
+			self.oldMode = mode_remote
+		else:
+			self.oldMode = None
+
+	def __enter__(self):
+		pass
+
+	def __exit__(self, *args, **kws):
+		if self.oldMode:
+			self.oldMode()
+			self.oldMode = None
+	
+
+class mode_remote(object):
 	"""Comes back to Fabric's API for run/sudo. This basically reverts
 	the effect of calling `mode_local()`."""
-	global MODE_LOCAL
-	if not (MODE_LOCAL is False):
-		module = sys.modules[__name__]
-		setattr(module, "run",  MODE_LOCAL[0])
-		setattr(module, "sudo", MODE_LOCAL[1])
-		MODE_LOCAL = False
-		return True
-	else:
-		return False
+	
+	def __init__( self ):
+		global MODE_LOCAL
+		if not (MODE_LOCAL is False):
+			module = sys.modules[__name__]
+			setattr(module, "run",  MODE_LOCAL[0])
+			setattr(module, "sudo", MODE_LOCAL[1])
+			MODE_LOCAL = False
+			self.oldMode = mode_local
+		else:
+			self.oldMode = None
+
+	def __enter__(self):
+		pass
+
+	def __exit__(self, *args, **kws):
+		if self.oldMode:
+			self.oldMode()
+			self.oldMode = None
 
 class mode_user(object):
 	"""Cuisine functions will be executed as the current user."""
