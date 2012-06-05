@@ -361,16 +361,16 @@ def file_read(location):
 
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
-	return run('test -e "%s" && echo OK ; true' % (location)) == "OK"
+	return run('test -e "%s" && echo OK ; true' % (location)).endswith("OK")
 
 def file_is_file(location):
-	return run("test -f '%s' && echo OK ; true" % (location)) == "OK"
+	return run("test -f '%s' && echo OK ; true" % (location)).endswith("OK")
 
 def file_is_dir(location):
-	return run("test -d '%s' && echo OK ; true" % (location)) == "OK"
+	return run("test -d '%s' && echo OK ; true" % (location)).endswith("OK")
 
 def file_is_link(location):
-	return run("test -L '%s' && echo OK ; true" % (location)) == "OK"
+	return run("test -L '%s' && echo OK ; true" % (location)).endswith("OK")
 
 def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
