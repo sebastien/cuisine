@@ -372,16 +372,14 @@ def file_is_dir(location):
 def file_is_link(location):
 	return run("test -L '%s' && echo OK ; true" % (location)).endswith("OK")
 
-def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
+def file_attribs(location, mode=None, owner=None, group=None, recursive=False, sudo=False):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
-	# FIXME: Not sure this is the right way to do it, maybe we should
-	# have USER/SUDO/USER+SUDO modes instead?
 	def run_or_sudo(cmd):
-		with fabric.api.settings(warn_only=True):
-			r = run(cmd)
-			if r.return_code != 0:
-				sudo(cmd)
+		if sudo:
+			fabric.api.sudo(cmd)
+		else:
+			run(cmd)
 	recursive = recursive and "-R " or ""
 	if mode:
 		run_or_sudo('chmod %s %s "%s"' % (recursive, mode,  location))
@@ -426,7 +424,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None):
 	os.unlink(local_path)
 	# Ensures that the signature matches
 	assert sig == file_sha256(location)
-	file_attribs(location, mode=mode, owner=owner, group=group)
+	file_attribs(location, mode=mode, owner=owner, group=group, sudo=sudo)
 
 def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
@@ -505,9 +503,9 @@ def file_sha256(location):
 #
 # =============================================================================
 
-def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
+def dir_attribs(location, mode=None, owner=None, group=None, recursive=False, sudo=False):
 	"""Updates the mode/owner/group for the given remote directory."""
-	file_attribs(location, mode, owner, group, recursive)
+	file_attribs(location, mode, owner, group, recursive, sudo)
 
 def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
