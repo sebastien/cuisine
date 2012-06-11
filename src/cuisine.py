@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 02-Jun-2012
+# Last mod  : 11-Jun-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -42,7 +42,7 @@ from __future__ import with_statement
 import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.2.8"
+VERSION     = "0.2.9"
 
 RE_SPACES   = re.compile("[\s\t]+")
 MAC_EOL     = "\n"
@@ -375,20 +375,13 @@ def file_is_link(location):
 def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
-	# FIXME: Not sure this is the right way to do it, maybe we should
-	# have USER/SUDO/USER+SUDO modes instead?
-	def run_or_sudo(cmd):
-		with fabric.api.settings(warn_only=True):
-			r = run(cmd)
-			if r.return_code != 0:
-				sudo(cmd)
 	recursive = recursive and "-R " or ""
 	if mode:
-		run_or_sudo('chmod %s %s "%s"' % (recursive, mode,  location))
+		run('chmod %s %s "%s"' % (recursive, mode,  location))
 	if owner:
-		run_or_sudo('chown %s %s "%s"' % (recursive, owner, location))
+		run('chown %s %s "%s"' % (recursive, owner, location))
 	if group:
-		run_or_sudo('chgrp %s %s "%s"' % (recursive, group, location))
+		run('chgrp %s %s "%s"' % (recursive, group, location))
 
 def file_attribs_get(location):
 	"""Return mode, owner, and group for remote path.
