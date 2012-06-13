@@ -566,13 +566,13 @@ def package_update_apt(package=None, *args):
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		sudo("apt-get --yes " + build_params_from_args(args) + " upgrade " + package)
+		sudo("apt-get --yes " + build_params_from_args(*args) + " upgrade " + package)
 
 def package_upgrade_apt(package=None, *args):
-	sudo("apt-get --yes " + build_params_from_args(args) + " upgrade")
+	sudo("apt-get --yes " + build_params_from_args(*args) + " upgrade")
 
 def package_install_apt(package, update=False, *args):
-	params = build_params_from_args(args)
+	params = build_params_from_args(*args)
 
 	if update:
 		sudo("apt-get --yes " + params + " update")
