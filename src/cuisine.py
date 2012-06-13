@@ -339,6 +339,9 @@ def text_template(text, variables):
 	template = string.Template(text)
 	return template.safe_substitute(variables)
 
+def build_params_from_args(*args):
+	return " ".join(map(lambda cmd: "--" + str(cmd), args))
+
 # =============================================================================
 #
 # FILE OPERATIONS
@@ -524,24 +527,20 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 # =============================================================================
 
 @dispatch
-def package_upgrade():
+def package_upgrade(*args):
 	"""Updates every package present on the system."""
 
 @dispatch
-def package_update(package=None):
-	"""Updates the package database (when no argument) or update the package
-	or list of packages given as argument."""
-@dispatch
-def package_update(package=None):
+def package_update(package=None, *args):
 	"""Upgrade the system."""
 
 @dispatch
-def package_install(package, update=False):
+def package_install(package, update=False, *args):
 	"""Installs the given package/list of package, optionally updating
 	the package database."""
 
 @dispatch
-def package_ensure(package, update=False):
+def package_ensure(package, update=False, *args):
 	"""Tests if the given package is installed, and installs it in
 	case it's not already there. If `update` is true, then the
 	package will be updated if it already exists."""
@@ -561,31 +560,34 @@ def repository_ensure_apt(repository):
 def package_upgrade_apt():
 	sudo("apt-get --yes upgrade")
 
-def package_update_apt(package=None):
+def package_update_apt(package=None, *args):
 	if package == None:
 		sudo("apt-get --yes update")
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		sudo("apt-get --yes upgrade " + package)
+		sudo("apt-get --yes " + build_params_from_args(*args) + " upgrade " + package)
 
-def package_upgrade_apt(package=None):
-	sudo("apt-get --yes upgrade")
+def package_upgrade_apt(package=None, *args):
+	sudo("apt-get --yes " + build_params_from_args(*args) + " upgrade")
 
-def package_install_apt(package, update=False):
+def package_install_apt(package, update=False, *args):
+	params = build_params_from_args(*args)
+
 	if update:
-		sudo("apt-get --yes update")
+		sudo("apt-get --yes " + params + " update")
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("apt-get --yes install %s" % (package))
+		
+	sudo("apt-get --yes " + params + " install %s" % (package))
 
-def package_ensure_apt(package, update=False):
+def package_ensure_apt(package, update=False, *args):
 	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
 	if status.find("not-installed") != -1 or status.find("installed") == -1:
-		package_install(package)
+		package_install(package, False, *args)
 		return False
 	else:
-		if update: package_update(package)
+		if update: package_update(package, *args)
 		return True
 
 def package_clean_apt(package=None):
