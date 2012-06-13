@@ -529,10 +529,6 @@ def package_upgrade():
 
 @dispatch
 def package_update(package=None):
-	"""Updates the package database (when no argument) or update the package
-	or list of packages given as argument."""
-@dispatch
-def package_update(package=None):
 	"""Upgrade the system."""
 
 @dispatch
