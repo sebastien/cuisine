@@ -580,13 +580,17 @@ def package_install_apt(package, update=False):
 	sudo("apt-get --yes install %s" % (package))
 
 def package_ensure_apt(package, update=False):
-	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
-	if status.find("not-installed") != -1 or status.find("installed") == -1:
-		package_install(package)
-		return False
-	else:
-		if update: package_update(package)
-		return True
+    """Ensure apt packages are installed"""
+    if not isinstance(package, basestring):
+        package = " ".join(package)
+    status = run("dpkg-query -W -f='${Status} ' %s ; true" % package)
+    if 'No packages found' in status or 'not-installed' in status:
+        package_install_apt(package)
+        return False
+    else:
+        if update:
+            package_update_apt(package)
+        return True
 
 def package_clean_apt(package=None):
     pass
