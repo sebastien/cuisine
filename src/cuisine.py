@@ -659,13 +659,14 @@ def command_ensure(command, package=None):
 #
 # =============================================================================
 
-def user_passwd(name, passwd):
+def user_passwd(name, passwd, encrypted_passwd=False):
 	"""Sets the given user password."""
 	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
-	sudo("echo %s | base64 --decode | chpasswd" % encoded_password)
+	encryption = " -e" if encrypted_passwd else ""
+	sudo("echo %s | base64 --decode | chpasswd%s" % encoded_password, encryption)
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
-				uid_min=None, uid_max=None):
+				uid_min=None, uid_max=None, encrypted_passwd=False):
 	"""Creates the user with the given name, optionally giving a
 	specific password/home/uid/gid/shell."""
 	options = ["-m"]
@@ -686,7 +687,7 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 		options.append("-K UID_MAX='%s'" % (uid_max))
 	sudo("useradd %s '%s'" % (" ".join(options), name))
 	if passwd:
-		user_passwd(name,passwd)
+		user_passwd(name,passwd,encrypted_passwd)
 
 def user_check(name):
 	"""Checks if there is a user defined with the given name,
