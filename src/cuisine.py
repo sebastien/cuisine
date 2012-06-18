@@ -582,7 +582,7 @@ def package_install_apt(package, update=False):
 def package_ensure_apt(package, update=False):
 	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
 	if status.find("not-installed") != -1 or status.find("installed") == -1:
-		package_install(package)
+		package_install(package, update)
 		return False
 	else:
 		if update: package_update(package)
@@ -623,7 +623,7 @@ def package_install_yum(package, update=False):
 def package_ensure_yum(package, update=False):
     status = run("yum list installed %s ; true" % package)
     if status.find("No matching Packages") != -1 or status.find(package) == -1:
-        package_install(package)
+        package_install(package, update)
         return False
     else:
         if update: package_update(package)
