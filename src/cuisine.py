@@ -447,7 +447,7 @@ def file_upload(remote, local, sudo=None):
 		else:
 			fabric.operations.put(local, remote, use_sudo=sudo)
 
-def file_update(location, updater=lambda x: x):
+def file_update(location, updater=lambda x: x, use_sudo=None):
 	"""Updates the content of the given by passing the existing
 	content of the remote file at the given location to the 'updater'
 	function.
@@ -460,7 +460,10 @@ def file_update(location, updater=lambda x: x):
 	assert file_exists(location), "File does not exists: " + location
 	new_content = updater(file_read(location))
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
-	run('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
+    if use_sudo:
+        sudo('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
+    else:
+	    run('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
 
 def file_append(location, content, mode=None, owner=None, group=None):
 	"""Appends the given content to the remote file at the given
