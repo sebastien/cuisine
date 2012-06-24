@@ -460,9 +460,9 @@ def file_update(location, updater=lambda x: x, use_sudo=None):
 	assert file_exists(location), "File does not exists: " + location
 	new_content = updater(file_read(location))
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
-    if use_sudo:
-        sudo('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
-    else:
+        if use_sudo:
+            sudo('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
+        else:
 	    run('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
 
 def file_append(location, content, mode=None, owner=None, group=None):
