@@ -600,25 +600,25 @@ def repository_ensure_yum(repository):
     pass
 
 def package_upgrade_yum():
-    sudo("yum --assumeyes update")
+    sudo("yum -y update")
 
 def package_update_yum(package=None):
     if package == None:
-        sudo("yum --assumeyes update")
+        sudo("yum -y update")
     else:
         if type(package) in (list, tuple):
             package = " ".join(package)
-        sudo("yum --assumeyes upgrade " + package)
+        sudo("yum -y upgrade " + package)
 
 def package_upgrade_yum(package=None):
-    sudo("yum --assumeyes upgrade")
+    sudo("yum -y upgrade")
 
 def package_install_yum(package, update=False):
     if update:
-        sudo("yum --assumeyes update")
+        sudo("yum -y update")
     if type(package) in (list, tuple):
         package = " ".join(package)
-    sudo("yum --assumeyes install %s" % (package))
+    sudo("yum -y install %s" % (package))
 
 def package_ensure_yum(package, update=False):
     status = run("yum list installed %s ; true" % package)
@@ -630,7 +630,7 @@ def package_ensure_yum(package, update=False):
         return True
 
 def package_clean_yum(package=None):
-    sudo("yum --assumeyes clean all")
+    sudo("yum -y clean all")
 
 # =============================================================================
 #
