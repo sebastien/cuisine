@@ -188,28 +188,22 @@ def run(*args, **kwargs):
 def run_local(command, shell=True, pty=True, combine_stderr=None):
 	'''
 	Local implementation of fabric.api.run() using subprocess.
-
+	
 	Note: pty option exists for function signature compatibility and is
 	      ignored.
 	'''
-	if combine_stderr is None:
-	    combine_stderr = env.combine_stderr
-
-	stderr = subprocess.STDOUT if combine_stderr else subprocess.PIPE
-	process = subprocess.Popen(command, shell=shell,
-                                   stdout=subprocess.PIPE,
-                                   stderr=stderr)
+	if combine_stderr is None: combine_stderr = env.combine_stderr
+	stderr   = subprocess.STDOUT if combine_stderr else subprocess.PIPE
+	process  = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=stderr)
 	out, err = process.communicate()
-
 	# FIXME: Should stream the output, and only print it if fabric's properties allow it
 	# print out
-
 	# Wrap stdout string and add extra status attributes
 	result = fabric.operations._AttributeString(out)
 	result.return_code = process.returncode
-	result.succeeded = process.returncode == 0
-	result.failed = not result.succeeded
-	result.stderr = StringIO.StringIO(err)
+	result.succeeded   = process.returncode == 0
+	result.failed      = not result.succeeded
+	result.stderr      = StringIO.StringIO(err)
 	return result
 
 def sudo(*args, **kwargs):
