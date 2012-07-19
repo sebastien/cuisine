@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 11-Jun-2012
+# Last mod  : 19-Jul-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -63,8 +63,8 @@ DEFAULT_OPTIONS = dict(
 #     pass
 
 def sudo_password(password):
-    global SUDO_PASSWORD
-    SUDO_PASSWORD= password
+	global SUDO_PASSWORD
+	SUDO_PASSWORD= password
 
 class mode_local(object):
 	"""Sets Cuisine into local mode, where run/sudo won't go through
@@ -548,8 +548,7 @@ def package_ensure(package, update=False):
 
 @dispatch
 def package_clean(package=None):
-        """Clean the repository for un-needed files
-        ."""
+	"""Clean the repository for un-needed files."""
 
 # -----------------------------------------------------------------------------
 # APT PACKAGE (DEBIAN/UBUNTU)
@@ -597,40 +596,40 @@ def package_clean_apt(package=None):
 # -----------------------------------------------------------------------------
 
 def repository_ensure_yum(repository):
-    pass
+	pass
 
 def package_upgrade_yum():
-    sudo("yum --assumeyes update")
+	sudo("yum --assumeyes update")
 
 def package_update_yum(package=None):
-    if package == None:
-        sudo("yum --assumeyes update")
-    else:
-        if type(package) in (list, tuple):
-            package = " ".join(package)
-        sudo("yum --assumeyes upgrade " + package)
+	if package == None:
+		sudo("yum --assumeyes update")
+	else:
+		if type(package) in (list, tuple):
+			package = " ".join(package)
+		sudo("yum --assumeyes upgrade " + package)
 
 def package_upgrade_yum(package=None):
-    sudo("yum --assumeyes upgrade")
+	sudo("yum --assumeyes upgrade")
 
 def package_install_yum(package, update=False):
-    if update:
-        sudo("yum --assumeyes update")
-    if type(package) in (list, tuple):
-        package = " ".join(package)
-    sudo("yum --assumeyes install %s" % (package))
+	if update:
+		sudo("yum --assumeyes update")
+	if type(package) in (list, tuple):
+		package = " ".join(package)
+	sudo("yum --assumeyes install %s" % (package))
 
 def package_ensure_yum(package, update=False):
-    status = run("yum list installed %s ; true" % package)
-    if status.find("No matching Packages") != -1 or status.find(package) == -1:
-        package_install(package, update)
-        return False
-    else:
-        if update: package_update(package)
-        return True
+	status = run("yum list installed %s ; true" % package)
+	if status.find("No matching Packages") != -1 or status.find(package) == -1:
+		package_install(package, update)
+		return False
+	else:
+		if update: package_update(package)
+		return True
 
 def package_clean_yum(package=None):
-    sudo("yum --assumeyes clean all")
+	sudo("yum --assumeyes clean all")
 
 # =============================================================================
 #
@@ -795,12 +794,12 @@ def group_user_ensure(group, user):
 		group_user_add(group, user)
 
 def group_user_del(group, user):
-        """remove the given user from the given group."""
-        assert group_check(group), "Group does not exist: %s" % (group)
-        if group_user_check(group, user):
-                group_for_user = run("cat /etc/group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
-                if group_for_user:
-                        sudo("usermod -G '%s' '%s'" % (",".join(group_for_user), user))
+		"""remove the given user from the given group."""
+		assert group_check(group), "Group does not exist: %s" % (group)
+		if group_user_check(group, user):
+				group_for_user = run("cat /etc/group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
+				if group_for_user:
+						sudo("usermod -G '%s' '%s'" % (",".join(group_for_user), user))
 
 ### ssh_<operation> functions
 
