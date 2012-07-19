@@ -596,7 +596,7 @@ def package_clean_apt(package=None):
 # -----------------------------------------------------------------------------
 
 def repository_ensure_yum(repository):
-	pass
+	raise Exception("Not implemented for Yum")
 
 def package_upgrade_yum():
 	sudo("yum --assumeyes update")
