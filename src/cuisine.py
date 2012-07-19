@@ -192,7 +192,7 @@ def run_local(command, shell=True, pty=True, combine_stderr=None):
 	Note: pty option exists for function signature compatibility and is
 	      ignored.
 	'''
-	if combine_stderr is None: combine_stderr = env.combine_stderr
+	if combine_stderr is None: combine_stderr = fabric.api.env.combine_stderr
 	stderr   = subprocess.STDOUT if combine_stderr else subprocess.PIPE
 	process  = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=stderr)
 	out, err = process.communicate()
