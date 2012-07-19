@@ -39,7 +39,7 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools
+import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION     = "0.2.9"
@@ -80,9 +80,8 @@ class mode_local(object):
 			def custom_run( cmd ):
 				global MODE_SUDO
 				if MODE_SUDO:
-					return os.popen(sudo_cmd + cmd).read()[:-1]
-				else:
-					return os.popen(cmd).read()[:-1]
+					cmd = sudo_cmd + cmd
+                                return run_local(cmd)
 			def custom_sudo( cmd ):
 				return os.popen(sudo_cmd + cmd).read()[:-1]
 			module   = sys.modules[__name__]
@@ -102,12 +101,12 @@ class mode_local(object):
 		if self.oldMode:
 			self.oldMode()
 			self.oldMode = None
-	
+
 
 class mode_remote(object):
 	"""Comes back to Fabric's API for run/sudo. This basically reverts
 	the effect of calling `mode_local()`."""
-	
+
 	def __init__( self ):
 		global MODE_LOCAL
 		if not (MODE_LOCAL is False):
@@ -185,13 +184,33 @@ def run(*args, **kwargs):
 	else:
 		return fabric.api.run(*args, **kwargs)
 
-def run_local(command):
-	"""A wrapper around subprocess."""
-	pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout
-	res = pipe.read()
-	# FIXME: Should stream the pipe, and only print it if fabric's properties allow it
-	# print res
-	return pipe
+
+def run_local(command, shell=True, pty=True, combine_stderr=None):
+	'''
+	Local implementation of fabric.api.run() using subprocess.
+
+	Note: pty option exists for function signature compatibility and is
+	      ignored.
+	'''
+	if combine_stderr is None:
+	    combine_stderr = env.combine_stderr
+
+	stderr = subprocess.STDOUT if combine_stderr else subprocess.PIPE
+	process = subprocess.Popen(command, shell=shell,
+                                   stdout=subprocess.PIPE,
+                                   stderr=stderr)
+	out, err = process.communicate()
+
+	# FIXME: Should stream the output, and only print it if fabric's properties allow it
+	# print out
+
+	# Wrap stdout string and add extra status attributes
+	result = fabric.operations._AttributeString(out)
+	result.return_code = process.returncode
+	result.succeeded = process.returncode == 0
+	result.failed = not result.succeeded
+	result.stderr = StringIO.StringIO(err)
+	return result
 
 def sudo(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
@@ -209,7 +228,7 @@ def dispatch(prefix=None):
 	"""Dispatches the current function to specific implementation. The `prefix`
 	parameter indicates the common option prefix, and the `option_select()`
 	function will determine the function suffix.
-	
+
 	For instance the package functions are defined like that:
 
 	{{{
@@ -221,7 +240,7 @@ def dispatch(prefix=None):
 	def package_ensure_yum(...):
 		...
 	}}}
-	
+
 	and then when a user does
 
 	{{{
@@ -229,7 +248,7 @@ def dispatch(prefix=None):
 	cuisine.package_ensure(...)
 	}}}
 
-	then the `dispatch` function will dispatch `package_ensure` to 
+	then the `dispatch` function will dispatch `package_ensure` to
 	`package_ensure_yum`.
 
 	If your prefix is the first word of the function name before the
@@ -729,7 +748,7 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 			user_passwd(name, passwd)
 
 def user_remove(name, rmhome=None):
-	"""Removes the user with the given name, optionally 
+	"""Removes the user with the given name, optionally
 	removing the home directory and mail spool."""
 	options = ["-f"]
 	if rmhome:
