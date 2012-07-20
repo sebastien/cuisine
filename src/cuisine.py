@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 19-Jul-2012
+# Last mod  : 20-Jul-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -42,119 +42,81 @@ from __future__ import with_statement
 import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION     = "0.2.9"
-
-RE_SPACES   = re.compile("[\s\t]+")
-MAC_EOL     = "\n"
-UNIX_EOL    = "\n"
-WINDOWS_EOL = "\r\n"
-# FIXME: MODE should be in the fabric env, as this is definitely not thread-safe
-MODE_LOCAL  = False
-MODE_SUDO   = False
-SUDO_PASSWORD = None
+VERSION         = "0.3.0"
+RE_SPACES       = re.compile("[\s\t]+")
+MAC_EOL         = "\n"
+UNIX_EOL        = "\n"
+WINDOWS_EOL     = "\r\n"
+MODE_LOCAL      = "CUISINE_MODE_LOCAL"
+MODE_SUDO       = "CUISINE_MODE_SUDO"
+SUDO_PASSWORD   = "CUISINE_SUDO_PASSWORD"
+OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
+AVAILABLE_OPTIONS = dict(
+	package=["apt", "yum"]
+)
 DEFAULT_OPTIONS = dict(
 	package="apt"
 )
 
-# context managers and wrappers around fabric's run/sudo; used to
-# either execute cuisine functions with sudo or as current user:
-#
-# with mode_sudo():
-#     pass
 
-def sudo_password(password):
-	global SUDO_PASSWORD
-	SUDO_PASSWORD= password
+def sudo_password(password=None):
+	"""Sets the password for the sudo command."""
+	if password is None:
+		return fabric.api.env[SUDO_PASSWORD]
+	else:
+		if not password:
+			del fabric.api.env[SUDO_PASSWORD]
+		else:
+			fabric.api.env[SUDO_PASSWORD] = password
 
-class mode_local(object):
+class __mode_switcher(object):
+	"""A class that can be used to switch Cuisine's run modes by
+	instanciating the class or using it as a context manager"""
+	MODE_VALUE = True
+	MODE_KEY   = None
+
+	def __init__( self ):
+		if self.MODE_KEY in fabric.api.env:
+			self.oldMode = fabric.api.env[self.MODE_KEY]
+		else:
+			self.oldMode = None
+		fabric.api.env[self.MODE_KEY] = self.MODE_VALUE
+
+	def __enter__(self):
+		pass
+
+	def __exit__(self, *args, **kwargs):
+		if self.oldMode is None:
+			del fabric.api.env[self.MODE_KEY]
+		else:
+			fabric.api.env[self.MODE_KEY] = self.oldMode
+
+class mode_local(__mode_switcher):
 	"""Sets Cuisine into local mode, where run/sudo won't go through
 	Fabric's API, but directly through a popen. This allows you to
 	easily test your Cuisine scripts without using Fabric."""
+	MODE_KEY   = MODE_LOCAL
+	MODE_VALUE = True
 
-	def __init__( self ):
-		global MODE_LOCAL, SUDO_PASSWORD
-		sudo_cmd = "sudo "
-		if not SUDO_PASSWORD is None:
-			sudo_cmd= "echo %s|sudo -S -p '' "%SUDO_PASSWORD
-		if MODE_LOCAL is False:
-			def custom_run( cmd ):
-				global MODE_SUDO
-				if MODE_SUDO:
-					cmd = sudo_cmd + cmd
-                                return run_local(cmd)
-			def custom_sudo( cmd ):
-				return os.popen(sudo_cmd + cmd).read()[:-1]
-			module   = sys.modules[__name__]
-			old_run  = getattr(module, "run")
-			old_sudo = getattr(module, "sudo")
-			setattr(module, "run",  custom_run)
-			setattr(module, "sudo", custom_sudo)
-			MODE_LOCAL = (old_run, old_sudo)
-			self.oldMode = mode_remote
-		else:
-			self.oldMode = None
-
-	def __enter__(self):
-		pass
-
-	def __exit__(self, *args, **kws):
-		if self.oldMode:
-			self.oldMode()
-			self.oldMode = None
-
-
-class mode_remote(object):
+class mode_remote(__mode_switcher):
 	"""Comes back to Fabric's API for run/sudo. This basically reverts
 	the effect of calling `mode_local()`."""
+	MODE_KEY   = MODE_LOCAL
+	MODE_VALUE = False
 
-	def __init__( self ):
-		global MODE_LOCAL
-		if not (MODE_LOCAL is False):
-			module = sys.modules[__name__]
-			setattr(module, "run",  MODE_LOCAL[0])
-			setattr(module, "sudo", MODE_LOCAL[1])
-			MODE_LOCAL = False
-			self.oldMode = mode_local
-		else:
-			self.oldMode = None
-
-	def __enter__(self):
-		pass
-
-	def __exit__(self, *args, **kws):
-		if self.oldMode:
-			self.oldMode()
-			self.oldMode = None
-
-class mode_user(object):
+class mode_user(__mode_switcher):
 	"""Cuisine functions will be executed as the current user."""
+	MODE_KEY   = MODE_SUDO
+	MODE_VALUE = False
 
-	def __init__(self):
-		global MODE_SUDO
-		self._old_mode = MODE_SUDO
-		MODE_SUDO = False
-
-	def __enter__(self):
-		pass
-
-	def __exit__(self, *args, **kws):
-		global MODE_SUDO
-		MODE_SUDO = self._old_mode
-
-class mode_sudo(object):
+class mode_sudo(__mode_switcher):
 	"""Cuisine functions will be executed with sudo."""
+	MODE_KEY   = MODE_SUDO
+	MODE_VALUE = True
 
-	def __init__(self):
-		global MODE_SUDO
-		self._old_mode = MODE_SUDO
-		MODE_SUDO = True
-
-	def __enter__(self):
-		pass
-
-	def __exit__(self, *args, **kws):
-		global MODE_SUDO
-		MODE_SUDO = self._old_mode
+def mode( key ):
+	"""Queries the given Cuisine mode (ie. MODE_LOCAL, MODE_SUDO)"""
+	return fabric.api.env.get(key)
 
 # =============================================================================
 #
@@ -163,11 +125,12 @@ class mode_sudo(object):
 # =============================================================================
 
 def select_package( option=None ):
-	supported = ["apt", "yum"]
+	"""Selects the type of package subsystem to use (ex:apt or yum)."""
+	supported = AVAILABLE_OPTIONS["package"]
 	if not (option is None):
 		assert option in supported, "Option must be one of: %s"  % (supported)
-		fabric.api.env["option_package"] = option
-	return (fabric.api.env["option_package"], supported)
+		fabric.api.env[OPTION_PACKAGE] = option
+	return (fabric.api.env[OPTION_PACKAGE], supported)
 
 # =============================================================================
 #
@@ -175,17 +138,7 @@ def select_package( option=None ):
 #
 # =============================================================================
 
-def run(*args, **kwargs):
-	"""A wrapper to Fabric's run/sudo commands, using the
-	'cuisine.MODE' global to tell whether the command should be run as
-	regular user or sudo."""
-	if MODE_SUDO:
-		return fabric.api.sudo(*args, **kwargs)
-	else:
-		return fabric.api.run(*args, **kwargs)
-
-
-def run_local(command, shell=True, pty=True, combine_stderr=None):
+def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	'''
 	Local implementation of fabric.api.run() using subprocess.
 	
@@ -193,6 +146,8 @@ def run_local(command, shell=True, pty=True, combine_stderr=None):
 	      ignored.
 	'''
 	if combine_stderr is None: combine_stderr = fabric.api.env.combine_stderr
+	# TODO: Pass the SUDO_PASSWORD variable to the command here
+	if sudo: command = "sudo " + command
 	stderr   = subprocess.STDOUT if combine_stderr else subprocess.PIPE
 	process  = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=stderr)
 	out, err = process.communicate()
@@ -206,11 +161,25 @@ def run_local(command, shell=True, pty=True, combine_stderr=None):
 	result.stderr      = StringIO.StringIO(err)
 	return result
 
+def run(*args, **kwargs):
+	"""A wrapper to Fabric's run/sudo commands that takes into account
+	the `MODE_LOCAL` and `MODE_SUDO` modes of Cuisine."""
+	if mode(MODE_LOCAL):
+		if mode(MODE_SUDO):
+			kwargs.setdefault("sudo", True)
+		return run_local(*args, **kwargs)
+	else:
+		if mode(MODE_SUDO):
+			return fabric.api.sudo(*args, **kwargs)
+		else:
+			return fabric.api.run(*args, **kwargs)
+
 def sudo(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
 	'cuisine.MODE_SUDO' global to tell whether the command should be run as
 	regular user or sudo."""
-	return fabric.api.sudo(*args, **kwargs)
+	with mode_sudo():
+		return run(*args, **kwargs)
 
 # =============================================================================
 #
@@ -251,9 +220,9 @@ def dispatch(prefix=None):
 	def dispatch_wrapper(function, prefix=prefix):
 		def wrapper(*args, **kwargs):
 			function_name = function.__name__
-			_prefix       = prefix or function_name.split("_")[0]
-			select        = fabric.api.env.get("option_" + _prefix)
-			assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix, prefix)
+			_prefix       = prefix or function_name.split("_")[0].upper().replace(".","_")
+			select        = fabric.api.env.get("CUISINE_OPTION_" + _prefix)
+			assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix, prefix.lower().replace(".","_"))
 			function_name = function.__name__ + "_" + select
 			specific      = eval(function_name)
 			if specific:
@@ -408,7 +377,7 @@ def file_attribs_get(location):
 	else:
 		return None
 
-def file_write(location, content, mode=None, owner=None, group=None, sudo=None):
+def file_write(location, content, mode=None, owner=None, group=None, sudo=None, check=True):
 	"""Writes the given content to the file at the given remote
 	location, optionally setting mode/owner/group."""
 	# FIXME: Big files are never transferred properly!
@@ -431,7 +400,9 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None):
 	os.close(fd)
 	os.unlink(local_path)
 	# Ensures that the signature matches
-	assert sig == file_sha256(location)
+	if check:
+		file_sig = file_sha256(location)
+		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, sig, file_sig)
 	file_attribs(location, mode=mode, owner=owner, group=group)
 
 def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
@@ -503,7 +474,7 @@ def file_sha256(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	return run('sha256sum "%s" | cut -d" " -f1' % (location)).split("\n")[-1]
+	return run('sha256sum "%s" | cut -d" " -f1' % (location)).replace("\n","").strip()
 
 # =============================================================================
 #
