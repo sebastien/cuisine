@@ -62,7 +62,7 @@ DEFAULT_OPTIONS = dict(
 def sudo_password(password=None):
 	"""Sets the password for the sudo command."""
 	if password is None:
-		return fabric.api.env[SUDO_PASSWORD]
+		return fabric.api.env.get(SUDO_PASSWORD)
 	else:
 		if not password:
 			del fabric.api.env[SUDO_PASSWORD]
@@ -76,10 +76,7 @@ class __mode_switcher(object):
 	MODE_KEY   = None
 
 	def __init__( self ):
-		if self.MODE_KEY in fabric.api.env:
-			self.oldMode = fabric.api.env[self.MODE_KEY]
-		else:
-			self.oldMode = None
+		self.oldMode = fabric.api.env.get(self.MODE_KEY)
 		fabric.api.env[self.MODE_KEY] = self.MODE_VALUE
 
 	def __enter__(self):
