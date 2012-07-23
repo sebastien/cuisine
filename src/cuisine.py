@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 20-Jul-2012
+# Last mod  : 23-Jul-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -42,7 +42,7 @@ from __future__ import with_statement
 import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.3.0"
+VERSION         = "0.3.1"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -114,9 +114,13 @@ class mode_sudo(__mode_switcher):
 	MODE_KEY   = MODE_SUDO
 	MODE_VALUE = True
 
-def get_mode(key):
+def mode(key):
 	"""Queries the given Cuisine mode (ie. MODE_LOCAL, MODE_SUDO)"""
 	return fabric.api.env.get(key)
+
+def is_local():  return mode(MODE_LOCAL)
+def is_remote(): return not mode(MODE_LOCAL)
+def is_sudo():   return not mode(MODE_SUDO)
 
 # =============================================================================
 #
@@ -164,12 +168,12 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands that takes into account
 	the `MODE_LOCAL` and `MODE_SUDO` modes of Cuisine."""
-	if get_mode(MODE_LOCAL):
-		if get_mode(MODE_SUDO):
+	if is_local():
+		if is_sudo():
 			kwargs.setdefault("sudo", True)
 		return run_local(*args, **kwargs)
 	else:
-		if get_mode(MODE_SUDO):
+		if is_sudo():
 			return fabric.api.sudo(*args, **kwargs)
 		else:
 			return fabric.api.run(*args, **kwargs)
@@ -382,13 +386,13 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	location, optionally setting mode/owner/group."""
 	# FIXME: Big files are never transferred properly!
 	# Gets the content signature and write it to a secure tempfile
-	use_sudo = get_mode(MODE_SUDO) or sudo #XXX: this 'sudo' kw arg shadows the function named 'sudo'
+	use_sudo = is_sudo() or sudo
 	sig            = hashlib.sha256(content).hexdigest()
 	fd, local_path = tempfile.mkstemp()
 	os.write(fd, content)
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
-		if get_mode(MODE_LOCAL):
+		if is_local():
 			run('cp "%s" "%s"'%(local_path,location))
 		else:
 			fabric.operations.put(local_path, location, use_sudo=use_sudo)
@@ -413,13 +417,13 @@ def file_upload(remote, local, sudo=None):
 	"""Uploads the local file to the remote location only if the remote location does not
 	exists or the content are different."""
 	# FIXME: Big files are never transferred properly!
-	use_sudo = get_mode(MODE_SUDO) or sudo #XXX: this 'sudo' kw arg shadows the function named 'sudo'
+	use_sudo = is_sudo() or sudo #XXX: this 'sudo' kw arg shadows the function named 'sudo'
 	f       = file(local, 'rb')
 	content = f.read()
 	f.close()
 	sig     = hashlib.sha256(content).hexdigest()
 	if not file_exists(remote) or sig != file_sha256(remote):
-		if get_mode(MODE_LOCAL):
+		if is_local():
 			if use_sudo:
 				sudo('cp "%s" "%s"'%(local,remote))
 			else:

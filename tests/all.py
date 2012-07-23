@@ -23,18 +23,18 @@ class Modes(unittest.TestCase):
 
 	def testModeLocal( self ):
 		# We switch to remote and switch back to local
-		assert cuisine.get_mode(cuisine.MODE_LOCAL)
+		assert cuisine.mode(cuisine.MODE_LOCAL)
 		cuisine.mode_remote()
-		assert not cuisine.get_mode(cuisine.MODE_LOCAL)
+		assert not cuisine.mode(cuisine.MODE_LOCAL)
 		cuisine.mode_local()
-		assert cuisine.get_mode(cuisine.MODE_LOCAL)
+		assert cuisine.mode(cuisine.MODE_LOCAL)
 		# We use the mode changer to switch to sudo temporarily
 		with cuisine.mode_remote():
-			assert not cuisine.get_mode(cuisine.MODE_LOCAL)
-		assert cuisine.get_mode(cuisine.MODE_LOCAL)
+			assert not cuisine.mode(cuisine.MODE_LOCAL)
+		assert cuisine.mode(cuisine.MODE_LOCAL)
 		# We go into local from local
 		with cuisine.mode_local():
-			assert cuisine.get_mode(cuisine.MODE_LOCAL)
+			assert cuisine.mode(cuisine.MODE_LOCAL)
 
 class Files(unittest.TestCase):
 
