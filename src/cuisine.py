@@ -140,15 +140,23 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	return _run_command_local(command, shell, combine_stderr, sudo)
 
 def _run_command_local(command, shell=True, combine_stderr=True, sudo=False,
-        user=None):
+	user=None):
 	'''
 	Local implementation of fabric.operations._run_command that uses
 	subprocess to execute.
 	'''
 	from fabric.state import env, output
-	from fabric.operations import error
 	from fabric.operations import (_shell_wrap, _prefix_commands,
 		_prefix_env_vars, _sudo_prefix, _AttributeString)
+
+	# Conditionally import error handling function, since different fabric
+	# versions handle this differently
+	try:
+		from fabric.utils import error
+	except ImportError:
+		from fabric.operations import _handle_failure
+		def error(message=None, **kwargs):
+			return _handle_failure(message)
 
 	# Set up new var so original argument can be displayed verbatim later.
 	given_command = command
@@ -211,18 +219,18 @@ def _run_command_local(command, shell=True, combine_stderr=True, sudo=False,
 
 
 def _execute_local(command, shell=True, combine_stderr=None):
-        '''
-        Local implementation of fabric.operations._execute using subprocess.
-        '''
-        if combine_stderr is None: combine_stderr = fabric.api.env.combine_stderr
-        stderr   = subprocess.STDOUT if combine_stderr else subprocess.PIPE
+	'''
+	Local implementation of fabric.operations._execute using subprocess.
+	'''
+	if combine_stderr is None: combine_stderr = fabric.api.env.combine_stderr
+	stderr	 = subprocess.STDOUT if combine_stderr else subprocess.PIPE
 
-        process  = subprocess.Popen(command, shell=shell, 
-                                    stdout=subprocess.PIPE, stderr=stderr)
-        out, err = process.communicate()
-        # FIXME: Should stream the output, and only print it if fabric's 
-        #        properties allow it
-        return out.rstrip('\n'), err, process.returncode
+	process  = subprocess.Popen(command, shell=shell,
+				    stdout=subprocess.PIPE, stderr=stderr)
+	out, err = process.communicate()
+	# FIXME: Should stream the output, and only print it if fabric's
+	#	 properties allow it
+	return out.rstrip('\n'), err, process.returncode
 
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands that takes into account

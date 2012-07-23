@@ -85,16 +85,16 @@ class LocalExecution(unittest.TestCase):
 			[os.mkdir(d) for d in [dir1, dir2]]
 			
 			with cd(dir1), fabric.api.lcd(dir2):
-			    file1 = os.path.join(dir1, 'test1.txt')
-			    cuisine.run('touch %s' % file1)
+				file1 = os.path.join(dir1, 'test1.txt')
+				cuisine.run('touch %s' % file1)
 
-			    file2 = os.path.join(dir2, 'test2.txt')
-			    fabric.api.local('touch %s' % file2)
+				file2 = os.path.join(dir2, 'test2.txt')
+				fabric.api.local('touch %s' % file2)
 
-			    self.assertTrue(cuisine.file_exists(file2))
+				self.assertTrue(cuisine.file_exists(file2))
 		finally:
 			shutil.rmtree(tmpdir)
-	    
+
 
 	def testResultAttributes( self ):
 		failing_command = 'cat /etc/shadow'	# insufficient permissions
@@ -144,7 +144,7 @@ class LocalExecution(unittest.TestCase):
 	def testSudoPrefix( self ):
 		# Ensure that env.sudo_prefix is respected by setting it to
 		# echo the command to stdout rather than executing it
-		with settings(use_shell=True, sudo_prefix="echo"):
+		with settings(use_shell=True, sudo_prefix="echo %s"):
 			cmd = 'ls -la'
 			run_result = cuisine.run(cmd)
 			sudo_result = cuisine.sudo(cmd)
