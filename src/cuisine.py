@@ -382,17 +382,16 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	location, optionally setting mode/owner/group."""
 	# FIXME: Big files are never transferred properly!
 	# Gets the content signature and write it to a secure tempfile
+	use_sudo = get_mode(MODE_SUDO) or sudo #XXX: this 'sudo' kw arg shadows the function named 'sudo'
 	sig            = hashlib.sha256(content).hexdigest()
 	fd, local_path = tempfile.mkstemp()
 	os.write(fd, content)
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
-		if MODE_LOCAL:
+		if get_mode(MODE_LOCAL):
 			run('cp "%s" "%s"'%(local_path,location))
 		else:
-			if MODE_SUDO:
-				sudo = MODE_SUDO
-			fabric.operations.put(local_path, location, use_sudo=sudo)
+			fabric.operations.put(local_path, location, use_sudo=use_sudo)
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
@@ -414,19 +413,19 @@ def file_upload(remote, local, sudo=None):
 	"""Uploads the local file to the remote location only if the remote location does not
 	exists or the content are different."""
 	# FIXME: Big files are never transferred properly!
+	use_sudo = get_mode(MODE_SUDO) or sudo #XXX: this 'sudo' kw arg shadows the function named 'sudo'
 	f       = file(local, 'rb')
 	content = f.read()
 	f.close()
 	sig     = hashlib.sha256(content).hexdigest()
-	if MODE_SUDO: sudo = MODE_SUDO
 	if not file_exists(remote) or sig != file_sha256(remote):
-		if MODE_LOCAL:
-			if sudo:
+		if get_mode(MODE_LOCAL):
+			if use_sudo:
 				sudo('cp "%s" "%s"'%(local,remote))
 			else:
 				run('cp "%s" "%s"'%(local,remote))
 		else:
-			fabric.operations.put(local, remote, use_sudo=sudo)
+			fabric.operations.put(local, remote, use_sudo=use_sudo)
 
 def file_update(location, updater=lambda x: x):
 	"""Updates the content of the given by passing the existing
