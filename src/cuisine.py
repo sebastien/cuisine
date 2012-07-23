@@ -114,7 +114,7 @@ class mode_sudo(__mode_switcher):
 	MODE_KEY   = MODE_SUDO
 	MODE_VALUE = True
 
-def mode( key ):
+def get_mode(key):
 	"""Queries the given Cuisine mode (ie. MODE_LOCAL, MODE_SUDO)"""
 	return fabric.api.env.get(key)
 
@@ -164,12 +164,12 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands that takes into account
 	the `MODE_LOCAL` and `MODE_SUDO` modes of Cuisine."""
-	if mode(MODE_LOCAL):
-		if mode(MODE_SUDO):
+	if get_mode(MODE_LOCAL):
+		if get_mode(MODE_SUDO):
 			kwargs.setdefault("sudo", True)
 		return run_local(*args, **kwargs)
 	else:
-		if mode(MODE_SUDO):
+		if get_mode(MODE_SUDO):
 			return fabric.api.sudo(*args, **kwargs)
 		else:
 			return fabric.api.run(*args, **kwargs)
