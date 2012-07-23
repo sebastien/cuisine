@@ -392,10 +392,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 		else:
 			if MODE_SUDO:
 				sudo = MODE_SUDO
-			try:
-				fabric.operations.put(local_path, location, use_sudo=sudo)
-			except Exception, e:
-				print "cuisine.file_write exception:"
+			fabric.operations.put(local_path, location, use_sudo=sudo)
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
