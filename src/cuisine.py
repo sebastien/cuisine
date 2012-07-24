@@ -117,7 +117,7 @@ def mode(key):
 
 def is_local():  return mode(MODE_LOCAL)
 def is_remote(): return not mode(MODE_LOCAL)
-def is_sudo():   return not mode(MODE_SUDO)
+def is_sudo():   return mode(MODE_SUDO)
 
 # =============================================================================
 #
