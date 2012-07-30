@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 23-Jul-2012
+# Last mod  : 28-Jul-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -42,7 +42,7 @@ from __future__ import with_statement
 import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.3.1"
+VERSION         = "0.3.2"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -140,12 +140,12 @@ def select_package( option=None ):
 # =============================================================================
 
 def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
-	'''
+	"""
 	Local implementation of fabric.api.run() using subprocess.
 	
 	Note: pty option exists for function signature compatibility and is
 	      ignored.
-	'''
+	"""
 	if combine_stderr is None: combine_stderr = fabric.api.env.combine_stderr
 	# TODO: Pass the SUDO_PASSWORD variable to the command here
 	if sudo: command = "sudo " + command
@@ -856,12 +856,10 @@ def locale_check(locale):
 	return locale_data == locale
 
 def locale_ensure(locale):
-	if locale_check(locale):
-		return
-	with fabric.context_managers.settings(warn_only=True):
-		sudo("/usr/share/locales/install-language-pack %s" % (locale,))
-	sudo("dpkg-reconfigure locales")
-
+	if not locale_check(locale):
+		with fabric.context_managers.settings(warn_only=True):
+			sudo("/usr/share/locales/install-language-pack %s" % (locale,))
+		sudo("dpkg-reconfigure locales")
 
 # Sets up the default options so that @dispatch'ed functions work
 for option, value in DEFAULT_OPTIONS.items():
