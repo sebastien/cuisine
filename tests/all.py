@@ -188,6 +188,17 @@ class Files(unittest.TestCase):
 			file_sig = hashlib.sha256(f.read()).hexdigest()
 		assert sig == file_sig
 
+	def testExists( self ):
+		try:
+			fd, path = tempfile.mkstemp()
+			f = os.fdopen(fd, 'w')
+			f.write('Hello World!')
+			f.close()
+			assert cuisine.file_exists(path)
+		finally:
+			os.unlink(path)
+
+
 class Packages(unittest.TestCase):
 
 	def testInstall( self ):

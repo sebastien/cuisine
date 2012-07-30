@@ -155,7 +155,7 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	# FIXME: Should stream the output, and only print it if fabric's properties allow it
 	# print out
 	# Wrap stdout string and add extra status attributes
-	result = fabric.operations._AttributeString(out)
+	result = fabric.operations._AttributeString(out.rstrip('\n'))
 	result.return_code = process.returncode
 	result.succeeded   = process.returncode == 0
 	result.failed      = not result.succeeded
