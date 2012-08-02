@@ -387,7 +387,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_G' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Returns the SHA-256 sum (as a hex string) for the remote file at the given location.</p></div></div>
 
-</div></div><div id='d_H' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x14e9938> )</code></div><div class='docstring'>
+</div></div><div id='d_H' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x1f5f938> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div></div>
 
@@ -475,7 +475,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_Cb' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
 
-</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x14e9140>, process=<function <lambda> at 0x14e91b8> )</code></div><div class='docstring'>
+</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x1f5f140>, process=<function <lambda> at 0x1f5f1b8> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div></div>
 
 </div></div><div id='d_Eb' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Fb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
@@ -549,7 +549,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_ub' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE_SUDO' global to tell whether the command should be run as regular user or sudo.</p></div></div>
 
-</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x14e9140>, process=<function <lambda> at 0x14e91b8> )</code></div><div class='docstring'>
+</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x1f5f140>, process=<function <lambda> at 0x1f5f1b8> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div></div>
 
 </div></div><div id='d_mb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Z' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Tb' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
@@ -576,7 +576,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_K' class='description'><h1>Function <span class='name'>file_write</span></h1><div class='representation'><code>file_write( location, content, mode=None, owner=None, group=None, sudo=None, check=True )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Writes the given content to the file at the given remote location, optionally setting mode/owner/group.</p></div></div>
 
-</div></div><div id='d_H' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x14e9938> )</code></div><div class='docstring'>
+</div></div><div id='d_H' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x1f5f938> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div></div>
 
