@@ -142,7 +142,7 @@ def select_package( option=None ):
 def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	"""
 	Local implementation of fabric.api.run() using subprocess.
-	
+
 	Note: pty option exists for function signature compatibility and is
 	      ignored.
 	"""
@@ -643,7 +643,7 @@ def user_passwd(name, passwd, encrypted_passwd=False):
 	"""Sets the given user password."""
 	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
 	encryption = " -e" if encrypted_passwd else ""
-	sudo("echo %s | base64 --decode | chpasswd%s" % encoded_password, encryption)
+	sudo("echo %s | base64 --decode | chpasswd%s" % (encoded_password, encryption))
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 				uid_min=None, uid_max=None, encrypted_passwd=False):
