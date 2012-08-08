@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 30-Jul-2012
+# Last mod  : 07-Aug-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -399,7 +399,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	# Ensures that the signature matches
 	if check:
 		file_sig = file_sha256(location)
-		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, sig, file_sig)
+		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(sig), repr(file_sig))
 	file_attribs(location, mode=mode, owner=owner, group=group)
 
 def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
@@ -471,7 +471,8 @@ def file_sha256(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	return run('sha256sum "%s" | cut -d" " -f1' % (location)).replace("\n","").strip()
+	sig = run('sha256sum "%s" | cut -d" " -f1' % (location)).split("\n")
+	return sig[-1].strip()
 
 # =============================================================================
 #
