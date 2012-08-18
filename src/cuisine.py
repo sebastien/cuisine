@@ -53,7 +53,7 @@ SUDO_PASSWORD   = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
 AVAILABLE_OPTIONS = dict(
-	package=["apt", "yum"]
+	package=["apt", "yum"],
     python_package=["easy_install","pip"]
 )
 DEFAULT_OPTIONS = dict(
