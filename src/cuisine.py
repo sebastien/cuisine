@@ -51,11 +51,14 @@ MODE_LOCAL      = "CUISINE_MODE_LOCAL"
 MODE_SUDO       = "CUISINE_MODE_SUDO"
 SUDO_PASSWORD   = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
+OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum"]
+    python_package=["easy_install","pip"]
 )
 DEFAULT_OPTIONS = dict(
-	package="apt"
+	package="apt",
+    python_package="pip"
 )
 
 
@@ -133,6 +136,12 @@ def select_package( option=None ):
 		fabric.api.env[OPTION_PACKAGE] = option
 	return (fabric.api.env[OPTION_PACKAGE], supported)
 
+def select_python_package( option=None ):
+    supported = AVAILABLE_OPTIONS["python_package"]
+    if not (option is None):
+        assert option in supported, "Option must be one of: %s"  % (supported)
+        fabric.api.env[OPTION_PYTHON_PACKAGE] = option
+    return (fabric.api.env[OPTION_PYTHON_PACKAGE], supported)
 # =============================================================================
 #
 # RUN/SUDO METHODS
@@ -611,6 +620,137 @@ def package_ensure_yum(package, update=False):
 
 def package_clean_yum(package=None):
 	sudo("yum --assumeyes clean all")
+
+
+# =============================================================================
+#
+# PYTHON PACKAGE OPERATIONS
+#
+# =============================================================================
+
+@dispatch('python_package')
+def python_package_upgrade(package):
+	'''
+    Upgrades the defined python package.
+    '''
+
+@dispatch('python_package')
+def python_package_install(package=None):
+	'''
+    Installs the given python package/list of python packages.
+    '''
+
+@dispatch('python_package')
+def python_package_ensure(package):
+	'''
+    Tests if the given python package is installed, and installes it in
+	case it's not already there.
+    '''
+
+@dispatch('python_package')
+def python_package_remove(package):
+	'''
+    Removes the given python package.
+    '''
+
+# -----------------------------------------------------------------------------
+# PIP PYTHON PACKAGE MANAGER
+# -----------------------------------------------------------------------------
+
+def python_package_upgrade_pip(package,E=None):
+    '''
+    The "package" argument, defines the name of the package that will be upgraded.
+    The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
+    path to a virtualenv. If provided, it will be added to the pip call.
+    '''
+    if E:
+        E='-E %s' %E
+    else:
+        E=''   
+    run('pip upgrade %s %s' %(E,package))
+
+def python_package_install_pip(package=None,r=None,E=None):
+    '''
+    The "package" argument, defines the name of the package that will be installed.
+    The argument "r" referes to the requirements file that will be used by pip and
+    is equivalent to the "-r" parameter of pip.
+    Either "package" or "r" needs to be provided
+    The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
+    path to a virtualenv. If provided, it will be added to the pip call.
+    '''
+
+    if E:
+        E='-E %s' %E
+    else:
+        E=''   
+    if package:
+        run('pip install %s %s' %(E,package))
+    elif r:
+        run('pip install %s -r %s' %(E,r))
+    else:
+        raise Exception("Either a package name or the requirements file has to be provided.")
+
+def python_package_ensure_pip(package=None,r=None, E=None):
+    '''
+    The "package" argument, defines the name of the package that will be ensured.
+    The argument "r" referes to the requirements file that will be used by pip and
+    is equivalent to the "-r" parameter of pip.
+    Either "package" or "r" needs to be provided
+    The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
+    path to a virtualenv. If provided, it will be added to the pip call.
+    '''
+    #FIXME: At the moment, I do not know how to check for the existence of a pip package and
+    # I am not sure if this really makes sense, based on the pip built in functionality. 
+    # So I just call the install functions
+    python_package_install_pip(package,r,E)
+
+def python_package_remove_pip(package, E=None):
+    '''
+    The "package" argument, defines the name of the package that will be ensured.
+    The argument "r" referes to the requirements file that will be used by pip and
+    is equivalent to the "-r" parameter of pip.
+    Either "package" or "r" needs to be provided
+    The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
+    path to a virtualenv. If provided, it will be added to the pip call.
+    '''
+    if E:
+        E='-E %s' %E
+    else:
+        E=''   
+    return run('pip uninstall %s %s' %(E,package))
+
+
+# -----------------------------------------------------------------------------
+# EASY_INSTALL PYTHON PACKAGE MANAGER
+# -----------------------------------------------------------------------------
+
+def python_package_upgrade_easy_install(package):
+    '''
+    The "package" argument, defines the name of the package that will be upgraded.
+    '''
+    run('easy_install --upgrade %s' %package)
+
+def python_package_install_easy_install(package):
+    '''
+    The "package" argument, defines the name of the package that will be installed.
+    '''
+    sudo('easy_install %s' %package)
+
+def python_package_ensure_easy_install(package):
+    '''
+    The "package" argument, defines the name of the package that will be ensured.
+    '''
+    #FIXME: At the moment, I do not know how to check for the existence of a py package and
+    # I am not sure if this really makes sense, based on the easy_install built in functionality. 
+    # So I just call the install functions
+    python_package_install_easy_install(package)
+
+def python_package_remove_easy_install(package):
+    '''
+    The "package" argument, defines the name of the package that will be removed.
+    '''
+    #FIXME: this will not remove egg file etc.
+    run('easy_install -m %s' %package) 
 
 # =============================================================================
 #
