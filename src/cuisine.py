@@ -708,7 +708,7 @@ def python_package_remove_pip(package, E=None):
     is equivalent to the "-r" parameter of pip.
     Either "package" or "r" needs to be provided
     The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-    path to a virtualenv. If provided, it will be added to the pip call.
+    path to a virtualenv. If provided, it will be added to the pip call. 
     '''
     pip=pip or env.get('pip','pip')
     return run('%s uninstall %s' %(pip,package))
