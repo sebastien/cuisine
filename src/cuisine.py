@@ -669,7 +669,7 @@ def python_package_upgrade_pip(package,E=None):
         E=''   
     run('pip upgrade %s %s' %(E,package))
 
-def python_package_install_pip(package=None,r=None,E=None):
+def python_package_install_pip(package=None,r=None,pip=None):
     '''
     The "package" argument, defines the name of the package that will be installed.
     The argument "r" referes to the requirements file that will be used by pip and
@@ -678,19 +678,15 @@ def python_package_install_pip(package=None,r=None,E=None):
     The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
     path to a virtualenv. If provided, it will be added to the pip call.
     '''
-
-    if E:
-        E='-E %s' %E
-    else:
-        E=''   
+    pip=pip or env.get('pip','pip')
     if package:
-        run('pip install %s %s' %(E,package))
+        run('%s install %s' %(pip,package))
     elif r:
-        run('pip install %s -r %s' %(E,r))
+        run('%s install -r %s' %(pip,r))
     else:
         raise Exception("Either a package name or the requirements file has to be provided.")
 
-def python_package_ensure_pip(package=None,r=None, E=None):
+def python_package_ensure_pip(package=None,r=None, pip=None):
     '''
     The "package" argument, defines the name of the package that will be ensured.
     The argument "r" referes to the requirements file that will be used by pip and
@@ -702,7 +698,8 @@ def python_package_ensure_pip(package=None,r=None, E=None):
     #FIXME: At the moment, I do not know how to check for the existence of a pip package and
     # I am not sure if this really makes sense, based on the pip built in functionality. 
     # So I just call the install functions
-    python_package_install_pip(package,r,E)
+    pip=pip or env.get('pip','pip')
+    python_package_install_pip(package,r,pip)
 
 def python_package_remove_pip(package, E=None):
     '''
@@ -713,11 +710,8 @@ def python_package_remove_pip(package, E=None):
     The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
     path to a virtualenv. If provided, it will be added to the pip call.
     '''
-    if E:
-        E='-E %s' %E
-    else:
-        E=''   
-    return run('pip uninstall %s %s' %(E,package))
+    pip=pip or env.get('pip','pip')
+    return run('%s uninstall %s' %(pip,package))
 
 
 # -----------------------------------------------------------------------------
