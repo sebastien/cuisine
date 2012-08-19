@@ -230,9 +230,9 @@ def dispatch(prefix=None):
 	def dispatch_wrapper(function, prefix=prefix):
 		def wrapper(*args, **kwargs):
 			function_name = function.__name__
-			_prefix       = prefix.upper() or function_name.split("_")[0].upper().replace(".","_")
-			select        = fabric.api.env.get("CUISINE_OPTION_" + _prefix)
-			assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix, prefix.lower().replace(".","_"))
+			_prefix       = prefix or function_name.split("_")[0].replace(".","_")
+			select        = fabric.api.env.get("CUISINE_OPTION_" + _prefix.upper())
+			assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix.upper(), prefix.lower().replace(".","_"))
 			function_name = function.__name__ + "_" + select
 			specific      = eval(function_name)
 			if specific:
