@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 07-Aug-2012
+# Last mod  : 22-Aug-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -590,25 +590,25 @@ def repository_ensure_yum(repository):
 	raise Exception("Not implemented for Yum")
 
 def package_upgrade_yum():
-	sudo("yum --assumeyes update")
+	sudo("yum -y update")
 
 def package_update_yum(package=None):
 	if package == None:
-		sudo("yum --assumeyes update")
+		sudo("yum -y update")
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		sudo("yum --assumeyes upgrade " + package)
+		sudo("yum -y upgrade " + package)
 
 def package_upgrade_yum(package=None):
-	sudo("yum --assumeyes upgrade")
+	sudo("yum -y upgrade")
 
 def package_install_yum(package, update=False):
 	if update:
-		sudo("yum --assumeyes update")
+		sudo("yum -y update")
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("yum --assumeyes install %s" % (package))
+	sudo("yum -y install %s" % (package))
 
 def package_ensure_yum(package, update=False):
 	status = run("yum list installed %s ; true" % package)
@@ -620,7 +620,7 @@ def package_ensure_yum(package, update=False):
 		return True
 
 def package_clean_yum(package=None):
-	sudo("yum --assumeyes clean all")
+	sudo("yum -y clean all")
 
 
 # =============================================================================
@@ -804,20 +804,25 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	if passwd:
 		user_passwd(name,passwd,encrypted_passwd)
 
-def user_check(name):
+def user_check(name=None, uid=None):
 	"""Checks if there is a user defined with the given name,
 	returning its information as a
 	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
 	or 'None' if the user does not exists."""
-	d = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
-	s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (name))
+	assert name!=None or uid!=None,     "user_check: either `uid` or `name` should be given"
+	assert name is None or uid is None,"user_check: `uid` and `name` both given, only one should be provided"
+	if   name != None:
+		d = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
+	elif uid != None:
+		d = sudo("cat /etc/passwd | egrep '^.*:.*:%s:' ; true" % (uid))
 	results = {}
+	s = None
 	if d:
 		d = d.split(":")
 		assert len(d) >= 7, "/etc/passwd entry is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
 		results = dict(name=d[0], uid=d[2], gid=d[3], home=d[5], shell=d[6])
-	if s:
-		results['passwd'] = s
+		s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
+		if s: results['passwd'] = s
 	if results:
 		return results
 	else:

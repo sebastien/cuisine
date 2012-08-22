@@ -21,6 +21,10 @@ class Users(unittest.TestCase):
 		user_data = cuisine.user_check(USER)
 		assert user_data
 		assert user_data["name"] == USER
+		assert user_data == cuisine.user_check(name=USER)
+		# We ensure that user_check works with uid and name
+		assert cuisine.user_check(uid=user_data["uid"])
+		assert cuisine.user_check(uid=user_data["uid"])["name"] == user_data["name"]
 
 class Modes(unittest.TestCase):
 
