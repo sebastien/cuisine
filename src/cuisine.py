@@ -589,25 +589,25 @@ def repository_ensure_yum(repository):
 	raise Exception("Not implemented for Yum")
 
 def package_upgrade_yum():
-	sudo("yum --assumeyes update")
+	sudo("yum -y update")
 
 def package_update_yum(package=None):
 	if package == None:
-		sudo("yum --assumeyes update")
+		sudo("yum -y update")
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		sudo("yum --assumeyes upgrade " + package)
+		sudo("yum -y upgrade " + package)
 
 def package_upgrade_yum(package=None):
-	sudo("yum --assumeyes upgrade")
+	sudo("yum -y upgrade")
 
 def package_install_yum(package, update=False):
 	if update:
-		sudo("yum --assumeyes update")
+		sudo("yum -y update")
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("yum --assumeyes install %s" % (package))
+	sudo("yum -y install %s" % (package))
 
 def package_ensure_yum(package, update=False):
 	status = run("yum list installed %s ; true" % package)
@@ -619,7 +619,7 @@ def package_ensure_yum(package, update=False):
 		return True
 
 def package_clean_yum(package=None):
-	sudo("yum --assumeyes clean all")
+	sudo("yum -y clean all")
 
 
 # =============================================================================
@@ -821,6 +821,28 @@ def user_check(name):
 		return results
 	else:
 		return None
+
+def uid_check(uid):
+	"""Checks if there is a user defined with the given name,
+	returning its information as a
+	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
+	or 'None' if the user does not exists."""
+	d = sudo("cat /etc/passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+	results = {}
+	if d:
+		d = d.split(":")
+		assert len(d) >= 7, "/etc/passwd entry is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
+		results = dict(name=d[0], uid=d[2], gid=d[3], home=d[5], shell=d[6])
+		s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
+		if s:
+			
+			results['passwd'] = s
+	if results:
+		return results
+	else:
+		return None
+
+
 
 def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 	"""Ensures that the given users exists, optionally updating their
