@@ -803,20 +803,24 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	if passwd:
 		user_passwd(name,passwd,encrypted_passwd)
 
-def user_check(name):
-	"""Checks if there is a user defined with the given name,
+def user_check(name=None, uid=None):
+	"""Checks if there is a user defined with the given name or UID,
 	returning its information as a
 	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
 	or 'None' if the user does not exists."""
-	d = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
-	s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (name))
+	if name:
+		d = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
+	elif uid:
+		d = sudo("cat /etc/passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+		
 	results = {}
 	if d:
 		d = d.split(":")
 		assert len(d) >= 7, "/etc/passwd entry is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
 		results = dict(name=d[0], uid=d[2], gid=d[3], home=d[5], shell=d[6])
-	if s:
-		results['passwd'] = s
+		s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
+		if s:
+			results['passwd'] = s
 	if results:
 		return results
 	else:
