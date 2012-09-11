@@ -8,7 +8,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 22-Aug-2012
+# Last mod  : 11-Sep-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -42,7 +42,7 @@ from __future__ import with_statement
 import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.3.2"
+VERSION         = "0.4.0"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -401,14 +401,23 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 		if is_local():
 			run('cp "%s" "%s"'%(local_path,location))
 		else:
-			fabric.operations.put(local_path, location, use_sudo=use_sudo)
+			# FIXME: Put is not working properly, I often get stuff like:
+			# Fatal error: sudo() encountered an error (return code 1) while executing 'mv "3dcf7213c3032c812769e7f355e657b2df06b687" "/etc/authbind/byport/80"'
+			#fabric.operations.put(local_path, location, use_sudo=use_sudo)
+			# Hides the output, which is especially important
+			with fabric.context_managers.settings(
+				fabric.api.hide('warnings', 'running', 'stdout'),
+				warn_only=True
+			):
+				# We send the data as BZipped Base64
+				run("echo '%s' | base64 -d | bzcat > \"%s\"" % (base64.b64encode(bz2.compress(content)), location))
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
 	# Ensures that the signature matches
 	if check:
 		file_sig = file_sha256(location)
-		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(sig), repr(file_sig))
+		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(file_sig), repr(sig))
 	file_attribs(location, mode=mode, owner=owner, group=group)
 
 def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
