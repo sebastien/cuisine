@@ -387,7 +387,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_G' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Returns the SHA-256 sum (as a hex string) for the remote file at the given location.</p></div></div>
 
-</div></div><div id='d_H' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x1f5f938> )</code></div><div class='docstring'>
+</div></div><div id='d_H' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x172e938> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div></div>
 
@@ -436,97 +436,136 @@ jQuery(document).ready(function(){
 </div></div><div id='d_ib' class='description'><h1>Function <span class='name'>package_update_apt</span></h1><div class='representation'><code>package_update_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_jb' class='description'><h1>Function <span class='name'>package_update_yum</span></h1><div class='representation'><code>package_update_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_kb' class='description'><h1>Function <span class='name'>package_upgrade</span></h1><div class='representation'><code>package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates every package present on the system.</p></div></div>
 
-</div></div><div id='d_lb' class='description'><h1>Function <span class='name'>package_upgrade_apt</span></h1><div class='representation'><code>package_upgrade_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_mb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_nb' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ob' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_pb' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_lb' class='description'><h1>Function <span class='name'>package_upgrade_apt</span></h1><div class='representation'><code>package_upgrade_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_mb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_nb' class='description'><h1>Function <span class='name'>python_package_ensure</span></h1><div class='representation'><code>python_package_ensure( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Tests if the given python package is installed, and installes it in case it's not already there.</p></div></div>
+
+</div></div><div id='d_ob' class='description'><h1>Function <span class='name'>python_package_ensure_easy_install</span></h1><div class='representation'><code>python_package_ensure_easy_install( package )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be ensured.</p></div></div>
+
+</div></div><div id='d_pb' class='description'><h1>Function <span class='name'>python_package_ensure_pip</span></h1><div class='representation'><code>python_package_ensure_pip( package=None, r=None, pip=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div></div>
+
+</div></div><div id='d_qb' class='description'><h1>Function <span class='name'>python_package_install</span></h1><div class='representation'><code>python_package_install( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Installs the given python package/list of python packages.</p></div></div>
+
+</div></div><div id='d_rb' class='description'><h1>Function <span class='name'>python_package_install_easy_install</span></h1><div class='representation'><code>python_package_install_easy_install( package )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be installed.</p></div></div>
+
+</div></div><div id='d_sb' class='description'><h1>Function <span class='name'>python_package_install_pip</span></h1><div class='representation'><code>python_package_install_pip( package=None, r=None, pip=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be installed. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div></div>
+
+</div></div><div id='d_tb' class='description'><h1>Function <span class='name'>python_package_remove</span></h1><div class='representation'><code>python_package_remove( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Removes the given python package.</p></div></div>
+
+</div></div><div id='d_ub' class='description'><h1>Function <span class='name'>python_package_remove_easy_install</span></h1><div class='representation'><code>python_package_remove_easy_install( package )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be removed.</p></div></div>
+
+</div></div><div id='d_vb' class='description'><h1>Function <span class='name'>python_package_remove_pip</span></h1><div class='representation'><code>python_package_remove_pip( package, E=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div></div>
+
+</div></div><div id='d_wb' class='description'><h1>Function <span class='name'>python_package_upgrade</span></h1><div class='representation'><code>python_package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Upgrades the defined python package.</p></div></div>
+
+</div></div><div id='d_xb' class='description'><h1>Function <span class='name'>python_package_upgrade_easy_install</span></h1><div class='representation'><code>python_package_upgrade_easy_install( package )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be upgraded.</p></div></div>
+
+</div></div><div id='d_yb' class='description'><h1>Function <span class='name'>python_package_upgrade_pip</span></h1><div class='representation'><code>python_package_upgrade_pip( package, E=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be upgraded. The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div></div>
+
+</div></div><div id='d_zb' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Ab' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Bb' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands that takes into account the <code>MODE_LOCAL</code> and <code>MODE_SUDO</code> modes of Cuisine.</p></div></div>
 
-</div></div><div id='d_qb' class='description'><h1>Function <span class='name'>run_local</span></h1><div class='representation'><code>run_local( command, sudo=False, shell=True, pty=True, combine_stderr=None )</code></div><div class='docstring'>
+</div></div><div id='d_Cb' class='description'><h1>Function <span class='name'>run_local</span></h1><div class='representation'><code>run_local( command, sudo=False, shell=True, pty=True, combine_stderr=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Local implementation of fabric.api.run() using subprocess.</p><blockquote><div class='content'><p>Note: pty option exists for function signature compatibility and is ignored.</p></div></blockquote></div></div>
 
-</div></div><div id='d_rb' class='description'><h1>Function <span class='name'>select_package</span></h1><div class='representation'><code>select_package( option=None )</code></div><div class='docstring'>
+</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>select_package</span></h1><div class='representation'><code>select_package( option=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Selects the type of package subsystem to use (ex:apt or yum).</p></div></div>
 
-</div></div><div id='d_sb' class='description'><h1>Function <span class='name'>ssh_authorize</span></h1><div class='representation'><code>ssh_authorize( user, key )</code></div><div class='docstring'>
+</div></div><div id='d_Eb' class='description'><h1>Function <span class='name'>select_python_package</span></h1><div class='representation'><code>select_python_package( option=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Fb' class='description'><h1>Function <span class='name'>ssh_authorize</span></h1><div class='representation'><code>ssh_authorize( user, key )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Adds the given key to the <code>.ssh/authorized_keys</code> for the given user.</p></div></div>
 
-</div></div><div id='d_tb' class='description'><h1>Function <span class='name'>ssh_keygen</span></h1><div class='representation'><code>ssh_keygen( user, keytype='dsa' )</code></div><div class='docstring'>
+</div></div><div id='d_Gb' class='description'><h1>Function <span class='name'>ssh_keygen</span></h1><div class='representation'><code>ssh_keygen( user, keytype='dsa' )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Generates a pair of ssh keys in the user's home .ssh directory.</p></div></div>
 
-</div></div><div id='d_ub' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
+</div></div><div id='d_Hb' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE_SUDO' global to tell whether the command should be run as regular user or sudo.</p></div></div>
 
-</div></div><div id='d_vb' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password=None )</code></div><div class='docstring'>
+</div></div><div id='d_Ib' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Sets the password for the sudo command.</p></div></div>
 
-</div></div><div id='d_wb' class='description'><h1>Function <span class='name'>system_uuid</span></h1><div class='representation'><code>system_uuid(  )</code></div><div class='docstring'>
+</div></div><div id='d_Jb' class='description'><h1>Function <span class='name'>system_uuid</span></h1><div class='representation'><code>system_uuid(  )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Gets a machines UUID (Universally Unique Identifier).</p></div></div>
 
-</div></div><div id='d_xb' class='description'><h1>Function <span class='name'>system_uuid_alias_add</span></h1><div class='representation'><code>system_uuid_alias_add(  )</code></div><div class='docstring'>
+</div></div><div id='d_Kb' class='description'><h1>Function <span class='name'>system_uuid_alias_add</span></h1><div class='representation'><code>system_uuid_alias_add(  )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Adds system UUID alias to /etc/hosts. Some tools/processes rely/want the hostname as an alias in /etc/hosts e.g. <code>127.0.0.1 localhost &lt;hostname&gt;</code>.</p></div></div>
 
-</div></div><div id='d_yb' class='description'><h1>Function <span class='name'>text_detect_eol</span></h1><div class='representation'><code>text_detect_eol( text )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_zb' class='description'><h1>Function <span class='name'>text_ensure_line</span></h1><div class='representation'><code>text_ensure_line( text, *lines )</code></div><div class='docstring'>
+</div></div><div id='d_Lb' class='description'><h1>Function <span class='name'>text_detect_eol</span></h1><div class='representation'><code>text_detect_eol( text )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Mb' class='description'><h1>Function <span class='name'>text_ensure_line</span></h1><div class='representation'><code>text_ensure_line( text, *lines )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the given lines are present in the given text, otherwise appends the lines that are not already in the text at the end of it.</p></div></div>
 
-</div></div><div id='d_Ab' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
+</div></div><div id='d_Nb' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Returns the first line that matches the given predicate.</p></div></div>
 
-</div></div><div id='d_Bb' class='description'><h1>Function <span class='name'>text_normalize</span></h1><div class='representation'><code>text_normalize( text )</code></div><div class='docstring'>
+</div></div><div id='d_Ob' class='description'><h1>Function <span class='name'>text_normalize</span></h1><div class='representation'><code>text_normalize( text )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
 
-</div></div><div id='d_Cb' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
+</div></div><div id='d_Pb' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
 
-</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x1f5f140>, process=<function <lambda> at 0x1f5f1b8> )</code></div><div class='docstring'>
+</div></div><div id='d_Qb' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x172e140>, process=<function <lambda> at 0x172e1b8> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div></div>
 
-</div></div><div id='d_Eb' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Fb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
+</div></div><div id='d_Rb' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Sb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Substitutes <code>${PLACEHOLDER}</code>s within the text with the corresponding values from variables.</p></div></div>
 
-</div></div><div id='d_Gb' class='description'><h1>Function <span class='name'>upstart_ensure</span></h1><div class='representation'><code>upstart_ensure( name )</code></div><div class='docstring'>
+</div></div><div id='d_Tb' class='description'><h1>Function <span class='name'>upstart_ensure</span></h1><div class='representation'><code>upstart_ensure( name )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the given upstart service is running, restarting it if necessary.</p></div></div>
 
-</div></div><div id='d_Hb' class='description'><h1>Function <span class='name'>user_check</span></h1><div class='representation'><code>user_check( name )</code></div><div class='docstring'>
+</div></div><div id='d_Ub' class='description'><h1>Function <span class='name'>user_check</span></h1><div class='representation'><code>user_check( name=None, uid=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Checks if there is a user defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"uid":&lt;str&gt;,"gid":&lt;str&gt;,"home":&lt;str&gt;,"shell":&lt;str&gt;}</code> or <code>None</code> if the user does not exists.</p></div></div>
 
-</div></div><div id='d_Ib' class='description'><h1>Function <span class='name'>user_create</span></h1><div class='representation'><code>user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None, encrypted_passwd=False )</code></div><div class='docstring'>
+</div></div><div id='d_Vb' class='description'><h1>Function <span class='name'>user_create</span></h1><div class='representation'><code>user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None, encrypted_passwd=False )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Creates the user with the given name, optionally giving a specific password/home/uid/gid/shell.</p></div></div>
 
-</div></div><div id='d_Jb' class='description'><h1>Function <span class='name'>user_ensure</span></h1><div class='representation'><code>user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None )</code></div><div class='docstring'>
+</div></div><div id='d_Wb' class='description'><h1>Function <span class='name'>user_ensure</span></h1><div class='representation'><code>user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the given users exists, optionally updating their passwd/home/uid/gid/shell.</p></div></div>
 
-</div></div><div id='d_Kb' class='description'><h1>Function <span class='name'>user_passwd</span></h1><div class='representation'><code>user_passwd( name, passwd, encrypted_passwd=False )</code></div><div class='docstring'>
+</div></div><div id='d_Xb' class='description'><h1>Function <span class='name'>user_passwd</span></h1><div class='representation'><code>user_passwd( name, passwd, encrypted_passwd=False )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Sets the given user password.</p></div></div>
 
-</div></div><div id='d_Lb' class='description'><h1>Function <span class='name'>user_remove</span></h1><div class='representation'><code>user_remove( name, rmhome=None )</code></div><div class='docstring'>
+</div></div><div id='d_Yb' class='description'><h1>Function <span class='name'>user_remove</span></h1><div class='representation'><code>user_remove( name, rmhome=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Removes the user with the given name, optionally removing the home directory and mail spool.</p></div></div>
 
-</div></div><div id='d_Mb' class='description'><h1>dict</h1><div class='representation'><code>{'package': ['apt', 'yum']}</code></div><div class='docstring'>
+</div></div><div id='d_Zb' class='description'><h1>dict</h1><div class='representation'><code>{'python_package': ['easy_install', 'pip'], 'package': ['apt', 'yum']}</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
 
-</div></div><div id='d_Nb' class='description'><h1>dict</h1><div class='representation'><code>{'package': 'apt'}</code></div><div class='docstring'>
+</div></div><div id='d_ac' class='description'><h1>dict</h1><div class='representation'><code>{'python_package': 'pip', 'package': 'apt'}</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
 
-</div></div><div id='d_Ob' class='description'><h1>str</h1><div class='representation'><code>'\n'</code></div><div class='docstring'>
+</div></div><div id='d_bc' class='description'><h1>str</h1><div class='representation'><code>'\n'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Pb' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_OPTION_PACKAGE'</code></div><div class='docstring'>
+</div></div><div id='d_cc' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_OPTION_PACKAGE'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Qb' class='description'><h1>SRE_Pattern</h1><div class='representation'></div><div class='docstring'>
+</div></div><div id='d_dc' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_OPTION_PYTHON_PACKAGE'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+
+</div></div><div id='d_ec' class='description'><h1>SRE_Pattern</h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Compiled regular expression objects</p></div></div>
 
-</div></div><div id='d_Rb' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_SUDO_PASSWORD'</code></div><div class='docstring'>
+</div></div><div id='d_fc' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_SUDO_PASSWORD'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Sb' class='description'><h1>str</h1><div class='representation'><code>'0.3.2'</code></div><div class='docstring'>
+</div></div><div id='d_gc' class='description'><h1>str</h1><div class='representation'><code>'0.4.0'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Tb' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
+</div></div><div id='d_hc' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Ub' class='description'><h1>str</h1><div class='representation'><code>'package'</code></div><div class='docstring'>
+</div></div><div id='d_ic' class='description'><h1>str</h1><div class='representation'><code>'package'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Vb' class='description'><h1>str</h1><div class='representation'><code>'apt'</code></div><div class='docstring'>
+</div></div><div id='d_jc' class='description'><h1>str</h1><div class='representation'><code>'apt'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
 </div></div><div id='d_a' class='description'><h1>Module <span class='name'>cuisine</span></h1><div class='representation'></div><div class='docstring'>
@@ -537,23 +576,29 @@ jQuery(document).ready(function(){
 </div>
 <div id='hidden'>
 	<!-- hidden-snip -->
-	<div id='d_M' class='description'><h1>Function <span class='name'>group_create</span></h1><div class='representation'><code>group_create( name, gid=None )</code></div><div class='docstring'>
+	<div id='d_bc' class='description'><h1>str</h1><div class='representation'><code>'\n'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+
+</div></div><div id='d_M' class='description'><h1>Function <span class='name'>group_create</span></h1><div class='representation'><code>group_create( name, gid=None )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Creates a group with the given name, and optionally given gid.</p></div></div>
+
+</div></div><div id='d_Wb' class='description'><h1>Function <span class='name'>user_ensure</span></h1><div class='representation'><code>user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensures that the given users exists, optionally updating their passwd/home/uid/gid/shell.</p></div></div>
 
 </div></div><div id='d_eb' class='description'><h1>Function <span class='name'>package_install</span></h1><div class='representation'><code>package_install( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Installs the given package/list of package, optionally updating the package database.</p></div></div>
 
-</div></div><div id='d_Lb' class='description'><h1>Function <span class='name'>user_remove</span></h1><div class='representation'><code>user_remove( name, rmhome=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Removes the user with the given name, optionally removing the home directory and mail spool.</p></div></div>
+</div></div><div id='d_ec' class='description'><h1>SRE_Pattern</h1><div class='representation'></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Compiled regular expression objects</p></div></div>
 
-</div></div><div id='d_ub' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE_SUDO' global to tell whether the command should be run as regular user or sudo.</p></div></div>
+</div></div><div id='d_Lb' class='description'><h1>Function <span class='name'>text_detect_eol</span></h1><div class='representation'><code>text_detect_eol( text )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ub' class='description'><h1>Function <span class='name'>python_package_remove_easy_install</span></h1><div class='representation'><code>python_package_remove_easy_install( package )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be removed.</p></div></div>
 
-</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x1f5f140>, process=<function <lambda> at 0x1f5f1b8> )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div></div>
+</div></div><div id='d_Db' class='description'><h1>Function <span class='name'>select_package</span></h1><div class='representation'><code>select_package( option=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Selects the type of package subsystem to use (ex:apt or yum).</p></div></div>
 
-</div></div><div id='d_mb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Z' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Tb' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+</div></div><div id='d_mb' class='description'><h1>Function <span class='name'>package_upgrade_yum</span></h1><div class='representation'><code>package_upgrade_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Z' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Tb' class='description'><h1>Function <span class='name'>upstart_ensure</span></h1><div class='representation'><code>upstart_ensure( name )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Ensures that the given upstart service is running, restarting it if necessary.</p></div></div>
 
 </div></div><div id='d_X' class='description'><h1>Function <span class='name'>mode</span></h1><div class='representation'><code>mode( key )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Queries the given Cuisine mode (ie. MODE<span class='term'>LOCAL, MODE</span>SUDO)</p></div></div>
@@ -576,7 +621,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_K' class='description'><h1>Function <span class='name'>file_write</span></h1><div class='representation'><code>file_write( location, content, mode=None, owner=None, group=None, sudo=None, check=True )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Writes the given content to the file at the given remote location, optionally setting mode/owner/group.</p></div></div>
 
-</div></div><div id='d_H' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x1f5f938> )</code></div><div class='docstring'>
+</div></div><div id='d_H' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x172e938> )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div></div>
 
@@ -613,8 +658,8 @@ jQuery(document).ready(function(){
 </div></div><div id='d_y' class='description'><h1>Function <span class='name'>file_ensure</span></h1><div class='representation'><code>file_ensure( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the remote file at the given location.</p></div></div>
 
-</div></div><div id='d_rb' class='description'><h1>Function <span class='name'>select_package</span></h1><div class='representation'><code>select_package( option=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Selects the type of package subsystem to use (ex:apt or yum).</p></div></div>
+</div></div><div id='d_rb' class='description'><h1>Function <span class='name'>python_package_install_easy_install</span></h1><div class='representation'><code>python_package_install_easy_install( package )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be installed.</p></div></div>
 
 </div></div><div id='d_r' class='description'><h1>Function <span class='name'>dir_attribs</span></h1><div class='representation'><code>dir_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates the mode/owner/group for the given remote directory.</p></div></div>
@@ -646,7 +691,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_k' class='description'><h1>Class <span class='name'>mode_sudo</span></h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Cuisine functions will be executed with sudo.</p></div></div>
 
-</div></div><div id='d_Eb' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_i' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_n' class='description'><h1>Class <span class='name'>mode_user</span></h1><div class='representation'></div><div class='docstring'>
+</div></div><div id='d_Eb' class='description'><h1>Function <span class='name'>select_python_package</span></h1><div class='representation'><code>select_python_package( option=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_i' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_n' class='description'><h1>Class <span class='name'>mode_user</span></h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Cuisine functions will be executed as the current user.</p></div></div>
 
 </div></div><div id='d_o' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_l' class='description'><h1>Method <span class='name'>__init__</span></h1><div class='representation'><code>__init__( self )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_m' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_MODE_SUDO'</code></div><div class='docstring'>
@@ -667,109 +712,136 @@ jQuery(document).ready(function(){
 </div></div><div id='d_d' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_MODE_LOCAL'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_jb' class='description'><h1>Function <span class='name'>package_update_yum</span></h1><div class='representation'><code>package_update_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ob' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Ib' class='description'><h1>Function <span class='name'>user_create</span></h1><div class='representation'><code>user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None, encrypted_passwd=False )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Creates the user with the given name, optionally giving a specific password/home/uid/gid/shell.</p></div></div>
+</div></div><div id='d_jb' class='description'><h1>Function <span class='name'>package_update_yum</span></h1><div class='representation'><code>package_update_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ob' class='description'><h1>Function <span class='name'>python_package_ensure_easy_install</span></h1><div class='representation'><code>python_package_ensure_easy_install( package )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be ensured.</p></div></div>
 
-</div></div><div id='d_gb' class='description'><h1>Function <span class='name'>package_install_yum</span></h1><div class='representation'><code>package_install_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Nb' class='description'><h1>dict</h1><div class='representation'><code>{'package': 'apt'}</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
+</div></div><div id='d_Ib' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Sets the password for the sudo command.</p></div></div>
 
-</div></div><div id='d_wb' class='description'><h1>Function <span class='name'>system_uuid</span></h1><div class='representation'><code>system_uuid(  )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Gets a machines UUID (Universally Unique Identifier).</p></div></div>
+</div></div><div id='d_gb' class='description'><h1>Function <span class='name'>package_install_yum</span></h1><div class='representation'><code>package_install_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_gc' class='description'><h1>str</h1><div class='representation'><code>'0.4.0'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+
+</div></div><div id='d_Nb' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Returns the first line that matches the given predicate.</p></div></div>
+
+</div></div><div id='d_Yb' class='description'><h1>Function <span class='name'>user_remove</span></h1><div class='representation'><code>user_remove( name, rmhome=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Removes the user with the given name, optionally removing the home directory and mail spool.</p></div></div>
+
+</div></div><div id='d_wb' class='description'><h1>Function <span class='name'>python_package_upgrade</span></h1><div class='representation'><code>python_package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Upgrades the defined python package.</p></div></div>
 
 </div></div><div id='d_h' class='description'><h1>Class <span class='name'>mode_remote</span></h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Comes back to Fabric's API for run/sudo. This basically reverts the effect of calling <code>mode_local()</code>.</p></div></div>
 
-</div></div><div id='d_Fb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Substitutes <code>${PLACEHOLDER}</code>s within the text with the corresponding values from variables.</p></div></div>
+</div></div><div id='d_Fb' class='description'><h1>Function <span class='name'>ssh_authorize</span></h1><div class='representation'><code>ssh_authorize( user, key )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Adds the given key to the <code>.ssh/authorized_keys</code> for the given user.</p></div></div>
 
-</div></div><div id='d_Qb' class='description'><h1>SRE_Pattern</h1><div class='representation'></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Compiled regular expression objects</p></div></div>
+</div></div><div id='d_Qb' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x172e140>, process=<function <lambda> at 0x172e1b8> )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div></div>
 
-</div></div><div id='d_Vb' class='description'><h1>str</h1><div class='representation'><code>'apt'</code></div><div class='docstring'>
+</div></div><div id='d_Vb' class='description'><h1>Function <span class='name'>user_create</span></h1><div class='representation'><code>user_create( name, passwd=None, home=None, uid=None, gid=None, shell=None, uid_min=None, uid_max=None, encrypted_passwd=False )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Creates the user with the given name, optionally giving a specific password/home/uid/gid/shell.</p></div></div>
+
+</div></div><div id='d_dc' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_OPTION_PYTHON_PACKAGE'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_db' class='description'><h1>Function <span class='name'>package_ensure_yum</span></h1><div class='representation'><code>package_ensure_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_tb' class='description'><h1>Function <span class='name'>ssh_keygen</span></h1><div class='representation'><code>ssh_keygen( user, keytype='dsa' )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Generates a pair of ssh keys in the user's home .ssh directory.</p></div></div>
+</div></div><div id='d_db' class='description'><h1>Function <span class='name'>package_ensure_yum</span></h1><div class='representation'><code>package_ensure_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_tb' class='description'><h1>Function <span class='name'>python_package_remove</span></h1><div class='representation'><code>python_package_remove( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Removes the given python package.</p></div></div>
 
-</div></div><div id='d_Ob' class='description'><h1>str</h1><div class='representation'><code>'\n'</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+</div></div><div id='d_Ob' class='description'><h1>Function <span class='name'>text_normalize</span></h1><div class='representation'><code>text_normalize( text )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
 
 </div></div><div id='k' class='container'><div class='name'><a href='javascript:describeElement("k");'>mode_sudo</a></div><div class='title'>Inhertied Methods</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("k","l");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("k","m");'>MODE_KEY</a></div><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("k","e");'>MODE_VALUE</a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("k","f");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("k","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_lb' class='description'><h1>Function <span class='name'>package_upgrade_apt</span></h1><div class='representation'><code>package_upgrade_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_e' class='description'><h1>bool</h1><div class='representation'></div><div class='docstring'>
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("k","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_jc' class='description'><h1>str</h1><div class='representation'><code>'apt'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+
+</div></div><div id='d_lb' class='description'><h1>Function <span class='name'>package_upgrade_apt</span></h1><div class='representation'><code>package_upgrade_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_e' class='description'><h1>bool</h1><div class='representation'></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>bool(x) -&gt; bool</p><p>Returns True when the argument x is true, False otherwise. The builtins True and False are the only two instances of the class bool. The class bool is a subclass of the class int, and cannot be subclassed.</p></div></div>
 
-</div></div><div id='d_Gb' class='description'><h1>Function <span class='name'>upstart_ensure</span></h1><div class='representation'><code>upstart_ensure( name )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensures that the given upstart service is running, restarting it if necessary.</p></div></div>
+</div></div><div id='d_Gb' class='description'><h1>Function <span class='name'>ssh_keygen</span></h1><div class='representation'><code>ssh_keygen( user, keytype='dsa' )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Generates a pair of ssh keys in the user's home .ssh directory.</p></div></div>
 
-</div></div><div id='d_xb' class='description'><h1>Function <span class='name'>system_uuid_alias_add</span></h1><div class='representation'><code>system_uuid_alias_add(  )</code></div><div class='docstring'>
+</div></div><div id='d_xb' class='description'><h1>Function <span class='name'>python_package_upgrade_easy_install</span></h1><div class='representation'><code>python_package_upgrade_easy_install( package )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be upgraded.</p></div></div>
+
+</div></div><div id='d_ab' class='description'><h1>Function <span class='name'>package_clean_yum</span></h1><div class='representation'><code>package_clean_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ac' class='description'><h1>dict</h1><div class='representation'><code>{'python_package': 'pip', 'package': 'apt'}</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
+
+</div></div><div id='d_Kb' class='description'><h1>Function <span class='name'>system_uuid_alias_add</span></h1><div class='representation'><code>system_uuid_alias_add(  )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Adds system UUID alias to /etc/hosts. Some tools/processes rely/want the hostname as an alias in /etc/hosts e.g. <code>127.0.0.1 localhost &lt;hostname&gt;</code>.</p></div></div>
 
-</div></div><div id='d_ab' class='description'><h1>Function <span class='name'>package_clean_yum</span></h1><div class='representation'><code>package_clean_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Kb' class='description'><h1>Function <span class='name'>user_passwd</span></h1><div class='representation'><code>user_passwd( name, passwd, encrypted_passwd=False )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Sets the given user password.</p></div></div>
-
-</div></div><div id='d_pb' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands that takes into account the <code>MODE_LOCAL</code> and <code>MODE_SUDO</code> modes of Cuisine.</p></div></div>
+</div></div><div id='d_pb' class='description'><h1>Function <span class='name'>python_package_ensure_pip</span></h1><div class='representation'><code>python_package_ensure_pip( package=None, r=None, pip=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div></div>
 
 </div></div><div id='d_ib' class='description'><h1>Function <span class='name'>package_update_apt</span></h1><div class='representation'><code>package_update_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='h' class='container'><div class='name'><a href='javascript:describeElement("h");'>mode_remote</a></div><div class='title'>Inhertied Methods</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("h","i");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("h","d");'>MODE_KEY</a></div><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("h","j");'>MODE_VALUE</a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("h","f");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("h","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_Sb' class='description'><h1>str</h1><div class='representation'><code>'0.3.2'</code></div><div class='docstring'>
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("h","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_Sb' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Substitutes <code>${PLACEHOLDER}</code>s within the text with the corresponding values from variables.</p></div></div>
+
+</div></div><div id='d_nb' class='description'><h1>Function <span class='name'>python_package_ensure</span></h1><div class='representation'><code>python_package_ensure( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Tests if the given python package is installed, and installes it in case it's not already there.</p></div></div>
+
+</div></div><div id='d_yb' class='description'><h1>Function <span class='name'>python_package_upgrade_pip</span></h1><div class='representation'><code>python_package_upgrade_pip( package, E=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be upgraded. The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div></div>
+
+</div></div><div id='d_ic' class='description'><h1>str</h1><div class='representation'><code>'package'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_nb' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_yb' class='description'><h1>Function <span class='name'>text_detect_eol</span></h1><div class='representation'><code>text_detect_eol( text )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Hb' class='description'><h1>Function <span class='name'>user_check</span></h1><div class='representation'><code>user_check( name )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Checks if there is a user defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"uid":&lt;str&gt;,"gid":&lt;str&gt;,"home":&lt;str&gt;,"shell":&lt;str&gt;}</code> or <code>None</code> if the user does not exists.</p></div></div>
+</div></div><div id='d_Hb' class='description'><h1>Function <span class='name'>sudo</span></h1><div class='representation'><code>sudo( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands, using the 'cuisine.MODE_SUDO' global to tell whether the command should be run as regular user or sudo.</p></div></div>
 
-</div></div><div id='d_fb' class='description'><h1>Function <span class='name'>package_install_apt</span></h1><div class='representation'><code>package_install_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_qb' class='description'><h1>Function <span class='name'>run_local</span></h1><div class='representation'><code>run_local( command, sudo=False, shell=True, pty=True, combine_stderr=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Local implementation of fabric.api.run() using subprocess.</p><blockquote><div class='content'><p>Note: pty option exists for function signature compatibility and is ignored.</p></div></blockquote></div></div>
+</div></div><div id='d_fc' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_SUDO_PASSWORD'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+
+</div></div><div id='d_fb' class='description'><h1>Function <span class='name'>package_install_apt</span></h1><div class='representation'><code>package_install_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_qb' class='description'><h1>Function <span class='name'>python_package_install</span></h1><div class='representation'><code>python_package_install( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Installs the given python package/list of python packages.</p></div></div>
 
 </div></div><div id='b' class='container'><div class='name'><a href='javascript:describeElement("b");'>mode_local</a></div><div class='title'>Inhertied Methods</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","c");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("b","d");'>MODE_KEY</a></div><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("b","e");'>MODE_VALUE</a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","f");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_vb' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Sets the password for the sudo command.</p></div></div>
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("b","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_Xb' class='description'><h1>Function <span class='name'>user_passwd</span></h1><div class='representation'><code>user_passwd( name, passwd, encrypted_passwd=False )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Sets the given user password.</p></div></div>
 
-</div></div><div id='d_Ab' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Returns the first line that matches the given predicate.</p></div></div>
+</div></div><div id='d_vb' class='description'><h1>Function <span class='name'>python_package_remove_pip</span></h1><div class='representation'><code>python_package_remove_pip( package, E=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div></div>
 
-</div></div><div id='n' class='container'><div class='name'><a href='javascript:describeElement("n");'>mode_user</a></div><div class='title'>Inhertied Methods</div class='title'><div class='group'><div class='slot documented'><span
+</div></div><div id='d_Ab' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='n' class='container'><div class='name'><a href='javascript:describeElement("n");'>mode_user</a></div><div class='title'>Inhertied Methods</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("n","o");'><span class='special __init__'>constructor</span></a></div></div><div class='title'>Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("n","m");'>MODE_KEY</a></div><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("n","j");'>MODE_VALUE</a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("n","f");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
-					class='prefix'>&equiv;</span><a href='javascript:documentElement("n","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_Pb' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_OPTION_PACKAGE'</code></div><div class='docstring'>
+					class='prefix'>&equiv;</span><a href='javascript:documentElement("n","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_Pb' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
+
+</div></div><div id='d_Ub' class='description'><h1>Function <span class='name'>user_check</span></h1><div class='representation'><code>user_check( name=None, uid=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Checks if there is a user defined with the given name, returning its information as a <code>{"name":&lt;str&gt;,"uid":&lt;str&gt;,"gid":&lt;str&gt;,"home":&lt;str&gt;,"shell":&lt;str&gt;}</code> or <code>None</code> if the user does not exists.</p></div></div>
+
+</div></div><div id='d_cb' class='description'><h1>Function <span class='name'>package_ensure_apt</span></h1><div class='representation'><code>package_ensure_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_cc' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_OPTION_PACKAGE'</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
-</div></div><div id='d_Ub' class='description'><h1>str</h1><div class='representation'><code>'package'</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
-
-</div></div><div id='d_cb' class='description'><h1>Function <span class='name'>package_ensure_apt</span></h1><div class='representation'><code>package_ensure_apt( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_zb' class='description'><h1>Function <span class='name'>text_ensure_line</span></h1><div class='representation'><code>text_ensure_line( text, *lines )</code></div><div class='docstring'>
+</div></div><div id='d_zb' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Mb' class='description'><h1>Function <span class='name'>text_ensure_line</span></h1><div class='representation'><code>text_ensure_line( text, *lines )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Ensures that the given lines are present in the given text, otherwise appends the lines that are not already in the text at the end of it.</p></div></div>
-
-</div></div><div id='d_Mb' class='description'><h1>dict</h1><div class='representation'><code>{'package': ['apt', 'yum']}</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
 
 </div></div><div id='d_kb' class='description'><h1>Function <span class='name'>package_upgrade</span></h1><div class='representation'><code>package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Updates every package present on the system.</p></div></div>
 
-</div></div><div id='d_Bb' class='description'><h1>Function <span class='name'>text_normalize</span></h1><div class='representation'><code>text_normalize( text )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
+</div></div><div id='d_Bb' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>A wrapper to Fabric's run/sudo commands that takes into account the <code>MODE_LOCAL</code> and <code>MODE_SUDO</code> modes of Cuisine.</p></div></div>
 
-</div></div><div id='d_Rb' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_SUDO_PASSWORD'</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
+</div></div><div id='d_Rb' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_sb' class='description'><h1>Function <span class='name'>python_package_install_pip</span></h1><div class='representation'><code>python_package_install_pip( package=None, r=None, pip=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>The "package" argument, defines the name of the package that will be installed. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div></div>
 
-</div></div><div id='d_sb' class='description'><h1>Function <span class='name'>ssh_authorize</span></h1><div class='representation'><code>ssh_authorize( user, key )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Adds the given key to the <code>.ssh/authorized_keys</code> for the given user.</p></div></div>
-
-</div></div><div id='d_Jb' class='description'><h1>Function <span class='name'>user_ensure</span></h1><div class='representation'><code>user_ensure( name, passwd=None, home=None, uid=None, gid=None, shell=None )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Ensures that the given users exists, optionally updating their passwd/home/uid/gid/shell.</p></div></div>
+</div></div><div id='d_Jb' class='description'><h1>Function <span class='name'>system_uuid</span></h1><div class='representation'><code>system_uuid(  )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Gets a machines UUID (Universally Unique Identifier).</p></div></div>
 
 </div></div><div id='a' class='root'><div class='name'><a href='javascript:describeElement("a");'>cuisine</a></div><div class='title'>Classes</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&Tau;</span><a href='javascript:documentElement("a","b");'>mode_local</a></div><div class='slot documented'><span
@@ -826,45 +898,65 @@ jQuery(document).ready(function(){
 					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","kb");'>package_upgrade</a></div><div class='slot documented'><span
 					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","lb");'>package_upgrade_apt</a></div><div class='slot documented'><span
 					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","mb");'>package_upgrade_yum</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","nb");'>repository_ensure_apt</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ob");'>repository_ensure_yum</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","pb");'>run</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","qb");'>run_local</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","rb");'>select_package</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","sb");'>ssh_authorize</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","tb");'>ssh_keygen</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ub");'>sudo</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","vb");'>sudo_password</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","wb");'>system_uuid</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","xb");'>system_uuid_alias_add</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","yb");'>text_detect_eol</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","zb");'>text_ensure_line</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Ab");'>text_get_line</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Bb");'>text_normalize</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Cb");'>text_nospace</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Db");'>text_replace_line</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Eb");'>text_strip_margin</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Fb");'>text_template</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Gb");'>upstart_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Hb");'>user_check</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Ib");'>user_create</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Jb");'>user_ensure</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Kb");'>user_passwd</a></div><div class='slot documented'><span
-					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Lb");'>user_remove</a></div></div><div class='title'>Values</div class='title'><div class='group'><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Mb");'>AVAILABLE_OPTIONS</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Nb");'>DEFAULT_OPTIONS</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Ob");'>MAC_EOL</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","nb");'>python_package_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ob");'>python_package_ensure_easy_install</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","pb");'>python_package_ensure_pip</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","qb");'>python_package_install</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","rb");'>python_package_install_easy_install</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","sb");'>python_package_install_pip</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","tb");'>python_package_remove</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","ub");'>python_package_remove_easy_install</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","vb");'>python_package_remove_pip</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","wb");'>python_package_upgrade</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","xb");'>python_package_upgrade_easy_install</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","yb");'>python_package_upgrade_pip</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","zb");'>repository_ensure_apt</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Ab");'>repository_ensure_yum</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Bb");'>run</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Cb");'>run_local</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Db");'>select_package</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Eb");'>select_python_package</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Fb");'>ssh_authorize</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Gb");'>ssh_keygen</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Hb");'>sudo</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Ib");'>sudo_password</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Jb");'>system_uuid</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Kb");'>system_uuid_alias_add</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Lb");'>text_detect_eol</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Mb");'>text_ensure_line</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Nb");'>text_get_line</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Ob");'>text_normalize</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Pb");'>text_nospace</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Qb");'>text_replace_line</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Rb");'>text_strip_margin</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Sb");'>text_template</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Tb");'>upstart_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Ub");'>user_check</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Vb");'>user_create</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Wb");'>user_ensure</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Xb");'>user_passwd</a></div><div class='slot documented'><span
+					class='prefix'>&lambda;</span><a href='javascript:documentElement("a","Yb");'>user_remove</a></div></div><div class='title'>Values</div class='title'><div class='group'><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Zb");'>AVAILABLE_OPTIONS</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","ac");'>DEFAULT_OPTIONS</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","bc");'>MAC_EOL</a></div><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("a","d");'>MODE_LOCAL</a></div><div class='slot documented'><span
 					class='prefix'>&bull;</span><a href='javascript:documentElement("a","m");'>MODE_SUDO</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Pb");'>OPTION_PACKAGE</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Qb");'>RE_SPACES</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Rb");'>SUDO_PASSWORD</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Ob");'>UNIX_EOL</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Sb");'>VERSION</a></div><div class='slot documented'><span
-					class='prefix'>&bull;</span><a href='javascript:documentElement("a","Tb");'>WINDOWS_EOL</a></div><div class='slot documented'><span
-					class='prefix'>&sdot;</span><a href='javascript:documentElement("a","Ub");'>option</a></div><div class='slot documented'><span
-					class='prefix'>&sdot;</span><a href='javascript:documentElement("a","Vb");'>value</a></div></div></div><div id='d_Cb' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
-<div class="textoContent"><div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div></div>
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","cc");'>OPTION_PACKAGE</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","dc");'>OPTION_PYTHON_PACKAGE</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","ec");'>RE_SPACES</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","fc");'>SUDO_PASSWORD</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","bc");'>UNIX_EOL</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","gc");'>VERSION</a></div><div class='slot documented'><span
+					class='prefix'>&bull;</span><a href='javascript:documentElement("a","hc");'>WINDOWS_EOL</a></div><div class='slot documented'><span
+					class='prefix'>&sdot;</span><a href='javascript:documentElement("a","ic");'>option</a></div><div class='slot documented'><span
+					class='prefix'>&sdot;</span><a href='javascript:documentElement("a","jc");'>value</a></div></div></div><div id='d_Cb' class='description'><h1>Function <span class='name'>run_local</span></h1><div class='representation'><code>run_local( command, sudo=False, shell=True, pty=True, combine_stderr=None )</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>Local implementation of fabric.api.run() using subprocess.</p><blockquote><div class='content'><p>Note: pty option exists for function signature compatibility and is ignored.</p></div></blockquote></div></div>
+
+</div></div><div id='d_Zb' class='description'><h1>dict</h1><div class='representation'><code>{'python_package': ['easy_install', 'pip'], 'package': ['apt', 'yum']}</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)</p></div></div>
+
+</div></div><div id='d_hc' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
+<div class="textoContent"><div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div></div>
 
 </div></div><div id='d_hb' class='description'><h1>Function <span class='name'>package_update</span></h1><div class='representation'><code>package_update( *args, **kwargs )</code></div><div class='docstring'>
 <div class="textoContent"><div class='content'><p>Upgrade the system.</p></div></div>
