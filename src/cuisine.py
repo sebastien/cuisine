@@ -407,10 +407,14 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			# Hides the output, which is especially important
 			with fabric.context_managers.settings(
 				fabric.api.hide('warnings', 'running', 'stdout'),
-				warn_only=True
+				warn_only=True,
+				**{MODE_SUDO: use_sudo}
 			):
 				# We send the data as BZipped Base64
-				run("echo '%s' | base64 -d | bzcat > \"%s\"" % (base64.b64encode(bz2.compress(content)), location))
+				result = run("echo '%s' | base64 -d | bzcat > \"%s\"" % (base64.b64encode(bz2.compress(content)), location))
+				if result.failed:
+					fabric.api.abort('Encountered error writing the file %s: %s' % (location, result))
+
 	# Remove the local temp file
 	os.close(fd)
 	os.unlink(local_path)
