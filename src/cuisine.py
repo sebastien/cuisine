@@ -476,6 +476,7 @@ def file_link(source, destination, symbolic=True, mode=None, owner=None, group=N
 	optionally setting its mode/owner/group."""
 	if file_exists(destination) and (not file_is_link(destination)):
 		raise Exception("Destination already exists and is not a link: %s" % (destination))
+	# FIXME: Should resolve the link first before unlinking
 	if file_is_link(destination):
 		file_unlink(destination)
 	if symbolic:
