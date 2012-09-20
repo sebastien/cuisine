@@ -5,10 +5,11 @@
 # Author    : Sebastien Pierre                            <sebastien@ffctn.com>
 # Author    : Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
 # Author    : Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
+# Author    : Warren Moore (zypper package)               <warren@wamonite.com>
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 11-Sep-2012
+# Last mod  : 20-Sep-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -53,7 +54,7 @@ SUDO_PASSWORD   = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
 AVAILABLE_OPTIONS = dict(
-	package=["apt", "yum"],
+	package=["apt", "yum", "zypper"],
     python_package=["easy_install","pip"]
 )
 DEFAULT_OPTIONS = dict(
@@ -129,7 +130,7 @@ def is_sudo():   return mode(MODE_SUDO)
 # =============================================================================
 
 def select_package( option=None ):
-	"""Selects the type of package subsystem to use (ex:apt or yum)."""
+	"""Selects the type of package subsystem to use (ex:apt, yum or zypper)."""
 	supported = AVAILABLE_OPTIONS["package"]
 	if not (option is None):
 		assert option in supported, "Option must be one of: %s"  % (supported)
@@ -532,8 +533,9 @@ def package_upgrade():
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
 	or list of packages given as argument."""
+
 @dispatch
-def package_update(package=None):
+def package_upgrade(package=None):
 	"""Upgrade the system."""
 
 @dispatch
@@ -632,6 +634,52 @@ def package_ensure_yum(package, update=False):
 def package_clean_yum(package=None):
 	sudo("yum -y clean all")
 
+# -----------------------------------------------------------------------------
+# ZYPPER PACKAGE (openSUSE)
+# -----------------------------------------------------------------------------
+
+def repository_ensure_zypper(repository):
+    repositoryURI = repository
+    if repository[-1] != '/':
+        repositoryURI = repository.rpartition("/")[0]
+    status = run("zypper --non-interactive --gpg-auto-import-keys repos -d")
+    if status.find(repositoryURI) == -1:
+        sudo("zypper --non-interactive --gpg-auto-import-keys addrepo " + repository)
+        sudo("zypper --non-interactive --gpg-auto-import-keys modifyrepo --refresh " + repositoryURI)
+
+def package_upgrade_zypper():
+    sudo("zypper --non-interactive --gpg-auto-import-keys update --type package")
+
+def package_update_zypper(package=None):
+    if package == None:
+        sudo("zypper --non-interactive --gpg-auto-import-keys refresh")
+    else:
+        if type(package) in (list, tuple):
+            package = " ".join(package)
+        sudo("zypper --non-interactive --gpg-auto-import-keys update --type package " + package)
+
+def package_upgrade_zypper(package=None):
+    sudo("zypper --non-interactive --gpg-auto-import-keys update --type package")
+
+def package_install_zypper(package, update=False):
+    if update:
+        package_update()
+    if type(package) in (list, tuple):
+        package = " ".join(package)
+    sudo("zypper --non-interactive --gpg-auto-import-keys install --type package --name " + package)
+
+def package_ensure_zypper(package, update=False):
+    status = run("zypper --non-interactive --gpg-auto-import-keys search --type package --installed-only --match-exact %s ; true" % package)
+    if status.find("No packages found.") != -1 or status.find(package) == -1:
+        package_install(package)
+        return False
+    else:
+        if update:
+            package_update(package)
+        return True
+
+def package_clean_zypper(package=None):
+    sudo("zypper --non-interactive clean")
 
 # =============================================================================
 #
