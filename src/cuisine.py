@@ -535,10 +535,6 @@ def package_update(package=None):
 	or list of packages given as argument."""
 
 @dispatch
-def package_upgrade(package=None):
-	"""Upgrade the system."""
-
-@dispatch
 def package_install(package, update=False):
 	"""Installs the given package/list of package, optionally updating
 	the package database."""
@@ -639,47 +635,44 @@ def package_clean_yum(package=None):
 # -----------------------------------------------------------------------------
 
 def repository_ensure_zypper(repository):
-    repositoryURI = repository
-    if repository[-1] != '/':
-        repositoryURI = repository.rpartition("/")[0]
-    status = run("zypper --non-interactive --gpg-auto-import-keys repos -d")
-    if status.find(repositoryURI) == -1:
-        sudo("zypper --non-interactive --gpg-auto-import-keys addrepo " + repository)
-        sudo("zypper --non-interactive --gpg-auto-import-keys modifyrepo --refresh " + repositoryURI)
+	repository_uri = repository
+	if repository[-1] != '/':
+		repository_uri = repository.rpartition("/")[0]
+	status = run("zypper --non-interactive --gpg-auto-import-keys repos -d")
+	if status.find(repositoryURI) == -1:
+		sudo("zypper --non-interactive --gpg-auto-import-keys addrepo " + repository)
+		sudo("zypper --non-interactive --gpg-auto-import-keys modifyrepo --refresh " + repository_uri)
 
 def package_upgrade_zypper():
-    sudo("zypper --non-interactive --gpg-auto-import-keys update --type package")
+	sudo("zypper --non-interactive --gpg-auto-import-keys update --type package")
 
 def package_update_zypper(package=None):
-    if package == None:
-        sudo("zypper --non-interactive --gpg-auto-import-keys refresh")
-    else:
-        if type(package) in (list, tuple):
-            package = " ".join(package)
-        sudo("zypper --non-interactive --gpg-auto-import-keys update --type package " + package)
-
-def package_upgrade_zypper(package=None):
-    sudo("zypper --non-interactive --gpg-auto-import-keys update --type package")
+	if package == None:
+		sudo("zypper --non-interactive --gpg-auto-import-keys refresh")
+	else:
+		if type(package) in (list, tuple):
+			package = " ".join(package)
+		sudo("zypper --non-interactive --gpg-auto-import-keys update --type package " + package)
 
 def package_install_zypper(package, update=False):
-    if update:
-        package_update()
-    if type(package) in (list, tuple):
-        package = " ".join(package)
-    sudo("zypper --non-interactive --gpg-auto-import-keys install --type package --name " + package)
+	if update:
+		package_update_zypper()
+	if type(package) in (list, tuple):
+		package = " ".join(package)
+	sudo("zypper --non-interactive --gpg-auto-import-keys install --type package --name " + package)
 
 def package_ensure_zypper(package, update=False):
-    status = run("zypper --non-interactive --gpg-auto-import-keys search --type package --installed-only --match-exact %s ; true" % package)
-    if status.find("No packages found.") != -1 or status.find(package) == -1:
-        package_install(package)
-        return False
-    else:
-        if update:
-            package_update(package)
-        return True
+	status = run("zypper --non-interactive --gpg-auto-import-keys search --type package --installed-only --match-exact %s ; true" % package)
+	if status.find("No packages found.") != -1 or status.find(package) == -1:
+		package_install_zypper(package)
+		return False
+	else:
+		if update:
+			package_update_zypper(package)
+		return True
 
 def package_clean_zypper(package=None):
-    sudo("zypper --non-interactive clean")
+	sudo("zypper --non-interactive clean")
 
 # =============================================================================
 #
