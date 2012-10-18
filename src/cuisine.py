@@ -70,11 +70,11 @@ OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper"],
-    python_package=["easy_install","pip"]
+        python_package=["easy_install","pip"]
 )
 DEFAULT_OPTIONS = dict(
 	package="apt",
-    python_package="pip"
+        python_package="pip"
 )
 
 
@@ -152,7 +152,7 @@ def is_sudo():   return mode(MODE_SUDO)
 # =============================================================================
 
 
-def select_package( option=None ):
+def select_package(option=None):
 	"""Selects the type of package subsystem to use (ex:apt, yum or zypper)."""
 	supported = AVAILABLE_OPTIONS["package"]
 	if not (option is None):
@@ -161,7 +161,7 @@ def select_package( option=None ):
 	return (fabric.api.env[OPTION_PACKAGE], supported)
 
 
-def select_python_package( option=None ):
+def select_python_package(option=None):
     supported = AVAILABLE_OPTIONS["python_package"]
     if not (option is None):
         assert option in supported, "Option must be one of: %s"  % (supported)
@@ -799,7 +799,7 @@ def python_package_remove(package):
 # -----------------------------------------------------------------------------
 
 
-def python_package_upgrade_pip(package,E=None):
+def python_package_upgrade_pip(package, E=None):
     '''
     The "package" argument, defines the name of the package that will be upgraded.
     The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
@@ -812,7 +812,7 @@ def python_package_upgrade_pip(package,E=None):
     run('pip upgrade %s %s' %(E,package))
 
 
-def python_package_install_pip(package=None,r=None,pip=None):
+def python_package_install_pip(package=None, r=None, pip=None):
     '''
     The "package" argument, defines the name of the package that will be installed.
     The argument "r" referes to the requirements file that will be used by pip and
@@ -830,7 +830,7 @@ def python_package_install_pip(package=None,r=None,pip=None):
         raise Exception("Either a package name or the requirements file has to be provided.")
 
 
-def python_package_ensure_pip(package=None,r=None, pip=None):
+def python_package_ensure_pip(package=None, r=None, pip=None):
     '''
     The "package" argument, defines the name of the package that will be ensured.
     The argument "r" referes to the requirements file that will be used by pip and
