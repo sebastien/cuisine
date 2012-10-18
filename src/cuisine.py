@@ -40,8 +40,23 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, bz2, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
-import fabric, fabric.api, fabric.operations, fabric.context_managers
+import base64
+import bz2
+import functools
+import hashlib
+import os
+import re
+import string
+import subprocess
+import tempfile
+import types
+import StringIO
+
+import fabric
+import fabric.api
+import fabric.context_managers
+import fabric.operations
+
 
 VERSION         = "0.4.0"
 RE_SPACES       = re.compile("[\s\t]+")
