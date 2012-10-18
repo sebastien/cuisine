@@ -88,6 +88,7 @@ def sudo_password(password=None):
 		else:
 			fabric.api.env[SUDO_PASSWORD] = password
 
+
 class __mode_switcher(object):
 	"""A class that can be used to switch Cuisine's run modes by
 	instanciating the class or using it as a context manager"""
@@ -107,6 +108,7 @@ class __mode_switcher(object):
 		else:
 			fabric.api.env[self.MODE_KEY] = self.oldMode
 
+
 class mode_local(__mode_switcher):
 	"""Sets Cuisine into local mode, where run/sudo won't go through
 	Fabric's API, but directly through a popen. This allows you to
@@ -114,25 +116,30 @@ class mode_local(__mode_switcher):
 	MODE_KEY   = MODE_LOCAL
 	MODE_VALUE = True
 
+
 class mode_remote(__mode_switcher):
 	"""Comes back to Fabric's API for run/sudo. This basically reverts
 	the effect of calling `mode_local()`."""
 	MODE_KEY   = MODE_LOCAL
 	MODE_VALUE = False
 
+
 class mode_user(__mode_switcher):
 	"""Cuisine functions will be executed as the current user."""
 	MODE_KEY   = MODE_SUDO
 	MODE_VALUE = False
+
 
 class mode_sudo(__mode_switcher):
 	"""Cuisine functions will be executed with sudo."""
 	MODE_KEY   = MODE_SUDO
 	MODE_VALUE = True
 
+
 def mode(key):
 	"""Queries the given Cuisine mode (ie. MODE_LOCAL, MODE_SUDO)"""
 	return fabric.api.env.get(key)
+
 
 def is_local():  return mode(MODE_LOCAL)
 def is_remote(): return not mode(MODE_LOCAL)
@@ -144,6 +151,7 @@ def is_sudo():   return mode(MODE_SUDO)
 #
 # =============================================================================
 
+
 def select_package( option=None ):
 	"""Selects the type of package subsystem to use (ex:apt, yum or zypper)."""
 	supported = AVAILABLE_OPTIONS["package"]
@@ -152,17 +160,20 @@ def select_package( option=None ):
 		fabric.api.env[OPTION_PACKAGE] = option
 	return (fabric.api.env[OPTION_PACKAGE], supported)
 
+
 def select_python_package( option=None ):
     supported = AVAILABLE_OPTIONS["python_package"]
     if not (option is None):
         assert option in supported, "Option must be one of: %s"  % (supported)
         fabric.api.env[OPTION_PYTHON_PACKAGE] = option
     return (fabric.api.env[OPTION_PYTHON_PACKAGE], supported)
+
 # =============================================================================
 #
 # RUN/SUDO METHODS
 #
 # =============================================================================
+
 
 def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	"""
@@ -187,6 +198,7 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	result.stderr      = StringIO.StringIO(err)
 	return result
 
+
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands that takes into account
 	the `MODE_LOCAL` and `MODE_SUDO` modes of Cuisine."""
@@ -200,6 +212,7 @@ def run(*args, **kwargs):
 		else:
 			return fabric.api.run(*args, **kwargs)
 
+
 def sudo(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
 	'cuisine.MODE_SUDO' global to tell whether the command should be run as
@@ -212,6 +225,7 @@ def sudo(*args, **kwargs):
 # DECORATORS
 #
 # =============================================================================
+
 
 def dispatch(prefix=None):
 	"""Dispatches the current function to specific implementation. The `prefix`
@@ -272,6 +286,7 @@ def dispatch(prefix=None):
 #
 # =============================================================================
 
+
 def text_detect_eol(text):
 	# FIXME: Should look at the first line
 	if text.find("\r\n") != -1:
@@ -283,6 +298,7 @@ def text_detect_eol(text):
 	else:
 		return "\n"
 
+
 def text_get_line(text, predicate):
 	"""Returns the first line that matches the given predicate."""
 	for line in text.split("\n"):
@@ -290,13 +306,16 @@ def text_get_line(text, predicate):
 			return line
 	return ""
 
+
 def text_normalize(text):
 	"""Converts tabs and spaces to single space and strips the text."""
 	return RE_SPACES.sub(" ", text).strip()
 
+
 def text_nospace(text):
 	"""Converts tabs and spaces to single space and strips the text."""
 	return RE_SPACES.sub("", text).strip()
+
 
 def text_replace_line(text, old, new, find=lambda old, new: old == new, process=lambda _: _):
 	"""Replaces lines equal to 'old' with 'new', returning the new
@@ -311,6 +330,7 @@ def text_replace_line(text, old, new, find=lambda old, new: old == new, process=
 		else:
 			res.append(line)
 	return eol.join(res), replaced
+
 
 def text_ensure_line(text, *lines):
 	"""Ensures that the given lines are present in the given text,
@@ -331,6 +351,7 @@ def text_ensure_line(text, *lines):
 			res.append(line)
 	return eol.join(res)
 
+
 def text_strip_margin(text, margin="|"):
 	res = []
 	eol = text_detect_eol(text)
@@ -340,6 +361,7 @@ def text_strip_margin(text, margin="|"):
 			_, line = l
 			res.append(line)
 	return eol.join(res)
+
 
 def text_template(text, variables):
 	"""Substitutes '${PLACEHOLDER}'s within the text with the
@@ -353,6 +375,7 @@ def text_template(text, variables):
 #
 # =============================================================================
 
+
 def file_local_read(location):
 	"""Reads a *local* file from the given location, expanding '~' and
 	shell variables."""
@@ -362,23 +385,29 @@ def file_local_read(location):
 	f.close()
 	return t
 
+
 def file_read(location):
 	"""Reads the *remote* file at the given location."""
 	# NOTE: We use base64 here to be sure to preserve the encoding (UNIX/DOC/MAC) of EOLs
 	return base64.b64decode(run('cat "%s" | base64' % (location)))
 
+
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
 	return run('test -e "%s" && echo OK ; true' % (location)).endswith("OK")
 
+
 def file_is_file(location):
 	return run("test -f '%s' && echo OK ; true" % (location)).endswith("OK")
+
 
 def file_is_dir(location):
 	return run("test -d '%s' && echo OK ; true" % (location)).endswith("OK")
 
+
 def file_is_link(location):
 	return run("test -L '%s' && echo OK ; true" % (location)).endswith("OK")
+
 
 def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
@@ -391,6 +420,7 @@ def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	if group:
 		run('chgrp %s %s "%s"' % (recursive, group, location))
 
+
 def file_attribs_get(location):
 	"""Return mode, owner, and group for remote path.
 	Return mode, owner, and group if remote path exists, 'None'
@@ -402,6 +432,7 @@ def file_attribs_get(location):
 		return {'mode': mode, 'owner': owner, 'group': group}
 	else:
 		return None
+
 
 def file_write(location, content, mode=None, owner=None, group=None, sudo=None, check=True):
 	"""Writes the given content to the file at the given remote
@@ -440,6 +471,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(file_sig), repr(sig))
 	file_attribs(location, mode=mode, owner=owner, group=group)
 
+
 def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
@@ -447,6 +479,7 @@ def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
 		file_attribs(location,mode=mode,owner=owner,group=group)
 	else:
 		file_write(location,"",mode=mode,owner=owner,group=group)
+
 
 def file_upload(remote, local, sudo=None):
 	"""Uploads the local file to the remote location only if the remote location does not
@@ -466,6 +499,7 @@ def file_upload(remote, local, sudo=None):
 		else:
 			fabric.operations.put(local, remote, use_sudo=use_sudo)
 
+
 def file_update(location, updater=lambda x: x):
 	"""Updates the content of the given by passing the existing
 	content of the remote file at the given location to the 'updater'
@@ -481,15 +515,18 @@ def file_update(location, updater=lambda x: x):
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
 	run('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
 
+
 def file_append(location, content, mode=None, owner=None, group=None):
 	"""Appends the given content to the remote file at the given
 	location, optionally updating its mode/owner/group."""
 	run('echo "%s" | base64 -d >> "%s"' % (base64.b64encode(content), location))
 	file_attribs(location, mode, owner, group)
 
+
 def file_unlink(path):
 	if file_exists(path):
 		run("unlink '%s'" % (path))
+
 
 def file_link(source, destination, symbolic=True, mode=None, owner=None, group=None):
 	"""Creates a (symbolic) link between source and destination on the remote host,
@@ -505,6 +542,7 @@ def file_link(source, destination, symbolic=True, mode=None, owner=None, group=N
 		run('ln -f "%s" "%s"' % (source, destination))
 	file_attribs(destination, mode, owner, group)
 
+
 def file_sha256(location):
 	"""Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
@@ -519,13 +557,16 @@ def file_sha256(location):
 #
 # =============================================================================
 
+
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
 	file_attribs(location, mode, owner, group, recursive)
 
+
 def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
 	return run('test -d "%s" && echo OK ; true' % (location)).endswith("OK")
+
 
 def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	"""Ensures that there is a remote directory at the given location,
@@ -544,25 +585,30 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 #
 # =============================================================================
 
+
 @dispatch
 def package_upgrade():
 	"""Updates every package present on the system."""
+
 
 @dispatch
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
 	or list of packages given as argument."""
 
+
 @dispatch
 def package_install(package, update=False):
 	"""Installs the given package/list of package, optionally updating
 	the package database."""
+
 
 @dispatch
 def package_ensure(package, update=False):
 	"""Tests if the given package is installed, and installs it in
 	case it's not already there. If `update` is true, then the
 	package will be updated if it already exists."""
+
 
 @dispatch
 def package_clean(package=None):
@@ -572,11 +618,14 @@ def package_clean(package=None):
 # APT PACKAGE (DEBIAN/UBUNTU)
 # -----------------------------------------------------------------------------
 
+
 def repository_ensure_apt(repository):
 	sudo("add-apt-repository " + repository)
 
+
 def package_upgrade_apt():
 	sudo("apt-get --yes upgrade")
+
 
 def package_update_apt(package=None):
 	if package == None:
@@ -586,8 +635,10 @@ def package_update_apt(package=None):
 			package = " ".join(package)
 		sudo("apt-get --yes upgrade " + package)
 
+
 def package_upgrade_apt(package=None):
 	sudo("apt-get --yes upgrade")
+
 
 def package_install_apt(package, update=False):
 	if update:
@@ -595,6 +646,7 @@ def package_install_apt(package, update=False):
 	if type(package) in (list, tuple):
 		package = " ".join(package)
 	sudo("apt-get --yes install %s" % (package))
+
 
 def package_ensure_apt(package, update=False):
 	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
@@ -605,6 +657,7 @@ def package_ensure_apt(package, update=False):
 		if update: package_update(package)
 		return True
 
+
 def package_clean_apt(package=None):
     pass
 
@@ -613,11 +666,14 @@ def package_clean_apt(package=None):
 # added by Prune - 20120408 - v1.0
 # -----------------------------------------------------------------------------
 
+
 def repository_ensure_yum(repository):
 	raise Exception("Not implemented for Yum")
 
+
 def package_upgrade_yum():
 	sudo("yum -y update")
+
 
 def package_update_yum(package=None):
 	if package == None:
@@ -627,8 +683,10 @@ def package_update_yum(package=None):
 			package = " ".join(package)
 		sudo("yum -y upgrade " + package)
 
+
 def package_upgrade_yum(package=None):
 	sudo("yum -y upgrade")
+
 
 def package_install_yum(package, update=False):
 	if update:
@@ -636,6 +694,7 @@ def package_install_yum(package, update=False):
 	if type(package) in (list, tuple):
 		package = " ".join(package)
 	sudo("yum -y install %s" % (package))
+
 
 def package_ensure_yum(package, update=False):
 	status = run("yum list installed %s ; true" % package)
@@ -646,12 +705,14 @@ def package_ensure_yum(package, update=False):
 		if update: package_update(package)
 		return True
 
+
 def package_clean_yum(package=None):
 	sudo("yum -y clean all")
 
 # -----------------------------------------------------------------------------
 # ZYPPER PACKAGE (openSUSE)
 # -----------------------------------------------------------------------------
+
 
 def repository_ensure_zypper(repository):
 	repository_uri = repository
@@ -662,8 +723,10 @@ def repository_ensure_zypper(repository):
 		sudo("zypper --non-interactive --gpg-auto-import-keys addrepo " + repository)
 		sudo("zypper --non-interactive --gpg-auto-import-keys modifyrepo --refresh " + repository_uri)
 
+
 def package_upgrade_zypper():
 	sudo("zypper --non-interactive --gpg-auto-import-keys update --type package")
+
 
 def package_update_zypper(package=None):
 	if package == None:
@@ -673,12 +736,14 @@ def package_update_zypper(package=None):
 			package = " ".join(package)
 		sudo("zypper --non-interactive --gpg-auto-import-keys update --type package " + package)
 
+
 def package_install_zypper(package, update=False):
 	if update:
 		package_update_zypper()
 	if type(package) in (list, tuple):
 		package = " ".join(package)
 	sudo("zypper --non-interactive --gpg-auto-import-keys install --type package --name " + package)
+
 
 def package_ensure_zypper(package, update=False):
 	status = run("zypper --non-interactive --gpg-auto-import-keys search --type package --installed-only --match-exact %s ; true" % package)
@@ -690,6 +755,7 @@ def package_ensure_zypper(package, update=False):
 			package_update_zypper(package)
 		return True
 
+
 def package_clean_zypper(package=None):
 	sudo("zypper --non-interactive clean")
 
@@ -699,11 +765,13 @@ def package_clean_zypper(package=None):
 #
 # =============================================================================
 
+
 @dispatch('python_package')
 def python_package_upgrade(package):
 	'''
     Upgrades the defined python package.
     '''
+
 
 @dispatch('python_package')
 def python_package_install(package=None):
@@ -711,12 +779,14 @@ def python_package_install(package=None):
     Installs the given python package/list of python packages.
     '''
 
+
 @dispatch('python_package')
 def python_package_ensure(package):
 	'''
     Tests if the given python package is installed, and installes it in
 	case it's not already there.
     '''
+
 
 @dispatch('python_package')
 def python_package_remove(package):
@@ -727,6 +797,7 @@ def python_package_remove(package):
 # -----------------------------------------------------------------------------
 # PIP PYTHON PACKAGE MANAGER
 # -----------------------------------------------------------------------------
+
 
 def python_package_upgrade_pip(package,E=None):
     '''
@@ -739,6 +810,7 @@ def python_package_upgrade_pip(package,E=None):
     else:
         E=''   
     run('pip upgrade %s %s' %(E,package))
+
 
 def python_package_install_pip(package=None,r=None,pip=None):
     '''
@@ -757,6 +829,7 @@ def python_package_install_pip(package=None,r=None,pip=None):
     else:
         raise Exception("Either a package name or the requirements file has to be provided.")
 
+
 def python_package_ensure_pip(package=None,r=None, pip=None):
     '''
     The "package" argument, defines the name of the package that will be ensured.
@@ -771,6 +844,7 @@ def python_package_ensure_pip(package=None,r=None, pip=None):
     # So I just call the install functions
     pip=pip or fabric.api.env.get('pip','pip')
     python_package_install_pip(package,r,pip)
+
 
 def python_package_remove_pip(package, E=None):
     '''
@@ -795,11 +869,13 @@ def python_package_upgrade_easy_install(package):
     '''
     run('easy_install --upgrade %s' %package)
 
+
 def python_package_install_easy_install(package):
     '''
     The "package" argument, defines the name of the package that will be installed.
     '''
     sudo('easy_install %s' %package)
+
 
 def python_package_ensure_easy_install(package):
     '''
@@ -809,6 +885,7 @@ def python_package_ensure_easy_install(package):
     # I am not sure if this really makes sense, based on the easy_install built in functionality. 
     # So I just call the install functions
     python_package_install_easy_install(package)
+
 
 def python_package_remove_easy_install(package):
     '''
@@ -823,9 +900,11 @@ def python_package_remove_easy_install(package):
 #
 # =============================================================================
 
+
 def command_check(command):
 	"""Tests if the given command is available on the system."""
 	return run("which '%s' >& /dev/null && echo OK ; true" % command).endswith("OK")
+
 
 def command_ensure(command, package=None):
 	"""Ensures that the given command is present, if not installs the
@@ -844,11 +923,13 @@ def command_ensure(command, package=None):
 #
 # =============================================================================
 
+
 def user_passwd(name, passwd, encrypted_passwd=False):
 	"""Sets the given user password."""
 	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
 	encryption = " -e" if encrypted_passwd else ""
 	sudo("echo %s | base64 --decode | chpasswd%s" % (encoded_password, encryption))
+
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 				uid_min=None, uid_max=None, encrypted_passwd=False):
@@ -874,6 +955,7 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	if passwd:
 		user_passwd(name,passwd,encrypted_passwd)
 
+
 def user_check(name=None, uid=None):
 	"""Checks if there is a user defined with the given name,
 	returning its information as a
@@ -898,6 +980,7 @@ def user_check(name=None, uid=None):
 	else:
 		return None
 
+
 def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 	"""Ensures that the given users exists, optionally updating their
 	passwd/home/uid/gid/shell."""
@@ -919,6 +1002,7 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 		if passwd:
 			user_passwd(name, passwd)
 
+
 def user_remove(name, rmhome=None):
 	"""Removes the user with the given name, optionally
 	removing the home directory and mail spool."""
@@ -933,12 +1017,14 @@ def user_remove(name, rmhome=None):
 #
 # =============================================================================
 
+
 def group_create(name, gid=None):
 	"""Creates a group with the given name, and optionally given gid."""
 	options = []
 	if gid:
 		options.append("-g '%s'" % (gid))
 	sudo("groupadd %s '%s'" % (" ".join(options), name))
+
 
 def group_check(name):
 	"""Checks if there is a group defined with the given name,
@@ -953,6 +1039,7 @@ def group_check(name):
 	else:
 		return None
 
+
 def group_ensure(name, gid=None):
 	"""Ensures that the group with the given name (and optional gid)
 	exists."""
@@ -963,6 +1050,7 @@ def group_ensure(name, gid=None):
 		if gid != None and d.get("gid") != gid:
 			sudo("groupmod -g %s '%s'" % (gid, name))
 
+
 def group_user_check(group, user):
 	"""Checks if the given user is a member of the given group. It
 	will return 'False' if the group does not exist."""
@@ -972,17 +1060,20 @@ def group_user_check(group, user):
 	else:
 		return user in d["members"]
 
+
 def group_user_add(group, user):
 	"""Adds the given user/list of users to the given group/groups."""
 	assert group_check(group), "Group does not exist: %s" % (group)
 	if not group_user_check(group, user):
 		sudo("usermod -a -G '%s' '%s'" % (group, user))
 
+
 def group_user_ensure(group, user):
 	"""Ensure that a given user is a member of a given group."""
 	d = group_check(group)
 	if user not in d["members"]:
 		group_user_add(group, user)
+
 
 def group_user_del(group, user):
 		"""remove the given user from the given group."""
@@ -993,6 +1084,7 @@ def group_user_del(group, user):
 						sudo("usermod -G '%s' '%s'" % (",".join(group_for_user), user))
 
 ### ssh_<operation> functions
+
 
 def ssh_keygen(user, keytype="dsa"):
 	"""Generates a pair of ssh keys in the user's home .ssh directory."""
@@ -1016,6 +1108,7 @@ def ssh_keygen(user, keytype="dsa"):
 #
 # =============================================================================
 
+
 def ssh_authorize(user, key):
 	"""Adds the given key to the '.ssh/authorized_keys' for the given
 	user."""
@@ -1036,6 +1129,7 @@ def ssh_authorize(user, key):
 		file_write(keyf, key,             owner=user, group=user, mode="600")
 		return False
 
+
 def upstart_ensure(name):
 	"""Ensures that the given upstart service is running, restarting
 	it if necessary."""
@@ -1045,6 +1139,7 @@ def upstart_ensure(name):
 		sudo("service %s start" % name)
 	else:
 		sudo("service %s restart" % name)
+
 
 def system_uuid_alias_add():
 	"""Adds system UUID alias to /etc/hosts.
@@ -1056,20 +1151,24 @@ def system_uuid_alias_add():
 		new = old + " " + system_uuid()
 		file_update('/etc/hosts', lambda x: text_replace_line(x, old, new)[0])
 
+
 def system_uuid():
 	"""Gets a machines UUID (Universally Unique Identifier)."""
 	return sudo('dmidecode -s system-uuid | tr "[A-Z]" "[a-z]"')
+
 
 #Only tested on Ubuntu!
 def locale_check(locale):
 	locale_data = sudo("locale -a | egrep '^%s$' ; true" % (locale,))
 	return locale_data == locale
 
+
 def locale_ensure(locale):
 	if not locale_check(locale):
 		with fabric.context_managers.settings(warn_only=True):
 			sudo("/usr/share/locales/install-language-pack %s" % (locale,))
 		sudo("dpkg-reconfigure locales")
+
 
 # Sets up the default options so that @dispatch'ed functions work
 for option, value in DEFAULT_OPTIONS.items():
