@@ -40,7 +40,7 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
+import base64, bz2, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION         = "0.4.0"
