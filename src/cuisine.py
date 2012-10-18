@@ -40,10 +40,10 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
+import base64, gzip, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.4.0"
+VERSION         = "0.4.2"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -79,9 +79,9 @@ class __mode_switcher(object):
 	MODE_VALUE = True
 	MODE_KEY   = None
 
-	def __init__( self ):
+	def __init__( self, value=None ):
 		self.oldMode = fabric.api.env.get(self.MODE_KEY)
-		fabric.api.env[self.MODE_KEY] = self.MODE_VALUE
+		fabric.api.env[self.MODE_KEY] = self.MODE_VALUE if value is None else value
 
 	def __enter__(self):
 		pass
@@ -393,14 +393,15 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	location, optionally setting mode/owner/group."""
 	# FIXME: Big files are never transferred properly!
 	# Gets the content signature and write it to a secure tempfile
-	use_sudo = is_sudo() or sudo
+	use_sudo       = is_sudo() or sudo
 	sig            = hashlib.sha256(content).hexdigest()
 	fd, local_path = tempfile.mkstemp()
 	os.write(fd, content)
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
 		if is_local():
-			run('cp "%s" "%s"'%(local_path,location))
+			with mode_sudo(sudo):
+				run('cp "%s" "%s"'%(local_path,location))
 		else:
 			# FIXME: Put is not working properly, I often get stuff like:
 			# Fatal error: sudo() encountered an error (return code 1) while executing 'mv "3dcf7213c3032c812769e7f355e657b2df06b687" "/etc/authbind/byport/80"'
@@ -412,7 +413,8 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 				**{MODE_SUDO: use_sudo}
 			):
 				# We send the data as BZipped Base64
-				result = run("echo '%s' | base64 -d | bzcat > \"%s\"" % (base64.b64encode(bz2.compress(content)), location))
+				with mode_sudo(sudo):
+					result = run("echo '%s' | base64 -d | gunzip > \"%s\"" % (base64.b64encode(gzip.zlib.compress(content)), location))
 				if result.failed:
 					fabric.api.abort('Encountered error writing the file %s: %s' % (location, result))
 
@@ -421,9 +423,11 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	os.unlink(local_path)
 	# Ensures that the signature matches
 	if check:
-		file_sig = file_sha256(location)
+		with mode_sudo(sudo):
+			file_sig = file_sha256(location)
 		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(file_sig), repr(sig))
-	file_attribs(location, mode=mode, owner=owner, group=group)
+	with mode_sudo(sudo):
+		file_attribs(location, mode=mode, owner=owner, group=group)
 
 def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given
