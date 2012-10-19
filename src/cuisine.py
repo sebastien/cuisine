@@ -70,7 +70,7 @@ OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
 AVAILABLE_OPTIONS = dict(
         package=["apt", "yum", "zypper"],
-        python_package=["easy_install","pip"]
+        python_package=["easy_install", "pip"]
 )
 DEFAULT_OPTIONS = dict(
         package="apt",
@@ -95,7 +95,7 @@ class __mode_switcher(object):
         MODE_VALUE = True
         MODE_KEY   = None
 
-        def __init__( self ):
+        def __init__(self):
                 self.oldMode = fabric.api.env.get(self.MODE_KEY)
                 fabric.api.env[self.MODE_KEY] = self.MODE_VALUE
 
@@ -260,9 +260,9 @@ def dispatch(prefix=None):
         def dispatch_wrapper(function, prefix=prefix):
                 def wrapper(*args, **kwargs):
                         function_name = function.__name__
-                        _prefix       = prefix or function_name.split("_")[0].replace(".","_")
+                        _prefix       = prefix or function_name.split("_")[0].replace(".", "_")
                         select        = fabric.api.env.get("CUISINE_OPTION_" + _prefix.upper())
-                        assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix.upper(), prefix.lower().replace(".","_"))
+                        assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix.upper(), prefix.lower().replace(".", "_"))
                         function_name = function.__name__ + "_" + select
                         specific      = eval(function_name)
                         if specific:
@@ -414,7 +414,7 @@ def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
         location."""
         recursive = recursive and "-R " or ""
         if mode:
-                run('chmod %s %s "%s"' % (recursive, mode,  location))
+                run('chmod %s %s "%s"' % (recursive, mode, location))
         if owner:
                 run('chown %s %s "%s"' % (recursive, owner, location))
         if group:
@@ -446,7 +446,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
         # Upload the content if necessary
         if not file_exists(location) or sig != file_sha256(location):
                 if is_local():
-                        run('cp "%s" "%s"'%(local_path,location))
+                        run('cp "%s" "%s"' % (local_path, location))
                 else:
                         # FIXME: Put is not working properly, I often get stuff like:
                         # Fatal error: sudo() encountered an error (return code 1) while executing 'mv "3dcf7213c3032c812769e7f355e657b2df06b687" "/etc/authbind/byport/80"'
@@ -476,16 +476,16 @@ def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
         """Updates the mode/owner/group for the remote file at the given
         location."""
         if file_exists(location):
-                file_attribs(location,mode=mode,owner=owner,group=group)
+                file_attribs(location, mode=mode, owner=owner, group=group)
         else:
-                file_write(location,"",mode=mode,owner=owner,group=group)
+                file_write(location, "", mode=mode, owner=owner, group=group)
 
 
 def file_upload(remote, local, sudo=None):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
         # FIXME: Big files are never transferred properly!
-        use_sudo = is_sudo() or sudo #XXX: this 'sudo' kw arg shadows the function named 'sudo'
+        use_sudo = is_sudo() or sudo  # XXX: this 'sudo' kw arg shadows the function named 'sudo'
         f       = file(local, 'rb')
         content = f.read()
         f.close()
@@ -493,9 +493,9 @@ def file_upload(remote, local, sudo=None):
         if not file_exists(remote) or sig != file_sha256(remote):
                 if is_local():
                         if use_sudo:
-                                sudo('cp "%s" "%s"'%(local,remote))
+                                sudo('cp "%s" "%s"' % (local, remote))
                         else:
-                                run('cp "%s" "%s"'%(local,remote))
+                                run('cp "%s" "%s"' % (local, remote))
                 else:
                         fabric.operations.put(local, remote, use_sudo=use_sudo)
 
@@ -806,10 +806,10 @@ def python_package_upgrade_pip(package, E=None):
         path to a virtualenv. If provided, it will be added to the pip call.
         '''
         if E:
-                E='-E %s' %E
+                E = '-E %s' % E
         else:
-                E=''
-                run('pip upgrade %s %s' %(E,package))
+                E = ''
+                run('pip upgrade %s %s' % (E, package))
 
 
 def python_package_install_pip(package=None, r=None, pip=None):
@@ -821,11 +821,11 @@ def python_package_install_pip(package=None, r=None, pip=None):
         The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
         path to a virtualenv. If provided, it will be added to the pip call.
         '''
-        pip=pip or fabric.api.env.get('pip','pip')
+        pip = pip or fabric.api.env.get('pip', 'pip')
         if package:
-                run('%s install %s' %(pip,package))
+                run('%s install %s' % (pip, package))
         elif r:
-                run('%s install -r %s' %(pip,r))
+                run('%s install -r %s' % (pip, r))
         else:
                 raise Exception("Either a package name or the requirements file has to be provided.")
 
@@ -842,8 +842,8 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
     #FIXME: At the moment, I do not know how to check for the existence of a pip package and
     # I am not sure if this really makes sense, based on the pip built in functionality.
     # So I just call the install functions
-        pip=pip or fabric.api.env.get('pip','pip')
-        python_package_install_pip(package,r,pip)
+        pip = pip or fabric.api.env.get('pip', 'pip')
+        python_package_install_pip(package, r, pip)
 
 
 def python_package_remove_pip(package, E=None):
@@ -855,8 +855,8 @@ def python_package_remove_pip(package, E=None):
         The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
         path to a virtualenv. If provided, it will be added to the pip call.
         '''
-        pip=pip or fabric.api.env.get('pip','pip')
-        return run('%s uninstall %s' %(pip,package))
+        pip = pip or fabric.api.env.get('pip', 'pip')
+        return run('%s uninstall %s' % (pip, package))
 
 
 # -----------------------------------------------------------------------------
@@ -867,14 +867,14 @@ def python_package_upgrade_easy_install(package):
         '''
         The "package" argument, defines the name of the package that will be upgraded.
         '''
-        run('easy_install --upgrade %s' %package)
+        run('easy_install --upgrade %s' % package)
 
 
 def python_package_install_easy_install(package):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
-        sudo('easy_install %s' %package)
+        sudo('easy_install %s' % package)
 
 
 def python_package_ensure_easy_install(package):
@@ -892,7 +892,7 @@ def python_package_remove_easy_install(package):
         The "package" argument, defines the name of the package that will be removed.
         '''
     #FIXME: this will not remove egg file etc.
-        run('easy_install -m %s' %package)
+        run('easy_install -m %s' % package)
 
 # =============================================================================
 #
@@ -953,7 +953,7 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
                 options.append("-K UID_MAX='%s'" % (uid_max))
         sudo("useradd %s '%s'" % (" ".join(options), name))
         if passwd:
-                user_passwd(name,passwd,encrypted_passwd)
+                user_passwd(name, passwd, encrypted_passwd)
 
 
 def user_check(name=None, uid=None):
@@ -961,8 +961,8 @@ def user_check(name=None, uid=None):
         returning its information as a
         '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
         or 'None' if the user does not exists."""
-        assert name!=None or uid!=None,     "user_check: either `uid` or `name` should be given"
-        assert name is None or uid is None,"user_check: `uid` and `name` both given, only one should be provided"
+        assert name != None or uid != None, "user_check: either `uid` or `name` should be given"
+        assert name is None or uid is None, "user_check: `uid` and `name` both given, only one should be provided"
         if   name != None:
                 d = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
         elif uid != None:
@@ -1126,7 +1126,7 @@ def ssh_authorize(user, key):
         else:
                 # Make sure that .ssh directory exists, see #42
                 dir_ensure(os.path.dirname(keyf), owner=user, group=user, mode="700")
-                file_write(keyf, key,             owner=user, group=user, mode="600")
+                file_write(keyf, key, owner=user, group=user, mode="600")
                 return False
 
 
