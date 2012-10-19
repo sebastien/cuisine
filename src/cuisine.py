@@ -838,7 +838,7 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
     python_package_install_pip(package, r, pip)
 
 
-def python_package_remove_pip(package, E=None):
+def python_package_remove_pip(package, E=None, pip=None):
     '''
     The "package" argument, defines the name of the package that will be ensured.
     The argument "r" referes to the requirements file that will be used by pip and
