@@ -266,7 +266,7 @@ def dispatch(prefix=None):
             function_name = function.__name__ + "_" + select
             specific = eval(function_name)
             if specific:
-                if type(specific) == types.FunctionType:
+                if isinstance(specific, types.FunctionType):
                     return specific(*args, **kwargs)
                 else:
                     raise Exception("Function expected for: " + function_name)
@@ -275,7 +275,7 @@ def dispatch(prefix=None):
         # We copy name and docstring
         functools.update_wrapper(wrapper, function)
         return wrapper
-    if type(prefix) == types.FunctionType:
+    if isinstance(prefix, types.FunctionType):
         return dispatch_wrapper(prefix, None)
     else:
         return dispatch_wrapper
@@ -631,7 +631,7 @@ def package_update_apt(package=None):
     if package is None:
         sudo("apt-get --yes update")
     else:
-        if type(package) in (list, tuple):
+        if isinstance(package, (list, tuple)):
             package = " ".join(package)
         sudo("apt-get --yes upgrade " + package)
 
@@ -643,7 +643,7 @@ def package_upgrade_apt(package=None):
 def package_install_apt(package, update=False):
     if update:
         sudo("apt-get --yes update")
-    if type(package) in (list, tuple):
+    if isinstance(package, (list, tuple)):
         package = " ".join(package)
     sudo("apt-get --yes install %s" % (package))
 
@@ -679,7 +679,7 @@ def package_update_yum(package=None):
     if package is None:
         sudo("yum -y update")
     else:
-        if type(package) in (list, tuple):
+        if isinstance(package, (list, tuple)):
             package = " ".join(package)
         sudo("yum -y upgrade " + package)
 
@@ -691,7 +691,7 @@ def package_upgrade_yum(package=None):
 def package_install_yum(package, update=False):
     if update:
         sudo("yum -y update")
-    if type(package) in (list, tuple):
+    if isinstance(package, (list, tuple)):
         package = " ".join(package)
     sudo("yum -y install %s" % (package))
 
@@ -732,7 +732,7 @@ def package_update_zypper(package=None):
     if package is None:
         sudo("zypper --non-interactive --gpg-auto-import-keys refresh")
     else:
-        if type(package) in (list, tuple):
+        if isinstance(package, (list, tuple)):
             package = " ".join(package)
         sudo("zypper --non-interactive --gpg-auto-import-keys update --type package " + package)
 
@@ -740,7 +740,7 @@ def package_update_zypper(package=None):
 def package_install_zypper(package, update=False):
     if update:
         package_update_zypper()
-    if type(package) in (list, tuple):
+    if isinstance(package, (list, tuple)):
         package = " ".join(package)
     sudo("zypper --non-interactive --gpg-auto-import-keys install --type package --name " + package)
 
