@@ -711,7 +711,7 @@ def repository_ensure_zypper(repository):
     if repository[-1] != '/':
         repository_uri = repository.rpartition("/")[0]
     status = run("zypper --non-interactive --gpg-auto-import-keys repos -d")
-    if status.find(repositoryURI) == -1:
+    if status.find(repository_uri) == -1:
         sudo("zypper --non-interactive --gpg-auto-import-keys addrepo " + repository)
         sudo("zypper --non-interactive --gpg-auto-import-keys modifyrepo --refresh " + repository_uri)
 
