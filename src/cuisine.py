@@ -52,9 +52,7 @@ import tempfile
 import types
 import StringIO
 
-import fabric
 import fabric.api
-import fabric.context_managers
 import fabric.operations
 
 
@@ -452,7 +450,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
             # Fatal error: sudo() encountered an error (return code 1) while executing 'mv "3dcf7213c3032c812769e7f355e657b2df06b687" "/etc/authbind/byport/80"'
                         #fabric.operations.put(local_path, location, use_sudo=use_sudo)
             # Hides the output, which is especially important
-            with fabric.context_managers.settings(
+            with fabric.api.settings(
                 fabric.api.hide('warnings', 'running', 'stdout'),
                 warn_only=True,
                 **{MODE_SUDO: use_sudo}
@@ -1157,7 +1155,7 @@ def locale_check(locale):
 
 def locale_ensure(locale):
     if not locale_check(locale):
-        with fabric.context_managers.settings(warn_only=True):
+        with fabric.api.settings(warn_only=True):
             sudo("/usr/share/locales/install-language-pack %s" % (locale,))
         sudo("dpkg-reconfigure locales")
 
