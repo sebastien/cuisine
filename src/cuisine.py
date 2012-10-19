@@ -623,10 +623,6 @@ def repository_ensure_apt(repository):
     sudo("add-apt-repository " + repository)
 
 
-def package_upgrade_apt():
-    sudo("apt-get --yes upgrade")
-
-
 def package_update_apt(package=None):
     if package is None:
         sudo("apt-get --yes update")
@@ -669,10 +665,6 @@ def package_clean_apt(package=None):
 
 def repository_ensure_yum(repository):
     raise Exception("Not implemented for Yum")
-
-
-def package_upgrade_yum():
-    sudo("yum -y update")
 
 
 def package_update_yum(package=None):
