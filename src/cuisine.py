@@ -628,7 +628,7 @@ def package_upgrade_apt():
 
 
 def package_update_apt(package=None):
-    if package == None:
+    if package is None:
         sudo("apt-get --yes update")
     else:
         if type(package) in (list, tuple):
@@ -676,7 +676,7 @@ def package_upgrade_yum():
 
 
 def package_update_yum(package=None):
-    if package == None:
+    if package is None:
         sudo("yum -y update")
     else:
         if type(package) in (list, tuple):
@@ -729,7 +729,7 @@ def package_upgrade_zypper():
 
 
 def package_update_zypper(package=None):
-    if package == None:
+    if package is None:
         sudo("zypper --non-interactive --gpg-auto-import-keys refresh")
     else:
         if type(package) in (list, tuple):
@@ -961,11 +961,11 @@ def user_check(name=None, uid=None):
     returning its information as a
     '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
     or 'None' if the user does not exists."""
-    assert name != None or uid != None, "user_check: either `uid` or `name` should be given"
+    assert name is not None or uid is not None, "user_check: either `uid` or `name` should be given"
     assert name is None or uid is None, "user_check: `uid` and `name` both given, only one should be provided"
-    if   name != None:
+    if   name is not None:
         d = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
-    elif uid != None:
+    elif uid is not None:
         d = sudo("cat /etc/passwd | egrep '^.*:.*:%s:' ; true" % (uid))
     results = {}
     s = None
@@ -989,13 +989,13 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
         user_create(name, passwd, home, uid, gid, shell)
     else:
         options = []
-        if home != None and d.get("home") != home:
+        if home is not None and d.get("home") != home:
             options.append("-d '%s'" % (home))
-        if uid != None and d.get("uid") != uid:
+        if uid is not None and d.get("uid") != uid:
             options.append("-u '%s'" % (uid))
-        if gid != None and d.get("gid") != gid:
+        if gid is not None and d.get("gid") != gid:
             options.append("-g '%s'" % (gid))
-        if shell != None and d.get("shell") != shell:
+        if shell is not None and d.get("shell") != shell:
             options.append("-s '%s'" % (shell))
         if options:
             sudo("usermod %s '%s'" % (" ".join(options), name))
@@ -1047,7 +1047,7 @@ def group_ensure(name, gid=None):
     if not d:
         group_create(name, gid)
     else:
-        if gid != None and d.get("gid") != gid:
+        if gid is not None and d.get("gid") != gid:
             sudo("groupmod -g %s '%s'" % (gid, name))
 
 
