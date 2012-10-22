@@ -18,7 +18,7 @@ clean:
 	@rm -rf api/ build dist MANIFEST ; true
 
 check:
-	pychecker $(SOURCES)
+	pychecker -100 $(SOURCES)
 
 doc: $(DOC_SOURCES)
 	#sphinx-build -b html docs api

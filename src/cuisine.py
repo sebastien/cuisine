@@ -40,7 +40,7 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, gzip, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
+import base64, gzip, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION         = "0.4.2"
@@ -55,11 +55,11 @@ OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper"],
-    python_package=["easy_install","pip"]
+	python_package=["easy_install","pip"]
 )
 DEFAULT_OPTIONS = dict(
 	package="apt",
-    python_package="pip"
+	python_package="pip"
 )
 
 
@@ -86,7 +86,7 @@ class __mode_switcher(object):
 	def __enter__(self):
 		pass
 
-	def __exit__(self, *args, **kwargs):
+	def __exit__(self, type, value, traceback):
 		if self.oldMode is None:
 			del fabric.api.env[self.MODE_KEY]
 		else:
@@ -129,20 +129,20 @@ def is_sudo():   return mode(MODE_SUDO)
 #
 # =============================================================================
 
-def select_package( option=None ):
+def select_package( selection=None ):
 	"""Selects the type of package subsystem to use (ex:apt, yum or zypper)."""
 	supported = AVAILABLE_OPTIONS["package"]
-	if not (option is None):
-		assert option in supported, "Option must be one of: %s"  % (supported)
-		fabric.api.env[OPTION_PACKAGE] = option
+	if not (selection is None):
+		assert selection in supported, "Option must be one of: %s"  % (supported)
+		fabric.api.env[OPTION_PACKAGE] = selection
 	return (fabric.api.env[OPTION_PACKAGE], supported)
 
-def select_python_package( option=None ):
-    supported = AVAILABLE_OPTIONS["python_package"]
-    if not (option is None):
-        assert option in supported, "Option must be one of: %s"  % (supported)
-        fabric.api.env[OPTION_PYTHON_PACKAGE] = option
-    return (fabric.api.env[OPTION_PYTHON_PACKAGE], supported)
+def select_python_package( selection=None ):
+	supported = AVAILABLE_OPTIONS["python_package"]
+	if not (selection is None):
+		assert selection in supported, "Option must be one of: %s"  % (supported)
+		fabric.api.env[OPTION_PYTHON_PACKAGE] = selection
+	return (fabric.api.env[OPTION_PYTHON_PACKAGE], supported)
 # =============================================================================
 #
 # RUN/SUDO METHODS
@@ -154,7 +154,7 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	Local implementation of fabric.api.run() using subprocess.
 
 	Note: pty option exists for function signature compatibility and is
-	      ignored.
+	ignored.
 	"""
 	if combine_stderr is None: combine_stderr = fabric.api.env.combine_stderr
 	# TODO: Pass the SUDO_PASSWORD variable to the command here
@@ -303,7 +303,7 @@ def text_ensure_line(text, *lines):
 	the end of it."""
 	eol = text_detect_eol(text)
 	res = list(text.split(eol))
-	if res[0] is '' and len(res) is 1:
+	if res[0] == '' and len(res) == 1:
 		res = list()
 	for line in lines:
 		assert line.find(eol) == -1, "No EOL allowed in lines parameter: " + repr(line)
@@ -429,7 +429,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	with mode_sudo(sudo):
 		file_attribs(location, mode=mode, owner=owner, group=group)
 
-def file_ensure(location, mode=None, owner=None, group=None, recursive=False):
+def file_ensure(location, mode=None, owner=None, group=None):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
 	if file_exists(location):
@@ -564,9 +564,6 @@ def package_clean(package=None):
 def repository_ensure_apt(repository):
 	sudo("add-apt-repository " + repository)
 
-def package_upgrade_apt():
-	sudo("apt-get --yes upgrade")
-
 def package_update_apt(package=None):
 	if package == None:
 		sudo("apt-get --yes update")
@@ -575,7 +572,7 @@ def package_update_apt(package=None):
 			package = " ".join(package)
 		sudo("apt-get --yes upgrade " + package)
 
-def package_upgrade_apt(package=None):
+def package_upgrade_apt():
 	sudo("apt-get --yes upgrade")
 
 def package_install_apt(package, update=False):
@@ -595,7 +592,7 @@ def package_ensure_apt(package, update=False):
 		return True
 
 def package_clean_apt(package=None):
-    pass
+	pass
 
 # -----------------------------------------------------------------------------
 # YUM PACKAGE (RedHat, CentOS)
@@ -615,9 +612,6 @@ def package_update_yum(package=None):
 		if type(package) in (list, tuple):
 			package = " ".join(package)
 		sudo("yum -y upgrade " + package)
-
-def package_upgrade_yum(package=None):
-	sudo("yum -y upgrade")
 
 def package_install_yum(package, update=False):
 	if update:
@@ -647,7 +641,7 @@ def repository_ensure_zypper(repository):
 	if repository[-1] != '/':
 		repository_uri = repository.rpartition("/")[0]
 	status = run("zypper --non-interactive --gpg-auto-import-keys repos -d")
-	if status.find(repositoryURI) == -1:
+	if status.find(repository_uri) == -1:
 		sudo("zypper --non-interactive --gpg-auto-import-keys addrepo " + repository)
 		sudo("zypper --non-interactive --gpg-auto-import-keys modifyrepo --refresh " + repository_uri)
 
@@ -679,7 +673,7 @@ def package_ensure_zypper(package, update=False):
 			package_update_zypper(package)
 		return True
 
-def package_clean_zypper(package=None):
+def package_clean_zypper():
 	sudo("zypper --non-interactive clean")
 
 # =============================================================================
@@ -691,87 +685,87 @@ def package_clean_zypper(package=None):
 @dispatch('python_package')
 def python_package_upgrade(package):
 	'''
-    Upgrades the defined python package.
-    '''
+	Upgrades the defined python package.
+	'''
 
 @dispatch('python_package')
 def python_package_install(package=None):
 	'''
-    Installs the given python package/list of python packages.
-    '''
+	Installs the given python package/list of python packages.
+	'''
 
 @dispatch('python_package')
 def python_package_ensure(package):
 	'''
-    Tests if the given python package is installed, and installes it in
+	Tests if the given python package is installed, and installes it in
 	case it's not already there.
-    '''
+	'''
 
 @dispatch('python_package')
 def python_package_remove(package):
 	'''
-    Removes the given python package.
-    '''
+	Removes the given python package.
+	'''
 
 # -----------------------------------------------------------------------------
 # PIP PYTHON PACKAGE MANAGER
 # -----------------------------------------------------------------------------
 
 def python_package_upgrade_pip(package,E=None):
-    '''
-    The "package" argument, defines the name of the package that will be upgraded.
-    The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-    path to a virtualenv. If provided, it will be added to the pip call.
-    '''
-    if E:
-        E='-E %s' %E
-    else:
-        E=''   
-    run('pip upgrade %s %s' %(E,package))
+	'''
+	The "package" argument, defines the name of the package that will be upgraded.
+	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
+	path to a virtualenv. If provided, it will be added to the pip call.
+	'''
+	if E:
+		E='-E %s' %E
+	else:
+		E=''   
+	run('pip upgrade %s %s' %(E,package))
 
 def python_package_install_pip(package=None,r=None,pip=None):
-    '''
-    The "package" argument, defines the name of the package that will be installed.
-    The argument "r" referes to the requirements file that will be used by pip and
-    is equivalent to the "-r" parameter of pip.
-    Either "package" or "r" needs to be provided
-    The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-    path to a virtualenv. If provided, it will be added to the pip call.
-    '''
-    pip=pip or fabric.api.env.env.get('pip','pip')
-    if package:
-        run('%s install %s' %(pip,package))
-    elif r:
-        run('%s install -r %s' %(pip,r))
-    else:
-        raise Exception("Either a package name or the requirements file has to be provided.")
+	'''
+	The "package" argument, defines the name of the package that will be installed.
+	The argument "r" referes to the requirements file that will be used by pip and
+	is equivalent to the "-r" parameter of pip.
+	Either "package" or "r" needs to be provided
+	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
+	path to a virtualenv. If provided, it will be added to the pip call.
+	'''
+	pip=pip or fabric.api.env.env.get('pip','pip')
+	if package:
+		run('%s install %s' %(pip,package))
+	elif r:
+		run('%s install -r %s' %(pip,r))
+	else:
+		raise Exception("Either a package name or the requirements file has to be provided.")
 
 def python_package_ensure_pip(package=None,r=None, pip=None):
-    '''
-    The "package" argument, defines the name of the package that will be ensured.
-    The argument "r" referes to the requirements file that will be used by pip and
-    is equivalent to the "-r" parameter of pip.
-    Either "package" or "r" needs to be provided
-    The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-    path to a virtualenv. If provided, it will be added to the pip call.
-    '''
-    #FIXME: At the moment, I do not know how to check for the existence of a pip package and
-    # I am not sure if this really makes sense, based on the pip built in functionality. 
-    # So I just call the install functions
-    pip=pip or fabric.api.env.env.get('pip','pip')
-    python_package_install_pip(package,r,pip)
+	'''
+	The "package" argument, defines the name of the package that will be ensured.
+	The argument "r" referes to the requirements file that will be used by pip and
+	is equivalent to the "-r" parameter of pip.
+	Either "package" or "r" needs to be provided
+	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
+	path to a virtualenv. If provided, it will be added to the pip call.
+	'''
+	#FIXME: At the moment, I do not know how to check for the existence of a pip package and
+	# I am not sure if this really makes sense, based on the pip built in functionality. 
+	# So I just call the install functions
+	pip=pip or fabric.api.env.env.get('pip','pip')
+	python_package_install_pip(package,r,pip)
 
-def python_package_remove_pip(package, E=None):
-    '''
-    The "package" argument, defines the name of the package that will be ensured.
-    The argument "r" referes to the requirements file that will be used by pip and
-    is equivalent to the "-r" parameter of pip.
-    Either "package" or "r" needs to be provided
-    The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-    path to a virtualenv. If provided, it will be added to the pip call. 
-    '''
-    pip=pip or fabric.api.env.env.get('pip','pip')
-    return run('%s uninstall %s' %(pip,package))
+def python_package_remove_pip(package, E=None, pip=None):
+	'''
+	The "package" argument, defines the name of the package that will be ensured.
+	The argument "r" referes to the requirements file that will be used by pip and
+	is equivalent to the "-r" parameter of pip.
+	Either "package" or "r" needs to be provided
+	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
+	path to a virtualenv. If provided, it will be added to the pip call. 
+	'''
+	pip=pip or fabric.api.env.env.get('pip','pip')
+	return run('%s uninstall %s' %(pip,package))
 
 
 # -----------------------------------------------------------------------------
@@ -779,32 +773,32 @@ def python_package_remove_pip(package, E=None):
 # -----------------------------------------------------------------------------
 
 def python_package_upgrade_easy_install(package):
-    '''
-    The "package" argument, defines the name of the package that will be upgraded.
-    '''
-    run('easy_install --upgrade %s' %package)
+	'''
+	The "package" argument, defines the name of the package that will be upgraded.
+	'''
+	run('easy_install --upgrade %s' %package)
 
 def python_package_install_easy_install(package):
-    '''
-    The "package" argument, defines the name of the package that will be installed.
-    '''
-    sudo('easy_install %s' %package)
+	'''
+	The "package" argument, defines the name of the package that will be installed.
+	'''
+	sudo('easy_install %s' %package)
 
 def python_package_ensure_easy_install(package):
-    '''
-    The "package" argument, defines the name of the package that will be ensured.
-    '''
-    #FIXME: At the moment, I do not know how to check for the existence of a py package and
-    # I am not sure if this really makes sense, based on the easy_install built in functionality. 
-    # So I just call the install functions
-    python_package_install_easy_install(package)
+	'''
+	The "package" argument, defines the name of the package that will be ensured.
+	'''
+	#FIXME: At the moment, I do not know how to check for the existence of a py package and
+	# I am not sure if this really makes sense, based on the easy_install built in functionality. 
+	# So I just call the install functions
+	python_package_install_easy_install(package)
 
 def python_package_remove_easy_install(package):
-    '''
-    The "package" argument, defines the name of the package that will be removed.
-    '''
-    #FIXME: this will not remove egg file etc.
-    run('easy_install -m %s' %package) 
+	'''
+	The "package" argument, defines the name of the package that will be removed.
+	'''
+	#FIXME: this will not remove egg file etc.
+	run('easy_install -m %s' %package) 
 
 # =============================================================================
 #
@@ -1061,7 +1055,10 @@ def locale_ensure(locale):
 		sudo("dpkg-reconfigure locales")
 
 # Sets up the default options so that @dispatch'ed functions work
-for option, value in DEFAULT_OPTIONS.items():
-	eval("select_" + option)(value)
+def _init():
+	for option, value in DEFAULT_OPTIONS.items():
+		eval("select_" + option)(value)
+
+_init()
 
 # EOF - vim: ts=4 sw=4 noet
