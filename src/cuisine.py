@@ -732,7 +732,7 @@ def python_package_install_pip(package=None,r=None,pip=None):
 	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
 	path to a virtualenv. If provided, it will be added to the pip call.
 	'''
-	pip=pip or fabric.api.env.env.get('pip','pip')
+	pip=pip or fabric.api.env.get('pip','pip')
 	if package:
 		run('%s install %s' %(pip,package))
 	elif r:
@@ -752,7 +752,7 @@ def python_package_ensure_pip(package=None,r=None, pip=None):
 	#FIXME: At the moment, I do not know how to check for the existence of a pip package and
 	# I am not sure if this really makes sense, based on the pip built in functionality. 
 	# So I just call the install functions
-	pip=pip or fabric.api.env.env.get('pip','pip')
+	pip=pip or fabric.api.env.get('pip','pip')
 	python_package_install_pip(package,r,pip)
 
 def python_package_remove_pip(package, E=None, pip=None):
@@ -764,7 +764,7 @@ def python_package_remove_pip(package, E=None, pip=None):
 	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
 	path to a virtualenv. If provided, it will be added to the pip call. 
 	'''
-	pip=pip or fabric.api.env.env.get('pip','pip')
+	pip=pip or fabric.api.env.get('pip','pip')
 	return run('%s uninstall %s' %(pip,package))
 
 
