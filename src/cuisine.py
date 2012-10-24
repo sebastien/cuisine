@@ -9,7 +9,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 20-Sep-2012
+# Last mod  : 22-Oct-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -143,6 +143,7 @@ def select_python_package( selection=None ):
 		assert selection in supported, "Option must be one of: %s"  % (supported)
 		fabric.api.env[OPTION_PYTHON_PACKAGE] = selection
 	return (fabric.api.env[OPTION_PYTHON_PACKAGE], supported)
+
 # =============================================================================
 #
 # RUN/SUDO METHODS

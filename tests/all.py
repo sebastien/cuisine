@@ -1,8 +1,6 @@
-import unittest, os, hashlib, shutil
+import unittest, os, hashlib
 import cuisine
 import tempfile
-import fabric.api
-from fabric.api import env, settings, cd
 
 USER = os.popen("whoami").read()[:-1]
 
