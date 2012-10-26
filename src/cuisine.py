@@ -117,7 +117,7 @@ class mode_sudo(__mode_switcher):
 
 def mode(key):
 	"""Queries the given Cuisine mode (ie. MODE_LOCAL, MODE_SUDO)"""
-	return fabric.api.env.get(key)
+	return fabric.api.env.get(key, False)
 
 def is_local():  return mode(MODE_LOCAL)
 def is_remote(): return not mode(MODE_LOCAL)
@@ -393,14 +393,14 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	location, optionally setting mode/owner/group."""
 	# FIXME: Big files are never transferred properly!
 	# Gets the content signature and write it to a secure tempfile
-	use_sudo       = is_sudo() or sudo
+	use_sudo       = sudo if sudo is not None else is_sudo()
 	sig            = hashlib.sha256(content).hexdigest()
 	fd, local_path = tempfile.mkstemp()
 	os.write(fd, content)
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
 		if is_local():
-			with mode_sudo(sudo):
+			with mode_sudo(use_sudo):
 				run('cp "%s" "%s"'%(local_path,location))
 		else:
 			# FIXME: Put is not working properly, I often get stuff like:
