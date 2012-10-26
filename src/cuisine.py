@@ -499,7 +499,7 @@ def file_sha256(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	sig = run('sha256sum "%s" | cut -d" " -f1' % (location)).split("\n")
+	sig = run('shasum -a 256 "%s" | cut -d" " -f1' % (location)).split("\n")
 	return sig[-1].strip()
 
 # =============================================================================
