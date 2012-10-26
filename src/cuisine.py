@@ -40,7 +40,7 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, gzip, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
+import base64, bz2, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION         = "0.4.2"
@@ -414,7 +414,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			):
 				# We send the data as BZipped Base64
 				with mode_sudo(use_sudo):
-					result = run("echo '%s' | base64 --decode | openssl zlib -d > \"%s\"" % (base64.b64encode(gzip.zlib.compress(content)), location))
+					result = run("echo '%s' | base64 --decode | bzip2 --decompress > \"%s\"" % (base64.b64encode(bz2.compress(content)), location))
 				if result.failed:
 					fabric.api.abort('Encountered error writing the file %s: %s' % (location, result))
 
