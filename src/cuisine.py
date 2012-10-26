@@ -423,10 +423,10 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	os.unlink(local_path)
 	# Ensures that the signature matches
 	if check:
-		with mode_sudo(sudo):
+		with mode_sudo(use_sudo):
 			file_sig = file_sha256(location)
 		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(file_sig), repr(sig))
-	with mode_sudo(sudo):
+	with mode_sudo(use_sudo):
 		file_attribs(location, mode=mode, owner=owner, group=group)
 
 def file_ensure(location, mode=None, owner=None, group=None):
