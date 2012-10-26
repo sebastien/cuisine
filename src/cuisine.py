@@ -414,7 +414,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			):
 				# We send the data as BZipped Base64
 				with mode_sudo(use_sudo):
-					result = run("echo '%s' | base64 -d | gunzip > \"%s\"" % (base64.b64encode(gzip.zlib.compress(content)), location))
+					result = run("echo '%s' | base64 --decode | gunzip > \"%s\"" % (base64.b64encode(gzip.zlib.compress(content)), location))
 				if result.failed:
 					fabric.api.abort('Encountered error writing the file %s: %s' % (location, result))
 
