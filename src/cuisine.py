@@ -570,17 +570,17 @@ def package_update_apt(package=None):
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		sudo("apt-get --yes upgrade " + package)
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade ' + package)
 
 def package_upgrade_apt():
-	sudo("apt-get --yes upgrade")
+	sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
 
 def package_install_apt(package, update=False):
 	if update:
-		sudo("apt-get --yes update")
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update')
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("apt-get --yes install %s" % (package))
+	sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install %s" % (package))
 
 def package_ensure_apt(package, update=False):
 	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
