@@ -516,6 +516,15 @@ def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
 	return run('test -d "%s" && echo OK ; true' % (location)).endswith("OK")
 
+def dir_remove(location, recursive=True):
+    """ Removes a directory """
+    flag = ''
+    if recursive:
+        flag = 'r'
+
+    if dir_exists(location):
+        return run('rm -%sf %s && echo OK ; true' % (flag, location))
+
 def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	"""Ensures that there is a remote directory at the given location,
 	optionally updating its mode/owner/group.
