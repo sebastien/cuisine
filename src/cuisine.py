@@ -9,7 +9,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 20-Sep-2012
+# Last mod  : 16-Nov-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, bz2, hashlib, os, random, sys, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.4.0"
+VERSION         = "0.4.1"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -497,6 +497,31 @@ def file_sha256(location):
 	# be on the safe side.
 	sig = run('sha256sum "%s" | cut -d" " -f1' % (location)).split("\n")
 	return sig[-1].strip()
+
+# =============================================================================
+#
+# PROCESS OPERATIONS
+#
+# =============================================================================
+
+def process_find(name, exact=False):
+	"""Returns the pids of processes with the given name. If exact is `False`
+	it will return the list of all processes that start with the given
+	`name`."""
+	processes = run("ps aux")
+	res       = []
+	for line in processes.split("\n")[1:]:
+		user, pid, cpu, mem, vsz, rss, tty, stat, start, time, command = RE_SPACES.split(line,10)
+		if (exact and command == name) or (not exact and command.startswith(name)):
+			res.append(pid)
+	return res
+
+def process_kill(name, signal="HUP", exact=False):
+	"""Kills the given processes with the given name. If exact is `False`
+	it will return the list of all processes that start with the given
+	`name`."""
+	for pid in process_find(name, exact):
+		run("kill -{0} {1}".format(signal, pid))
 
 # =============================================================================
 #
