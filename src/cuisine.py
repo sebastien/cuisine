@@ -40,7 +40,7 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, gzip, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
+import base64, bz2, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION         = "0.4.2"
@@ -117,7 +117,7 @@ class mode_sudo(__mode_switcher):
 
 def mode(key):
 	"""Queries the given Cuisine mode (ie. MODE_LOCAL, MODE_SUDO)"""
-	return fabric.api.env.get(key)
+	return fabric.api.env.get(key, False)
 
 def is_local():  return mode(MODE_LOCAL)
 def is_remote(): return not mode(MODE_LOCAL)
@@ -394,14 +394,14 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	location, optionally setting mode/owner/group."""
 	# FIXME: Big files are never transferred properly!
 	# Gets the content signature and write it to a secure tempfile
-	use_sudo       = is_sudo() or sudo
+	use_sudo       = sudo if sudo is not None else is_sudo()
 	sig            = hashlib.sha256(content).hexdigest()
 	fd, local_path = tempfile.mkstemp()
 	os.write(fd, content)
 	# Upload the content if necessary
 	if not file_exists(location) or sig != file_sha256(location):
 		if is_local():
-			with mode_sudo(sudo):
+			with mode_sudo(use_sudo):
 				run('cp "%s" "%s"'%(local_path,location))
 		else:
 			# FIXME: Put is not working properly, I often get stuff like:
@@ -414,8 +414,8 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 				**{MODE_SUDO: use_sudo}
 			):
 				# We send the data as BZipped Base64
-				with mode_sudo(sudo):
-					result = run("echo '%s' | base64 -d | gunzip > \"%s\"" % (base64.b64encode(gzip.zlib.compress(content)), location))
+				with mode_sudo(use_sudo):
+					result = run("echo '%s' | base64 --decode | bzip2 --decompress > \"%s\"" % (base64.b64encode(bz2.compress(content)), location))
 				if result.failed:
 					fabric.api.abort('Encountered error writing the file %s: %s' % (location, result))
 
@@ -424,10 +424,10 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	os.unlink(local_path)
 	# Ensures that the signature matches
 	if check:
-		with mode_sudo(sudo):
+		with mode_sudo(use_sudo):
 			file_sig = file_sha256(location)
 		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(file_sig), repr(sig))
-	with mode_sudo(sudo):
+	with mode_sudo(use_sudo):
 		file_attribs(location, mode=mode, owner=owner, group=group)
 
 def file_ensure(location, mode=None, owner=None, group=None):
@@ -500,7 +500,7 @@ def file_sha256(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	sig = run('sha256sum "%s" | cut -d" " -f1' % (location)).split("\n")
+	sig = run('shasum -a 256 "%s" | cut -d" " -f1' % (location)).split("\n")
 	return sig[-1].strip()
 
 # =============================================================================
@@ -517,6 +517,15 @@ def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
 	return run('test -d "%s" && echo OK ; true' % (location)).endswith("OK")
 
+def dir_remove(location, recursive=True):
+    """ Removes a directory """
+    flag = ''
+    if recursive:
+        flag = 'r'
+
+    if dir_exists(location):
+        return run('rm -%sf %s && echo OK ; true' % (flag, location))
+
 def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	"""Ensures that there is a remote directory at the given location,
 	optionally updating its mode/owner/group.
@@ -526,7 +535,7 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	if not dir_exists(location):
 		run('mkdir %s "%s" && echo OK ; true' % (recursive and "-p" or "", location))
 	if owner or group or mode:
-		dir_attribs(location, owner=owner, group=group, mode=mode)
+		dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
 # =============================================================================
 #
@@ -571,17 +580,17 @@ def package_update_apt(package=None):
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		sudo("apt-get --yes upgrade " + package)
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade ' + package)
 
 def package_upgrade_apt():
-	sudo("apt-get --yes upgrade")
+	sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
 
 def package_install_apt(package, update=False):
 	if update:
-		sudo("apt-get --yes update")
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update')
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("apt-get --yes install %s" % (package))
+	sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install %s" % (package))
 
 def package_ensure_apt(package, update=False):
 	status = run("dpkg-query -W -f='${Status}' %s ; true" % package)
