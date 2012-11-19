@@ -9,7 +9,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 22-Oct-2012
+# Last mod  : 19-Nov-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -40,10 +40,10 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, bz2, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
+import base64, zlib, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.4.2"
+VERSION         = "0.4.3"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -80,7 +80,7 @@ class __mode_switcher(object):
 	MODE_KEY   = None
 
 	def __init__( self, value=None ):
-		self.oldMode = fabric.api.env.get(self.MODE_KEY)
+		self.oldMode                  = fabric.api.env.get(self.MODE_KEY)
 		fabric.api.env[self.MODE_KEY] = self.MODE_VALUE if value is None else value
 
 	def __enter__(self):
@@ -413,9 +413,9 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 				warn_only=True,
 				**{MODE_SUDO: use_sudo}
 			):
-				# We send the data as BZipped Base64
+				# See: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
 				with mode_sudo(use_sudo):
-					result = run("echo '%s' | base64 --decode | bzip2 --decompress > \"%s\"" % (base64.b64encode(bz2.compress(content)), location))
+					result = run("echo '%s' | base64 --decode | openssl zlib -d > \"%s\"" % (base64.b64encode(zlib.compress(content)), location))
 				if result.failed:
 					fabric.api.abort('Encountered error writing the file %s: %s' % (location, result))
 
@@ -505,6 +505,31 @@ def file_sha256(location):
 
 # =============================================================================
 #
+# PROCESS OPERATIONS
+#
+# =============================================================================
+
+def process_find(name, exact=False):
+	"""Returns the pids of processes with the given name. If exact is `False`
+	it will return the list of all processes that start with the given
+	`name`."""
+	processes = run("ps aux | grep {0}".format(name))
+	res       = []
+	for line in processes.split("\n"):
+		user, pid, cpu, mem, vsz, rss, tty, stat, start, time, command = RE_SPACES.split(line,10)
+		if (exact and command == name) or (not exact and command.startswith(name)):
+			res.append(pid)
+	return res
+
+def process_kill(name, signal=9, exact=False):
+	"""Kills the given processes with the given name. If exact is `False`
+	it will return the list of all processes that start with the given
+	`name`."""
+	for pid in process_find(name, exact):
+		run("kill -s {0} {1}".format(signal, pid))
+
+# =============================================================================
+#
 # DIRECTORY OPERATIONS
 #
 # =============================================================================
@@ -518,13 +543,12 @@ def dir_exists(location):
 	return run('test -d "%s" && echo OK ; true' % (location)).endswith("OK")
 
 def dir_remove(location, recursive=True):
-    """ Removes a directory """
-    flag = ''
-    if recursive:
-        flag = 'r'
-
-    if dir_exists(location):
-        return run('rm -%sf %s && echo OK ; true' % (flag, location))
+	""" Removes a directory """
+	flag = ''
+	if recursive:
+		flag = 'r'
+	if dir_exists(location):
+		return run('rm -%sf %s && echo OK ; true' % (flag, location))
 
 def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	"""Ensures that there is a remote directory at the given location,
