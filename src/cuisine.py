@@ -9,7 +9,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 19-Nov-2012
+# Last mod  : 29-Nov-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, zlib, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.4.3"
+VERSION         = "0.4.4"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
