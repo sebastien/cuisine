@@ -626,7 +626,9 @@ def package_ensure_apt(package, update=False):
 		return True
 
 def package_clean_apt(package=None):
-	pass
+    if type(package) in (list, tuple):
+        package = " ".join(package)
+    sudo("DEBIAN_FRONTEND=noninteractive apt-get -y --purge remove %s" % package)
 
 # -----------------------------------------------------------------------------
 # YUM PACKAGE (RedHat, CentOS)
