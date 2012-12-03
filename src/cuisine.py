@@ -9,7 +9,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 19-Nov-2012
+# Last mod  : 29-Nov-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, zlib, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.4.3"
+VERSION         = "0.4.4"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -516,7 +516,12 @@ def process_find(name, exact=False):
 	processes = run("ps aux | grep {0}".format(name))
 	res       = []
 	for line in processes.split("\n"):
-		user, pid, cpu, mem, vsz, rss, tty, stat, start, time, command = RE_SPACES.split(line,10)
+		if not line.strip(): continue
+		line = RE_SPACES.split(line,10)
+		# We skip lines that are not like we expect them (sometimes error
+		# message creep up the output)
+		if len(line) < 11: continue
+		user, pid, cpu, mem, vsz, rss, tty, stat, start, time, command = line
 		if (exact and command == name) or (not exact and command.startswith(name)):
 			res.append(pid)
 	return res
