@@ -9,7 +9,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 29-Nov-2012
+# Last mod  : 03-Dec-2012
 # -----------------------------------------------------------------------------
 
 """
@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, zlib, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.4.4"
+VERSION         = "0.5.0"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -53,15 +53,16 @@ MODE_SUDO       = "CUISINE_MODE_SUDO"
 SUDO_PASSWORD   = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
+
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper"],
 	python_package=["easy_install","pip"]
 )
+
 DEFAULT_OPTIONS = dict(
 	package="apt",
 	python_package="pip"
 )
-
 
 def sudo_password(password=None):
 	"""Sets the password for the sudo command."""
@@ -513,8 +514,11 @@ def process_find(name, exact=False):
 	"""Returns the pids of processes with the given name. If exact is `False`
 	it will return the list of all processes that start with the given
 	`name`."""
-	processes = run("ps aux | grep {0}".format(name))
+	is_string = isinstance(name,str) or isinstance(name,unicode)
+	if is_string: processes = run("ps aux | grep {0}".format(name))
+	else:         processes = run("ps aux")
 	res       = []
+	approximage = []
 	for line in processes.split("\n"):
 		if not line.strip(): continue
 		line = RE_SPACES.split(line,10)
@@ -522,7 +526,10 @@ def process_find(name, exact=False):
 		# message creep up the output)
 		if len(line) < 11: continue
 		user, pid, cpu, mem, vsz, rss, tty, stat, start, time, command = line
-		if (exact and command == name) or (not exact and command.startswith(name)):
+		if is_string:
+			if (exact and command == name) or (not exact and command.find(name) >= 0):
+				res.append(pid)
+		elif name(line):
 			res.append(pid)
 	return res
 
