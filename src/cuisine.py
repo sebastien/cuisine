@@ -124,6 +124,11 @@ def is_local():  return mode(MODE_LOCAL)
 def is_remote(): return not mode(MODE_LOCAL)
 def is_sudo():   return mode(MODE_SUDO)
 
+def connect( host, user="root" ):
+	"""Initiates a connection with the given host and user"""
+	fabric.api.env.host_string = host
+	fabric.api.env.user        = user
+
 # =============================================================================
 #
 # OPTIONS
@@ -531,9 +536,9 @@ def process_find(name, exact=False):
 		if len(line) < 4: continue
 		pid, tty, time, command = line
 		if is_string:
-			if (exact and command == name) or (not exact and command.find(name) >= 0):
+			if pid and ((exact and command == name) or (not exact and command.find(name) >= 0)):
 				res.append(pid)
-		elif name(line):
+		elif name(line) and pid:
 			res.append(pid)
 	return res
 
