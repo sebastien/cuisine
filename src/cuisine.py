@@ -515,17 +515,21 @@ def process_find(name, exact=False):
 	it will return the list of all processes that start with the given
 	`name`."""
 	is_string = isinstance(name,str) or isinstance(name,unicode)
-	if is_string: processes = run("ps aux | grep {0}".format(name))
-	else:         processes = run("ps aux")
-	res       = []
-	approximage = []
+	# NOTE: ps -A seems to be the only way to not have the grep appearing
+	# as well
+	if is_string: processes = run("ps -A | grep {0} ; true".format(name))
+	else:         processes = run("ps -A")
+	res = []
 	for line in processes.split("\n"):
 		if not line.strip(): continue
-		line = RE_SPACES.split(line,10)
+		line = RE_SPACES.split(line,3)
+		# 3010 pts/1    00:00:07 gunicorn
+		# PID  TTY      TIME     CMD
+		# 0    1        2        3
 		# We skip lines that are not like we expect them (sometimes error
 		# message creep up the output)
-		if len(line) < 11: continue
-		user, pid, cpu, mem, vsz, rss, tty, stat, start, time, command = line
+		if len(line) < 4: continue
+		pid, tty, time, command = line
 		if is_string:
 			if (exact and command == name) or (not exact and command.find(name) >= 0):
 				res.append(pid)
