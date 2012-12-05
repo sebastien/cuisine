@@ -612,6 +612,10 @@ def package_ensure(package, update=False):
 def package_clean(package=None):
 	"""Clean the repository for un-needed files."""
 
+@dispatch
+def package_remove(package, autoclean=False):
+	"""Remove package and optionally clean unused packages"""
+
 # -----------------------------------------------------------------------------
 # APT PACKAGE (DEBIAN/UBUNTU)
 # -----------------------------------------------------------------------------
@@ -648,6 +652,11 @@ def package_ensure_apt(package, update=False):
 
 def package_clean_apt(package=None):
 	pass
+
+def package_remove_apt(package,  autoclean=False):
+	sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove ' + package)
+	if autoclean:
+		sudo('apt-get --yes autoclean')
 
 # -----------------------------------------------------------------------------
 # YUM PACKAGE (RedHat, CentOS)
