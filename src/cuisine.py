@@ -901,7 +901,8 @@ def user_passwd(name, passwd, encrypted_passwd=False):
 	sudo("echo %s | base64 --decode | chpasswd%s" % (encoded_password, encryption))
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
-				uid_min=None, uid_max=None, encrypted_passwd=False):
+				uid_min=None, uid_max=None, encrypted_passwd=False,
+				fullname=None):
 	"""Creates the user with the given name, optionally giving a
 	specific password/home/uid/gid/shell."""
 	options = ["-m"]
@@ -920,6 +921,10 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 		options.append("-K UID_MIN='%s'" % (uid_min))
 	if uid_max:
 		options.append("-K UID_MAX='%s'" % (uid_max))
+	if fullname:
+		options.append("--gecos='%s'" % (fullname))
+ 	if not passwd:
+		options.append("--disabled-password")
 	sudo("useradd %s '%s'" % (" ".join(options), name))
 	if passwd:
 		user_passwd(name,passwd,encrypted_passwd)
@@ -940,7 +945,7 @@ def user_check(name=None, uid=None):
 	if d:
 		d = d.split(":")
 		assert len(d) >= 7, "/etc/passwd entry is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
-		results = dict(name=d[0], uid=d[2], gid=d[3], home=d[5], shell=d[6])
+		results = dict(name=d[0], uid=d[2], gid=d[3], fullname=d[4], home=d[5], shell=d[6])
 		s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
 		if s: results['passwd'] = s
 	if results:
@@ -948,7 +953,7 @@ def user_check(name=None, uid=None):
 	else:
 		return None
 
-def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
+def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None):
 	"""Ensures that the given users exists, optionally updating their
 	passwd/home/uid/gid/shell."""
 	d = user_check(name)
@@ -964,6 +969,8 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None):
 			options.append("-g '%s'" % (gid))
 		if shell != None and d.get("shell") != shell:
 			options.append("-s '%s'" % (shell))
+		if fullname != None and d.get("fullname") != fullname:
+			options.append("--gecos '%s'" % fullname)
 		if options:
 			sudo("usermod %s '%s'" % (" ".join(options), name))
 		if passwd:
