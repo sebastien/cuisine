@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, zlib, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.5.0"
+VERSION         = "0.5.1"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -970,7 +970,7 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fu
 		if shell != None and d.get("shell") != shell:
 			options.append("-s '%s'" % (shell))
 		if fullname != None and d.get("fullname") != fullname:
-			options.append("--gecos '%s'" % fullname)
+			options.append("-c '%s'" % fullname)
 		if options:
 			sudo("usermod %s '%s'" % (" ".join(options), name))
 		if passwd:
