@@ -589,7 +589,7 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 # =============================================================================
 
 @dispatch
-def package_upgrade():
+def package_upgrade(distupgrade=False):
 	"""Updates every package present on the system."""
 
 @dispatch
@@ -631,8 +631,11 @@ def package_update_apt(package=None):
 			package = " ".join(package)
 		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade ' + package)
 
-def package_upgrade_apt():
-	sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
+def package_upgrade_apt(distupgrade=False):
+        if distupgrade:
+          sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade')
+	else:
+	  sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
 
 def package_install_apt(package, update=False):
 	if update:
