@@ -953,7 +953,7 @@ def user_check(name=None, uid=None):
 	else:
 		return None
 
-def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None):
+def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=False):
 	"""Ensures that the given users exists, optionally updating their
 	passwd/home/uid/gid/shell."""
 	d = user_check(name)
@@ -974,7 +974,7 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fu
 		if options:
 			sudo("usermod %s '%s'" % (" ".join(options), name))
 		if passwd:
-			user_passwd(name, passwd)
+			user_passwd(name, passwd, encrypted_passwd)
 
 def user_remove(name, rmhome=None):
 	"""Removes the user with the given name, optionally
