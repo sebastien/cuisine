@@ -923,8 +923,6 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 		options.append("-K UID_MAX='%s'" % (uid_max))
 	if fullname:
 		options.append("--gecos='%s'" % (fullname))
- 	if not passwd:
-		options.append("--disabled-password")
 	sudo("useradd %s '%s'" % (" ".join(options), name))
 	if passwd:
 		user_passwd(name,passwd,encrypted_passwd)
