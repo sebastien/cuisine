@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, zlib, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.5.1"
+VERSION         = "0.5.2"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -357,7 +357,7 @@ def file_local_read(location):
 def file_read(location):
 	"""Reads the *remote* file at the given location."""
 	# NOTE: We use base64 here to be sure to preserve the encoding (UNIX/DOC/MAC) of EOLs
-	return base64.b64decode(run('cat "%s" | base64' % (location)))
+	return base64.b64decode(run('cat "%s" | openssl base64' % (location)))
 
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
@@ -401,11 +401,11 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	# FIXME: Big files are never transferred properly!
 	# Gets the content signature and write it to a secure tempfile
 	use_sudo       = sudo if sudo is not None else is_sudo()
-	sig            = hashlib.sha256(content).hexdigest()
+	sig            = hashlib.md5(content).hexdigest()
 	fd, local_path = tempfile.mkstemp()
 	os.write(fd, content)
 	# Upload the content if necessary
-	if not file_exists(location) or sig != file_sha256(location):
+	if sig != file_md5(location):
 		if is_local():
 			with mode_sudo(use_sudo):
 				run('cp "%s" "%s"'%(local_path,location))
@@ -415,23 +415,24 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			#fabric.operations.put(local_path, location, use_sudo=use_sudo)
 			# Hides the output, which is especially important
 			with fabric.context_managers.settings(
-				fabric.api.hide('warnings', 'running', 'stdout'),
+				#fabric.api.hide('warnings', 'running', 'stdout'),
 				warn_only=True,
 				**{MODE_SUDO: use_sudo}
 			):
 				# See: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
-				with mode_sudo(use_sudo):
-					result = run("echo '%s' | base64 --decode | openssl zlib -d > \"%s\"" % (base64.b64encode(zlib.compress(content)), location))
+				result = run("echo '%s' | openssl base64 -A -d -out \"%s\"" % (base64.b64encode(content), location))
 				if result.failed:
 					fabric.api.abort('Encountered error writing the file %s: %s' % (location, result))
+					
 
 	# Remove the local temp file
+	os.fsync(fd)
 	os.close(fd)
 	os.unlink(local_path)
 	# Ensures that the signature matches
 	if check:
 		with mode_sudo(use_sudo):
-			file_sig = file_sha256(location)
+			file_sig = file_md5(location)
 		assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(file_sig), repr(sig))
 	with mode_sudo(use_sudo):
 		file_attribs(location, mode=mode, owner=owner, group=group)
@@ -452,8 +453,8 @@ def file_upload(remote, local, sudo=None):
 	f       = file(local, 'rb')
 	content = f.read()
 	f.close()
-	sig     = hashlib.sha256(content).hexdigest()
-	if not file_exists(remote) or sig != file_sha256(remote):
+	sig     = hashlib.md5(content).hexdigest()
+	if not file_exists(remote) or sig != file_md5(remote):
 		if is_local():
 			if use_sudo:
 				sudo('cp "%s" "%s"'%(local,remote))
@@ -475,12 +476,12 @@ def file_update(location, updater=lambda x: x):
 	assert file_exists(location), "File does not exists: " + location
 	new_content = updater(file_read(location))
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
-	run('echo "%s" | base64 -d > "%s"' % (base64.b64encode(new_content), location))
+	run('echo "%s" | openssl base64 -A -d -out "%s"' % (base64.b64encode(new_content), location))
 
 def file_append(location, content, mode=None, owner=None, group=None):
 	"""Appends the given content to the remote file at the given
 	location, optionally updating its mode/owner/group."""
-	run('echo "%s" | base64 -d >> "%s"' % (base64.b64encode(content), location))
+	run('echo "%s" | openssl base64 -A -d >> "%s"' % (base64.b64encode(content), location))
 	file_attribs(location, mode, owner, group)
 
 def file_unlink(path):
@@ -507,6 +508,14 @@ def file_sha256(location):
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
 	sig = run('shasum -a 256 "%s" | cut -d" " -f1' % (location)).split("\n")
+	return sig[-1].strip()
+
+def file_md5(location):
+	"""Returns the MD5 sum (as a hex string) for the remote file at the given location."""
+	# NOTE: In some cases, sudo can output errors in here -- but the errors will
+	# appear before the result, so we simply split and get the last line to
+	# be on the safe side.
+	sig = run('md5sum "%s" | cut -d" " -f1' % (location)).split("\n")
 	return sig[-1].strip()
 
 # =============================================================================
@@ -894,14 +903,16 @@ def command_ensure(command, package=None):
 #
 # =============================================================================
 
-def user_passwd(name, passwd, encrypted_passwd=False):
+def user_passwd(name, passwd, encrypted_passwd=True):
 	"""Sets the given user password."""
 	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
-	encryption = " -e" if encrypted_passwd else ""
-	sudo("echo %s | base64 --decode | chpasswd%s" % (encoded_password, encryption))
+	if encrypted_passwd:
+          sudo("usermod -p '%s' %s" % (passwd,name))
+	else:
+	  sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
-				uid_min=None, uid_max=None, encrypted_passwd=False,
+				uid_min=None, uid_max=None, encrypted_passwd=True,
 				fullname=None):
 	"""Creates the user with the given name, optionally giving a
 	specific password/home/uid/gid/shell."""
@@ -925,7 +936,7 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 		options.append("--gecos='%s'" % (fullname))
 	sudo("useradd %s '%s'" % (" ".join(options), name))
 	if passwd:
-		user_passwd(name,passwd,encrypted_passwd)
+		user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
 
 def user_check(name=None, uid=None):
 	"""Checks if there is a user defined with the given name,
@@ -951,7 +962,7 @@ def user_check(name=None, uid=None):
 	else:
 		return None
 
-def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=False):
+def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
 	"""Ensures that the given users exists, optionally updating their
 	passwd/home/uid/gid/shell."""
 	d = user_check(name)
@@ -972,7 +983,7 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fu
 		if options:
 			sudo("usermod %s '%s'" % (" ".join(options), name))
 		if passwd:
-			user_passwd(name, passwd, encrypted_passwd)
+			user_passwd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
 
 def user_remove(name, rmhome=None):
 	"""Removes the user with the given name, optionally
