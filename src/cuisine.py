@@ -663,7 +663,9 @@ def package_ensure_apt(package, update=False):
 		return True
 
 def package_clean_apt(package=None):
-	pass
+    if type(package) in (list, tuple):
+        package = " ".join(package)
+    sudo("DEBIAN_FRONTEND=noninteractive apt-get -y --purge remove %s" % package)
 
 def package_remove_apt(package,  autoclean=False):
 	sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove ' + package)
