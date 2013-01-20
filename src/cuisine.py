@@ -40,7 +40,7 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, zlib, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
+import base64, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION         = "0.5.0"
@@ -822,7 +822,7 @@ def python_package_install_pip(package=None,r=None,pip=None):
 	else:
 		raise Exception("Either a package name or the requirements file has to be provided.")
 
-def python_package_ensure_pip(package=None,r=None, pip=None):
+def python_package_ensure_pip(package=None, r=None, pip=None):
 	'''
 	The "package" argument, defines the name of the package that will be ensured.
 	The argument "r" referes to the requirements file that will be used by pip and

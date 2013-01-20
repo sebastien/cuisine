@@ -204,9 +204,9 @@ class Files(unittest.TestCase):
 class Packages(unittest.TestCase):
 
 	def testInstall( self ):
-		pass
-		#with cuisine.mode_sudo():
-		#	cuisine.package_ensure("tmux")
+		with cuisine.mode_sudo():
+			cuisine.package_ensure("tree")
+		self.assertTrue(cuisine.run("tree --version").startswith("tree "))
 
 class SSHKeys(unittest.TestCase):
 
