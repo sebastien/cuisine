@@ -547,7 +547,7 @@ def process_kill(name, signal=9, exact=False):
 	it will return the list of all processes that start with the given
 	`name`."""
 	for pid in process_find(name, exact):
-		run("kill -s {0} {1}".format(signal, pid))
+		run("kill -s {0} {1} ; true".format(signal, pid))
 
 # =============================================================================
 #
