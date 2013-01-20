@@ -9,7 +9,7 @@
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 03-Dec-2012
+# Last mod  : 21-Feb-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -35,7 +35,7 @@ See also:
 - EC2, fabric, and "err: stdin: is not a tty"
   <http://blog.markfeeney.com/2009/12/ec2-fabric-and-err-stdin-is-not-tty.html>`_
 
-:copyright: (c) 2011,2012 by Sébastien Pierre.
+:copyright: (c) 2011-2013 by Sébastien Pierre.
 :license:   BSD, see LICENSE for more details.
 """
 
@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, zlib, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.5.2"
+VERSION         = "0.5.3"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -641,10 +641,10 @@ def package_update_apt(package=None):
 		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade ' + package)
 
 def package_upgrade_apt(distupgrade=False):
-        if distupgrade:
-          sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade')
+	if distupgrade:
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade')
 	else:
-	  sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
 
 def package_install_apt(package, update=False):
 	if update:
@@ -663,11 +663,11 @@ def package_ensure_apt(package, update=False):
 		return True
 
 def package_clean_apt(package=None):
-    if type(package) in (list, tuple):
-        package = " ".join(package)
-    sudo("DEBIAN_FRONTEND=noninteractive apt-get -y --purge remove %s" % package)
+	if type(package) in (list, tuple):
+		package = " ".join(package)
+	sudo("DEBIAN_FRONTEND=noninteractive apt-get -y --purge remove %s" % package)
 
-def package_remove_apt(package,  autoclean=False):
+def package_remove_apt(package, autoclean=False):
 	sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove ' + package)
 	if autoclean:
 		sudo('apt-get --yes autoclean')
@@ -798,7 +798,7 @@ def python_package_upgrade_pip(package,E=None):
 	if E:
 		E='-E %s' %E
 	else:
-		E=''   
+		E=''
 	run('pip upgrade %s %s' %(E,package))
 
 def python_package_install_pip(package=None,r=None,pip=None):
@@ -844,7 +844,6 @@ def python_package_remove_pip(package, E=None, pip=None):
 	'''
 	pip=pip or fabric.api.env.get('pip','pip')
 	return run('%s uninstall %s' %(pip,package))
-
 
 # -----------------------------------------------------------------------------
 # EASY_INSTALL PYTHON PACKAGE MANAGER
@@ -909,9 +908,9 @@ def user_passwd(name, passwd, encrypted_passwd=True):
 	"""Sets the given user password."""
 	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
 	if encrypted_passwd:
-          sudo("usermod -p '%s' %s" % (passwd,name))
+		sudo("usermod -p '%s' %s" % (passwd,name))
 	else:
-	  sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
+		sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 				uid_min=None, uid_max=None, encrypted_passwd=True,
@@ -1060,7 +1059,11 @@ def group_user_del(group, user):
 				if group_for_user:
 						sudo("usermod -G '%s' '%s'" % (",".join(group_for_user), user))
 
-### ssh_<operation> functions
+# =============================================================================
+#
+# SSH
+#
+# =============================================================================
 
 def ssh_keygen(user, keytype="dsa"):
 	"""Generates a pair of ssh keys in the user's home .ssh directory."""
@@ -1077,12 +1080,6 @@ def ssh_keygen(user, keytype="dsa"):
 		return key_file
 	else:
 		return key_file
-
-# =============================================================================
-#
-# MISC
-#
-# =============================================================================
 
 def ssh_authorize(user, key):
 	"""Adds the given key to the '.ssh/authorized_keys' for the given
@@ -1104,6 +1101,12 @@ def ssh_authorize(user, key):
 		file_write(keyf, key,             owner=user, group=user, mode="600")
 		return False
 
+# =============================================================================
+#
+# UPSTART
+#
+# =============================================================================
+
 def upstart_ensure(name):
 	"""Ensures that the given upstart service is running, restarting
 	it if necessary."""
@@ -1113,6 +1116,12 @@ def upstart_ensure(name):
 		sudo("service %s start" % name)
 	else:
 		sudo("service %s restart" % name)
+
+# =============================================================================
+#
+# SYSTEM
+#
+# =============================================================================
 
 def system_uuid_alias_add():
 	"""Adds system UUID alias to /etc/hosts.
@@ -1128,7 +1137,13 @@ def system_uuid():
 	"""Gets a machines UUID (Universally Unique Identifier)."""
 	return sudo('dmidecode -s system-uuid | tr "[A-Z]" "[a-z]"')
 
-#Only tested on Ubuntu!
+# =============================================================================
+#
+# LOCALE
+#
+# =============================================================================
+
+
 def locale_check(locale):
 	locale_data = sudo("locale -a | egrep '^%s$' ; true" % (locale,))
 	return locale_data == locale
