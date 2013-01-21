@@ -21,6 +21,7 @@ setup(
     install_requires = ["fabric",],
     package_dir      = {"":"src"},
     py_modules       = ["cuisine"],
+    license          = "License :: OSI Approved :: BSD License",
     classifiers      = [
         "Programming Language :: Python",
         "Development Status :: 3 - Alpha",
