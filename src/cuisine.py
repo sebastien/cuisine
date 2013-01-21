@@ -2,14 +2,14 @@
 # -----------------------------------------------------------------------------
 # Project   : Cuisine - Functions to write Fabric recipes
 # -----------------------------------------------------------------------------
-# Author    : Sebastien Pierre                            <sebastien@ffctn.com>
-# Author    : Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
-# Author    : Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
-# Author    : Warren Moore (zypper package)               <warren@wamonite.com>
 # License   : Revised BSD License
+# Authors   : Sebastien Pierre                            <sebastien@ffctn.com>
+#             Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
+#             Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
+#             Warren Moore (zypper package)               <warren@wamonite.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 21-Feb-2013
+# Last mod  : 21-Jan-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.5.0"
+VERSION         = "0.5.1"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -198,6 +198,12 @@ def sudo(*args, **kwargs):
 	regular user or sudo."""
 	with mode_sudo():
 		return run(*args, **kwargs)
+
+def connect( host ):
+	"""Sets Fabric's current host to the given host. This is useful when
+	using Cuisine in standalone."""
+	# See http://docs.fabfile.org/en/1.3.2/usage/library.html
+	fabric.api.env.host_string = host
 
 # =============================================================================
 #
@@ -357,7 +363,10 @@ def file_local_read(location):
 def file_read(location):
 	"""Reads the *remote* file at the given location."""
 	# NOTE: We use base64 here to be sure to preserve the encoding (UNIX/DOC/MAC) of EOLs
-	return base64.b64decode(run('cat "%s" | openssl base64' % (location)))
+	with fabric.context_managers.settings(
+		fabric.api.hide('stdout')
+	):
+		return base64.b64decode(run('cat "%s" | openssl base64' % (location)))
 
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
@@ -415,16 +424,14 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			#fabric.operations.put(local_path, location, use_sudo=use_sudo)
 			# Hides the output, which is especially important
 			with fabric.context_managers.settings(
-				#fabric.api.hide('warnings', 'running', 'stdout'),
+				fabric.api.hide('stdout'),
 				warn_only=True,
 				**{MODE_SUDO: use_sudo}
 			):
 				# See: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
 				result = run("echo '%s' | openssl base64 -A -d -out \"%s\"" % (base64.b64encode(content), location))
-				if result.failed:
-					fabric.api.abort('Encountered error writing the file %s: %s' % (location, result))
-					
-
+				if "openssl:Error" in result:
+					fabric.api.abort('cuisine.file_write("%s",...) failed because openssl does not support base64 command.' % (location))
 	# Remove the local temp file
 	os.fsync(fd)
 	os.close(fd)
