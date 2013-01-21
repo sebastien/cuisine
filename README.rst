@@ -106,6 +106,14 @@ If you would like to use cuisine without using a `fabfile`, you can call the
     cuisine.mode_local()
     print cuisine.run("echo Hello")
 
+alternatively, you can also directly connect to a server
+
+::
+
+    import cuisine
+    cuisine.connect("my.server.com")
+    print cuisine.run("echo Hello")
+
 If you want to use cuisine within a `fabfile`, simply create a `fabfile`
 with the following content:
 
@@ -117,6 +125,21 @@ with the following content:
         group_ensure("remote_admin")
         user_ensure("admin")
         group_user_ensure("remote_admin", admin")
+
+Troubleshooting
+---------------
+
+If you are encoutering problems, please check the following:
+
+- The user@host is running an SH-compatible (sh, dash, bash, zsh would work)
+- The system has`openssl base64`, `md5sum` and `sha1sum` commands in addition
+  to the basic UNIX ones.
+
+If you still have a problem, simply file a bug report
+here https://github.com/sebastien/cuisine/issues
+
+Right now, cuisine is tested on Ubuntu. Some contributors use it on RHEL
+and CentOS. If you use on a different system, let us know if it works!
 
 Contributing specific implementations
 -------------------------------------
@@ -166,3 +189,5 @@ More?
 If you want more information, you can:
 
 * Read the `presentation on Cuisine <http://ur1.ca/45ku5>`_
+* Read `Cuisine: the Lightweight Chef/Puppet Alternative <http://stackful.io/blog/cuisine-the-lightweight-chefpuppet-alternative/>`_
+
