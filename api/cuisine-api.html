@@ -348,8 +348,8 @@ jQuery(document).ready(function(){
 </div></div><div id='d_r' class='description'><h1>Function <span class='name'>command_ensure</span></h1><div class='representation'><code>command_ensure( command, package=None )</code></div><div class='docstring'>
 <div class='content'><p>Ensures that the given command is present, if not installs the package with the given name, which is the same as the command by default.</p></div>
 
-</div></div><div id='d_s' class='description'><h1>Function <span class='name'>connect</span></h1><div class='representation'><code>connect( host, user='root' )</code></div><div class='docstring'>
-<div class='content'><p>Initiates a connection with the given host and user</p></div>
+</div></div><div id='d_s' class='description'><h1>Function <span class='name'>connect</span></h1><div class='representation'><code>connect( host )</code></div><div class='docstring'>
+<div class='content'><p>Sets Fabric's current host to the given host. This is useful when using Cuisine in standalone.</p></div>
 
 </div></div><div id='d_t' class='description'><h1>Function <span class='name'>dir_attribs</span></h1><div class='representation'><code>dir_attribs( location, mode=None, owner=None, group=None, recursive=False )</code></div><div class='docstring'>
 <div class='content'><p>Updates the mode/owner/group for the given remote directory.</p></div>
@@ -396,7 +396,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_K' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
 <div class='content'><p>Returns the SHA-256 sum (as a hex string) for the remote file at the given location.</p></div>
 
-</div></div><div id='d_L' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x27b9140> )</code></div><div class='docstring'>
+</div></div><div id='d_L' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x1ed01b8> )</code></div><div class='docstring'>
 <div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div>
 
@@ -532,7 +532,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_dc' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
 <div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div>
 
-</div></div><div id='d_ec' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x27ae8c0>, process=<function <lambda> at 0x27ae938> )</code></div><div class='docstring'>
+</div></div><div id='d_ec' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x1ec6938>, process=<function <lambda> at 0x1ec69b0> )</code></div><div class='docstring'>
 <div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div>
 
 </div></div><div id='d_fc' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_gc' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
@@ -577,7 +577,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_tc' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_SUDO_PASSWORD'</code></div><div class='docstring'>
 <div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
-</div></div><div id='d_uc' class='description'><h1>str</h1><div class='representation'><code>'0.5.0'</code></div><div class='docstring'>
+</div></div><div id='d_uc' class='description'><h1>str</h1><div class='representation'><code>'0.5.1'</code></div><div class='docstring'>
 <div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
 </div></div><div id='d_vc' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
@@ -594,14 +594,14 @@ jQuery(document).ready(function(){
 	<div id='d_bc' class='description'><h1>Function <span class='name'>text_get_line</span></h1><div class='representation'><code>text_get_line( text, predicate )</code></div><div class='docstring'>
 <div class='content'><p>Returns the first line that matches the given predicate.</p></div>
 
-</div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x27b9140> )</code></div><div class='docstring'>
+</div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x1ed01b8> )</code></div><div class='docstring'>
 <div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div>
 
 </div></div><div id='d_Wb' class='description'><h1>Function <span class='name'>sudo_password</span></h1><div class='representation'><code>sudo_password( password=None )</code></div><div class='docstring'>
 <div class='content'><p>Sets the password for the sudo command.</p></div>
 
-</div></div><div id='d_eb' class='description'><h1>Function <span class='name'>package_clean_yum</span></h1><div class='representation'><code>package_clean_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ec' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x27ae8c0>, process=<function <lambda> at 0x27ae938> )</code></div><div class='docstring'>
+</div></div><div id='d_eb' class='description'><h1>Function <span class='name'>package_clean_yum</span></h1><div class='representation'><code>package_clean_yum( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ec' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x1ec6938>, process=<function <lambda> at 0x1ec69b0> )</code></div><div class='docstring'>
 <div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div>
 
 </div></div><div id='d_Lb' class='description'><h1>Function <span class='name'>python_package_upgrade_pip</span></h1><div class='representation'><code>python_package_upgrade_pip( package, E=None )</code></div><div class='docstring'>
@@ -610,7 +610,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_ub' class='description'><h1>Function <span class='name'>package_upgrade</span></h1><div class='representation'><code>package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
 <div class='content'><p>Updates every package present on the system.</p></div>
 
-</div></div><div id='d_uc' class='description'><h1>str</h1><div class='representation'><code>'0.5.0'</code></div><div class='docstring'>
+</div></div><div id='d_uc' class='description'><h1>str</h1><div class='representation'><code>'0.5.1'</code></div><div class='docstring'>
 <div class='content'><p>str(object) -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
 </div></div><div id='d_Db' class='description'><h1>Function <span class='name'>python_package_install</span></h1><div class='representation'><code>python_package_install( *args, **kwargs )</code></div><div class='docstring'>
@@ -691,8 +691,8 @@ jQuery(document).ready(function(){
 </div></div><div id='d_rb' class='description'><h1>Function <span class='name'>package_update_apt</span></h1><div class='representation'><code>package_update_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_r' class='description'><h1>Function <span class='name'>command_ensure</span></h1><div class='representation'><code>command_ensure( command, package=None )</code></div><div class='docstring'>
 <div class='content'><p>Ensures that the given command is present, if not installs the package with the given name, which is the same as the command by default.</p></div>
 
-</div></div><div id='d_s' class='description'><h1>Function <span class='name'>connect</span></h1><div class='representation'><code>connect( host, user='root' )</code></div><div class='docstring'>
-<div class='content'><p>Initiates a connection with the given host and user</p></div>
+</div></div><div id='d_s' class='description'><h1>Function <span class='name'>connect</span></h1><div class='representation'><code>connect( host )</code></div><div class='docstring'>
+<div class='content'><p>Sets Fabric's current host to the given host. This is useful when using Cuisine in standalone.</p></div>
 
 </div></div><div id='d_p' class='description'><h1>Function <span class='name'>_init</span></h1><div class='representation'><code>_init(  )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_q' class='description'><h1>Function <span class='name'>command_check</span></h1><div class='representation'><code>command_check( command )</code></div><div class='docstring'>
 <div class='content'><p>Tests if the given command is available on the system.</p></div>
