@@ -637,7 +637,7 @@ def package_remove(package, autoclean=False):
 # -----------------------------------------------------------------------------
 
 def repository_ensure_apt(repository):
-	sudo("add-apt-repository --yes" + repository)
+	sudo("add-apt-repository --yes " + repository)
 
 def package_update_apt(package=None):
 	if package == None:
