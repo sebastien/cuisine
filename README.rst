@@ -78,7 +78,7 @@ by the type of functionality they offer (e.g., `file` for file operations,
         Configures cuisine's behaviour within the current session.
 
     `select_*`
-        Selects a specific option, such as package back-end (`apt`, `yum` or `zypper`)
+        Selects a specific option, such as package back-end (`apt`, `yum`, `zypper`, or `pacman`)
 
 If you're using an interactive Python shell such as
 `IPython <http://ipython.org/>`_ you can easily browse the available
