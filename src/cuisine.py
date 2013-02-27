@@ -55,7 +55,7 @@ OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
 
 AVAILABLE_OPTIONS = dict(
-	package=["apt", "yum", "zypper"],
+	package=["apt", "yum", "zypper", "pacman"],
 	python_package=["easy_install","pip"]
 )
 
@@ -136,7 +136,7 @@ def connect( host, user="root" ):
 # =============================================================================
 
 def select_package( selection=None ):
-	"""Selects the type of package subsystem to use (ex:apt, yum or zypper)."""
+	"""Selects the type of package subsystem to use (ex:apt, yum, zypper, or pacman)."""
 	supported = AVAILABLE_OPTIONS["package"]
 	if not (selection is None):
 		assert selection in supported, "Option must be one of: %s"  % (supported)
@@ -765,6 +765,54 @@ def package_ensure_zypper(package, update=False):
 
 def package_clean_zypper():
 	sudo("zypper --non-interactive clean")
+
+
+# -----------------------------------------------------------------------------
+# PACMAN PACKAGE (Arch)
+# -----------------------------------------------------------------------------
+
+def repository_ensure_pacman(repository):
+	raise Exception("Not implemented for Pacman")
+
+def package_update_pacman(package=None):
+	if package == None:
+		sudo("pacman --noconfirm -Sy")
+	else:
+		if type(package) in (list, tuple):
+			package = " ".join(package)
+		sudo("pacman --noconfirm -S " + package)
+
+def package_upgrade_pacman():
+	sudo("pacman --noconfirm -Syu")
+
+def package_install_pacman(package, update=False):
+	if update:
+		sudo("pacman --noconfirm -Sy")
+	if type(package) in (list, tuple):
+		package = " ".join(package)
+	sudo("pacman --noconfirm -S %s" % (package))
+
+def package_ensure_pacman(package, update=False):
+	"""Ensure apt packages are installed"""
+	if not isinstance(package, basestring):
+		package = " ".join(package)
+	status = run("pacman -Q %s ; true" % package)
+	if ('was not found' in status):
+		package_install_pacman(package, update)
+		return False
+	else:
+		if update:
+			package_update_pacman(package)
+		return True
+
+def package_clean_pacman():
+	sudo("pacman --noconfirm -Sc")
+
+def package_remove_pacman(package, autoclean=False):
+	if autoclean:
+		sudo('pacman --noconfirm -Rs ' + package)
+	else:
+		sudo('pacman --noconfirm -R ' + package)
 
 # =============================================================================
 #
