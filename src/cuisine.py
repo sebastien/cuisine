@@ -464,7 +464,7 @@ def file_upload(remote, local, sudo=None):
 	if not file_exists(remote) or sig != file_md5(remote):
 		if is_local():
 			if use_sudo:
-				sudo('cp "%s" "%s"'%(local,remote))
+				globals()['sudo']('cp "%s" "%s"'%(local,remote))
 			else:
 				run('cp "%s" "%s"'%(local,remote))
 		else:
