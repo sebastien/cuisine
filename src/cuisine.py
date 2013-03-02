@@ -404,7 +404,7 @@ def file_attribs_get(location):
 	else:
 		return None
 
-def file_write(location, content, mode=None, owner=None, group=None, sudo=None, check=True):
+def file_write(location, content, mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
 	"""Writes the given content to the file at the given remote
 	location, optionally setting mode/owner/group."""
 	# FIXME: Big files are never transferred properly!
@@ -419,19 +419,24 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			with mode_sudo(use_sudo):
 				run('cp "%s" "%s"'%(local_path,location))
 		else:
-			# FIXME: Put is not working properly, I often get stuff like:
-			# Fatal error: sudo() encountered an error (return code 1) while executing 'mv "3dcf7213c3032c812769e7f355e657b2df06b687" "/etc/authbind/byport/80"'
-			#fabric.operations.put(local_path, location, use_sudo=use_sudo)
-			# Hides the output, which is especially important
-			with fabric.context_managers.settings(
-				fabric.api.hide('stdout'),
-				warn_only=True,
-				**{MODE_SUDO: use_sudo}
-			):
-				# See: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
-				result = run("echo '%s' | openssl base64 -A -d -out \"%s\"" % (base64.b64encode(content), location))
-				if "openssl:Error" in result:
-					fabric.api.abort('cuisine.file_write("%s",...) failed because openssl does not support base64 command.' % (location))
+			if scp:
+				scp_cmd = 'scp "%s" "%s"@"%s":"%s"'%(local_path,fabric.api.env.user,fabric.api.env.host_string,location)
+				print('[localhost] ' +  scp_cmd)
+				run_local(scp_cmd)
+			else:
+				# FIXME: Put is not working properly, I often get stuff like:
+				# Fatal error: sudo() encountered an error (return code 1) while executing 'mv "3dcf7213c3032c812769e7f355e657b2df06b687" "/etc/authbind/byport/80"'
+				#fabric.operations.put(local_path, location, use_sudo=use_sudo)
+				# Hides the output, which is especially important
+				with fabric.context_managers.settings(
+					fabric.api.hide('stdout'),
+					warn_only=True,
+					**{MODE_SUDO: use_sudo}
+				):
+					# See: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
+					result = run("echo '%s' | openssl base64 -A -d -out \"%s\"" % (base64.b64encode(content), location))
+					if "openssl:Error" in result:
+						fabric.api.abort('cuisine.file_write("%s",...) failed because openssl does not support base64 command.' % (location))
 	# Remove the local temp file
 	os.fsync(fd)
 	os.close(fd)
@@ -444,15 +449,15 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	with mode_sudo(use_sudo):
 		file_attribs(location, mode=mode, owner=owner, group=group)
 
-def file_ensure(location, mode=None, owner=None, group=None):
+def file_ensure(location, mode=None, owner=None, group=None, scp=False):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
 	if file_exists(location):
 		file_attribs(location,mode=mode,owner=owner,group=group)
 	else:
-		file_write(location,"",mode=mode,owner=owner,group=group)
+		file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
 
-def file_upload(remote, local, sudo=None):
+def file_upload(remote, local, sudo=None, scp=False):
 	"""Uploads the local file to the remote location only if the remote location does not
 	exists or the content are different."""
 	# FIXME: Big files are never transferred properly!
@@ -468,7 +473,12 @@ def file_upload(remote, local, sudo=None):
 			else:
 				run('cp "%s" "%s"'%(local,remote))
 		else:
-			fabric.operations.put(local, remote, use_sudo=use_sudo)
+			if scp:
+				scp_cmd = 'scp "%s" "%s"@"%s":"%s"'%(local,fabric.api.env.user,fabric.api.env.host_string,remote)
+				print('[localhost] ' +  scp_cmd)
+				run_local(scp_cmd)
+			else:
+				fabric.operations.put(local, remote, use_sudo=use_sudo)
 
 def file_update(location, updater=lambda x: x):
 	"""Updates the content of the given by passing the existing
