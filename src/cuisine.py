@@ -420,7 +420,8 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 				run('cp "%s" "%s"'%(local_path,location))
 		else:
 			if scp:
-				scp_cmd = 'scp "%s" "%s"@"%s":"%s"'%(local_path,fabric.api.env.user,fabric.api.env.host_string,location)
+				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
+				scp_cmd = 'scp "%s" "%s"@"%s":"%s"'%(local_path,fabric.api.env.user,hostname,location)
 				print('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
@@ -474,7 +475,8 @@ def file_upload(remote, local, sudo=None, scp=False):
 				run('cp "%s" "%s"'%(local,remote))
 		else:
 			if scp:
-				scp_cmd = 'scp "%s" "%s"@"%s":"%s"'%(local,fabric.api.env.user,fabric.api.env.host_string,remote)
+				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
+				scp_cmd = 'scp "%s" "%s"@"%s":"%s"'%(local,fabric.api.env.user,hostname,remote)
 				print('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
