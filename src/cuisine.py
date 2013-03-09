@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.5.2"
+VERSION         = "0.5.3"
 RE_SPACES       = re.compile("[\s\t]+")
 MAC_EOL         = "\n"
 UNIX_EOL        = "\n"
@@ -124,11 +124,6 @@ def is_local():  return mode(MODE_LOCAL)
 def is_remote(): return not mode(MODE_LOCAL)
 def is_sudo():   return mode(MODE_SUDO)
 
-def connect( host, user="root" ):
-	"""Initiates a connection with the given host and user"""
-	fabric.api.env.host_string = host
-	fabric.api.env.user        = user
-
 # =============================================================================
 #
 # OPTIONS
@@ -204,6 +199,7 @@ def connect( host ):
 	using Cuisine in standalone."""
 	# See http://docs.fabfile.org/en/1.3.2/usage/library.html
 	fabric.api.env.host_string = host
+	fabric.api.env.user        = user
 
 # =============================================================================
 #
