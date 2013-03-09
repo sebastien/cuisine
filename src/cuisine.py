@@ -194,7 +194,7 @@ def sudo(*args, **kwargs):
 	with mode_sudo():
 		return run(*args, **kwargs)
 
-def connect( host ):
+def connect( host, user="root"):
 	"""Sets Fabric's current host to the given host. This is useful when
 	using Cuisine in standalone."""
 	# See http://docs.fabfile.org/en/1.3.2/usage/library.html
