@@ -1153,6 +1153,7 @@ def ssh_authorize(user, key):
 	"""Adds the given key to the '.ssh/authorized_keys' for the given
 	user."""
 	d = user_check(user)
+	group = d["gid"]
 	keyf = d["home"] + "/.ssh/authorized_keys"
 	if key[-1] != "\n":
 		key += "\n"
@@ -1165,8 +1166,8 @@ def ssh_authorize(user, key):
 			return True
 	else:
 		# Make sure that .ssh directory exists, see #42
-		dir_ensure(os.path.dirname(keyf), owner=user, group=user, mode="700")
-		file_write(keyf, key,             owner=user, group=user, mode="600")
+		dir_ensure(os.path.dirname(keyf), owner=user, group=group, mode="700")
+		file_write(keyf, key,             owner=user, group=group, mode="600")
 		return False
 
 # =============================================================================
