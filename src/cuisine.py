@@ -9,7 +9,7 @@
 #             Warren Moore (zypper package)               <warren@wamonite.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 21-Jan-2013
+# Last mod  : 11-Mar-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -43,16 +43,16 @@ from __future__ import with_statement
 import base64, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION         = "0.5.4"
-RE_SPACES       = re.compile("[\s\t]+")
-MAC_EOL         = "\n"
-UNIX_EOL        = "\n"
-WINDOWS_EOL     = "\r\n"
-MODE_LOCAL      = "CUISINE_MODE_LOCAL"
-MODE_SUDO       = "CUISINE_MODE_SUDO"
-SUDO_PASSWORD   = "CUISINE_SUDO_PASSWORD"
-OPTION_PACKAGE  = "CUISINE_OPTION_PACKAGE"
-OPTION_PYTHON_PACKAGE  = "CUISINE_OPTION_PYTHON_PACKAGE"
+VERSION               = "0.5.5"
+RE_SPACES             = re.compile("[\s\t]+")
+MAC_EOL               = "\n"
+UNIX_EOL              = "\n"
+WINDOWS_EOL           = "\r\n"
+MODE_LOCAL            = "CUISINE_MODE_LOCAL"
+MODE_SUDO             = "CUISINE_MODE_SUDO"
+SUDO_PASSWORD         = "CUISINE_SUDO_PASSWORD"
+OPTION_PACKAGE        = "CUISINE_OPTION_PACKAGE"
+OPTION_PYTHON_PACKAGE = "CUISINE_OPTION_PYTHON_PACKAGE"
 
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper", "pacman"],
@@ -973,16 +973,16 @@ def command_ensure(command, package=None):
 # =============================================================================
 
 def user_passwd(name, passwd, encrypted_passwd=True):
-	"""Sets the given user password."""
+	"""Sets the given user password. Password is expected to be encrypted by default."""
 	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
 	if encrypted_passwd:
 		sudo("usermod -p '%s' %s" % (passwd,name))
 	else:
+		# NOTE: We use base64 here in case the password contains special chars
 		sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
-				uid_min=None, uid_max=None, encrypted_passwd=True,
-				fullname=None):
+	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None):
 	"""Creates the user with the given name, optionally giving a
 	specific password/home/uid/gid/shell."""
 	options = ["-m"]
@@ -1036,7 +1036,7 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fu
 	passwd/home/uid/gid/shell."""
 	d = user_check(name)
 	if not d:
-		user_create(name, passwd, home, uid, gid, shell)
+		user_create(name, passwd, home, uid, gid, shell, encrypted_passwd=encrypted_passwd)
 	else:
 		options = []
 		if home != None and d.get("home") != home:
