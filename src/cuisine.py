@@ -9,7 +9,7 @@
 #             Warren Moore (zypper package)               <warren@wamonite.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 11-Mar-2013
+# Last mod  : 15-Mar-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -43,7 +43,7 @@ from __future__ import with_statement
 import base64, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION               = "0.5.5"
+VERSION               = "0.5.6"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
 UNIX_EOL              = "\n"
@@ -1036,7 +1036,7 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fu
 	passwd/home/uid/gid/shell."""
 	d = user_check(name)
 	if not d:
-		user_create(name, passwd, home, uid, gid, shell, encrypted_passwd=encrypted_passwd)
+		user_create(name, passwd, home, uid, gid, shell, fullname=fullname, encrypted_passwd=encrypted_passwd)
 	else:
 		options = []
 		if home != None and d.get("home") != home:

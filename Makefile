@@ -24,6 +24,9 @@ doc: $(DOC_SOURCES)
 	#sphinx-build -b html docs api
 	sdoc         --markup=texto src/cuisine.py api/cuisine-api.html
 
+test:
+	python tests/all.py
+
 MANIFEST: $(MANIFEST)
 	echo $(MANIFEST) | xargs -n1 | sort | uniq > $@
 
