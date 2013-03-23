@@ -650,24 +650,24 @@ def repository_ensure_apt(repository):
 
 def package_update_apt(package=None):
 	if package == None:
-		sudo("apt-get --yes update")
+		sudo("apt-get -q --yes update")
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade ' + package)
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade ' + package)
 
 def package_upgrade_apt(distupgrade=False):
 	if distupgrade:
-		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade')
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade')
 	else:
-		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
 
 def package_install_apt(package, update=False):
 	if update:
-		sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update')
+		sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update')
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install %s" % (package))
+	sudo("DEBIAN_FRONTEND=noninteractive apt-get -q --yes install %s" % (package))
 
 def package_ensure_apt(package, update=False):
 	"""Ensure apt packages are installed"""
@@ -685,12 +685,12 @@ def package_ensure_apt(package, update=False):
 def package_clean_apt(package=None):
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("DEBIAN_FRONTEND=noninteractive apt-get -y --purge remove %s" % package)
+	sudo("DEBIAN_FRONTEND=noninteractive apt-get -q -y --purge remove %s" % package)
 
 def package_remove_apt(package, autoclean=False):
-	sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove ' + package)
+	sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove ' + package)
 	if autoclean:
-		sudo('apt-get --yes autoclean')
+		sudo('apt-get -q --yes autoclean')
 
 # -----------------------------------------------------------------------------
 # YUM PACKAGE (RedHat, CentOS)
