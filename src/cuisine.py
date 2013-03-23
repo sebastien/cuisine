@@ -867,7 +867,7 @@ def python_package_upgrade_pip(package,E=None):
 		E='-E %s' %E
 	else:
 		E=''
-	run('pip upgrade %s %s' %(E,package))
+	run('pip install --upgrade %s %s' %(E,package))
 
 def python_package_install_pip(package=None,r=None,pip=None):
 	'''
