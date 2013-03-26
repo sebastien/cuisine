@@ -40,7 +40,8 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, hashlib, os, re, string, tempfile, subprocess, types, functools, StringIO
+import base64, hashlib, os, re, string, tempfile, subprocess, types
+import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
 VERSION               = "0.5.6"
@@ -1173,6 +1174,27 @@ def ssh_authorize(user, key):
 		dir_ensure(os.path.dirname(keyf), owner=user, group=group, mode="700")
 		file_write(keyf, key,             owner=user, group=group, mode="600")
 		return False
+
+def ssh_unauthorize(user, key):
+	"""Removes the given key to the '.ssh/authorized_keys' for the given
+	user."""
+	d = user_check(user, need_passwd=False)
+	group = d["gid"]
+	keyf = d["home"] + "/.ssh/authorized_keys"
+	if file_exists(keyf):
+		tmpfile = tempfile.NamedTemporaryFile()
+		fabric.operations.get(keyf, tmpfile.name)
+		keys = [line.strip() for line in tmpfile]
+		tmpfile.close()
+		if key in keys:
+			tmpfile = tempfile.NamedTemporaryFile()
+			keys.remove(key)
+			content = '\n'.join(keys) + '\n'
+			tmpfile.write(content)
+			tmpfile.flush()
+			fabric.operations.put(tmpfile.name, keyf, mode=0600)
+			tmpfile.close()
+	return True
 
 # =============================================================================
 #
