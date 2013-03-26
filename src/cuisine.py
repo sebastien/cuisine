@@ -896,7 +896,7 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
 	path to a virtualenv. If provided, it will be added to the pip call.
 	'''
 	#FIXME: At the moment, I do not know how to check for the existence of a pip package and
-	# I am not sure if this really makes sense, based on the pip built in functionality. 
+	# I am not sure if this really makes sense, based on the pip built in functionality.
 	# So I just call the install functions
 	pip=pip or fabric.api.env.get('pip','pip')
 	python_package_install_pip(package,r,pip)
@@ -908,7 +908,7 @@ def python_package_remove_pip(package, E=None, pip=None):
 	is equivalent to the "-r" parameter of pip.
 	Either "package" or "r" needs to be provided
 	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-	path to a virtualenv. If provided, it will be added to the pip call. 
+	path to a virtualenv. If provided, it will be added to the pip call.
 	'''
 	pip=pip or fabric.api.env.get('pip','pip')
 	return run('%s uninstall %s' %(pip,package))
@@ -934,7 +934,7 @@ def python_package_ensure_easy_install(package):
 	The "package" argument, defines the name of the package that will be ensured.
 	'''
 	#FIXME: At the moment, I do not know how to check for the existence of a py package and
-	# I am not sure if this really makes sense, based on the easy_install built in functionality. 
+	# I am not sure if this really makes sense, based on the easy_install built in functionality.
 	# So I just call the install functions
 	python_package_install_easy_install(package)
 
@@ -943,7 +943,7 @@ def python_package_remove_easy_install(package):
 	The "package" argument, defines the name of the package that will be removed.
 	'''
 	#FIXME: this will not remove egg file etc.
-	run('easy_install -m %s' %package) 
+	run('easy_install -m %s' %package)
 
 # =============================================================================
 #
@@ -1007,25 +1007,29 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	if passwd:
 		user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
 
-def user_check(name=None, uid=None):
+def user_check(name=None, uid=None, need_passwd=True):
 	"""Checks if there is a user defined with the given name,
 	returning its information as a
 	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
-	or 'None' if the user does not exists."""
+	or 'None' if the user does not exists.
+	need_passwd (Boolean) indicates if password to be included in result or not.
+		If set to True it parses /etc/shadow and needs sudo access
+	"""
 	assert name!=None or uid!=None,     "user_check: either `uid` or `name` should be given"
 	assert name is None or uid is None,"user_check: `uid` and `name` both given, only one should be provided"
 	if   name != None:
-		d = sudo("cat /etc/passwd | egrep '^%s:' ; true" % (name))
+		d = run("cat /etc/passwd | egrep '^%s:' ; true" % (name))
 	elif uid != None:
-		d = sudo("cat /etc/passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+		d = run("cat /etc/passwd | egrep '^.*:.*:%s:' ; true" % (uid))
 	results = {}
 	s = None
 	if d:
 		d = d.split(":")
 		assert len(d) >= 7, "/etc/passwd entry is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
 		results = dict(name=d[0], uid=d[2], gid=d[3], fullname=d[4], home=d[5], shell=d[6])
-		s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
-		if s: results['passwd'] = s
+		if need_passwd:
+			s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
+			if s: results['passwd'] = s
 	if results:
 		return results
 	else:
@@ -1152,7 +1156,7 @@ def ssh_keygen(user, keytype="dsa"):
 def ssh_authorize(user, key):
 	"""Adds the given key to the '.ssh/authorized_keys' for the given
 	user."""
-	d = user_check(user)
+	d = user_check(user, need_passwd=False)
 	group = d["gid"]
 	keyf = d["home"] + "/.ssh/authorized_keys"
 	if key[-1] != "\n":
