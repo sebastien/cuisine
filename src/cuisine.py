@@ -383,7 +383,10 @@ def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	location."""
 	recursive = recursive and "-R " or ""
 	if mode:
-		run('chmod %s %s "%s"' % (recursive, mode,  location))
+		if recursive:
+			run('find "%s" -type f -exec chmod %s {} \;' % (location, mode))
+		else:
+			run('chmod %s "%s"' % (mode,  location))
 	if owner:
 		run('chown %s %s "%s"' % (recursive, owner, location))
 	if group:
@@ -582,7 +585,10 @@ def process_kill(name, signal=9, exact=False):
 
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
-	file_attribs(location, mode, owner, group, recursive)
+	if mode and recursive:
+		run('find "%s" -type d -exec chmod %s {} \;' % (location, mode))
+	else:
+		file_attribs(location, mode, owner, group, recursive)
 
 def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
