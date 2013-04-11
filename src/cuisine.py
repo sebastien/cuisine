@@ -1014,22 +1014,22 @@ def user_check(name=None, uid=None, need_passwd=True):
 	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
 	or 'None' if the user does not exists.
 	need_passwd (Boolean) indicates if password to be included in result or not.
-		If set to True it parses /etc/shadow and needs sudo access
+		If set to True it parses 'getent shadow' and needs sudo access
 	"""
 	assert name!=None or uid!=None,     "user_check: either `uid` or `name` should be given"
 	assert name is None or uid is None,"user_check: `uid` and `name` both given, only one should be provided"
 	if   name != None:
-		d = run("cat /etc/passwd | egrep '^%s:' ; true" % (name))
+		d = run("getent passwd | egrep '^%s:' ; true" % (name))
 	elif uid != None:
-		d = run("cat /etc/passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+		d = run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
 	results = {}
 	s = None
 	if d:
 		d = d.split(":")
-		assert len(d) >= 7, "/etc/passwd entry is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
+		assert len(d) >= 7, "passwd entry returned by getent is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
 		results = dict(name=d[0], uid=d[2], gid=d[3], fullname=d[4], home=d[5], shell=d[6])
 		if need_passwd:
-			s = sudo("cat /etc/shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
+			s = sudo("getent shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
 			if s: results['passwd'] = s
 	if results:
 		return results
@@ -1085,7 +1085,7 @@ def group_check(name):
 	returning its information as a
 	'{"name":<str>,"gid":<str>,"members":<list[str]>}' or 'None' if
 	the group does not exists."""
-	group_data = run("cat /etc/group | egrep '^%s:' ; true" % (name))
+	group_data = run("getent group | egrep '^%s:' ; true" % (name))
 	if group_data:
 		name, _, gid, members = group_data.split(":", 4)
 		return dict(name=name, gid=gid,
@@ -1128,7 +1128,7 @@ def group_user_del(group, user):
 		"""remove the given user from the given group."""
 		assert group_check(group), "Group does not exist: %s" % (group)
 		if group_user_check(group, user):
-				group_for_user = run("cat /etc/group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
+				group_for_user = run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
 				if group_for_user:
 						sudo("usermod -G '%s' '%s'" % (",".join(group_for_user), user))
 
