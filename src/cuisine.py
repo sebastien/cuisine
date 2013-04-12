@@ -983,10 +983,11 @@ def user_passwd(name, passwd, encrypted_passwd=True):
 		sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
-	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None):
+	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
 	"""Creates the user with the given name, optionally giving a
 	specific password/home/uid/gid/shell."""
-	options = ["-m"]
+	options = []
+
 	if home:
 		options.append("-d '%s'" % (home))
 	if uid:
@@ -1003,7 +1004,9 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	if uid_max:
 		options.append("-K UID_MAX='%s'" % (uid_max))
 	if fullname:
-		options.append("--gecos='%s'" % (fullname))
+		options.append("-c '%s'" % (fullname))
+	if createhome:
+		options.append("-m")
 	sudo("useradd %s '%s'" % (" ".join(options), name))
 	if passwd:
 		user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
