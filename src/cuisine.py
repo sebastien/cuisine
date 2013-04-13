@@ -1134,6 +1134,8 @@ def group_user_del(group, user):
 				group_for_user = run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
 				if group_for_user:
 						sudo("usermod -G '%s' '%s'" % (",".join(group_for_user), user))
+				else:
+						sudo("usermod -G '' '%s'" % (user))
 
 # =============================================================================
 #
