@@ -9,7 +9,7 @@
 #             Warren Moore (zypper package)               <warren@wamonite.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 15-Mar-2013
+# Last mod  : 17-Apr-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -44,7 +44,7 @@ import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION               = "0.5.6"
+VERSION               = "0.5.7"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
 UNIX_EOL              = "\n"
