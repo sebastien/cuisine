@@ -56,7 +56,7 @@ OPTION_PACKAGE        = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE = "CUISINE_OPTION_PYTHON_PACKAGE"
 
 AVAILABLE_OPTIONS = dict(
-	package=["apt", "yum", "zypper", "pacman"],
+	package=["apt", "yum", "zypper", "pacman", "emerge"],
 	python_package=["easy_install","pip"]
 )
 
@@ -132,7 +132,7 @@ def is_sudo():   return mode(MODE_SUDO)
 # =============================================================================
 
 def select_package( selection=None ):
-	"""Selects the type of package subsystem to use (ex:apt, yum, zypper, or pacman)."""
+	"""Selects the type of package subsystem to use (ex:apt, yum, zypper, pacman, or emerge)."""
 	supported = AVAILABLE_OPTIONS["package"]
 	if not (selection is None):
 		assert selection in supported, "Option must be one of: %s"  % (supported)
@@ -822,6 +822,59 @@ def package_remove_pacman(package, autoclean=False):
 		sudo('pacman --noconfirm -Rs ' + package)
 	else:
 		sudo('pacman --noconfirm -R ' + package)
+
+
+# -----------------------------------------------------------------------------
+# EMERGE PACKAGE (Gentoo Portage)
+# added by davidmmiller - 20130417 - v0.1 (status - works for me...)
+# -----------------------------------------------------------------------------
+
+def repository_ensure_emerge(repository):
+	raise Exception("Not implemented for emerge")
+	"""This will be used to add Portage overlays in a future update."""
+
+def package_upgrade_emerge(distupgrade=False):
+		sudo("emerge -q --update --deep --newuse --with-bdeps=y world")
+
+def package_update_emerge(package=None):
+	if package == None:
+		sudo("emerge -q --sync")
+	else:
+		if type(package) in (list, tuple):
+			package = " ".join(package)
+		sudo("emerge -q --update --newuse %s" % package)
+
+def package_install_emerge(package, update=False):
+	if update:
+		sudo("emerge -q --sync")
+	if type(package) in (list, tuple):
+		package = " ".join(package)
+	sudo("emerge -q %s" % (package))
+
+def package_ensure_emerge(package, update=False):
+	if not isinstance(package, basestring):
+		package = " ".join(package)
+	if update:
+		sudo("emerge -q --update --newuse %s" % package)
+	else:
+		sudo("emerge -q --noreplace %s" % package)
+
+def package_clean_emerge(package=None):
+	if type(package) in (list, tuple):
+		package = " ".join(package)
+	if package:
+		sudo("CONFIG_PROTECT='-*' emerge --quiet-unmerge-warn --unmerge %s" % package)
+	else:
+		sudo('emerge -q --depclean')
+		sudo('revdep-rebuild -q')
+
+def package_remove_emerge(package, autoclean=False):
+	if autoclean:
+		sudo('emerge --quiet-unmerge-warn --unmerge ' + package)
+		sudo('emerge -q --depclean')
+		sudo('revdep-rebuild -q')
+	else:
+		sudo('emerge --quiet-unmerge-warn --unmerge ' + package)
 
 # =============================================================================
 #
