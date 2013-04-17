@@ -378,16 +378,10 @@ def file_is_dir(location):
 def file_is_link(location):
 	return run("test -L '%s' && echo OK ; true" % (location)).endswith("OK")
 
-def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
+def file_attribs(location, mode=None, owner=None, group=None):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
-	recursive = recursive and "-R " or ""
-	if mode:
-		run('chmod %s %s "%s"' % (recursive, mode,  location))
-	if owner:
-		run('chown %s %s "%s"' % (recursive, owner, location))
-	if group:
-		run('chgrp %s %s "%s"' % (recursive, group, location))
+	return dir_attribs(location, mode, owner, group, False)
 
 def file_attribs_get(location):
 	"""Return mode, owner, and group for remote path.
@@ -582,7 +576,12 @@ def process_kill(name, signal=9, exact=False):
 
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
-	file_attribs(location, mode, owner, group, recursive)
+	if mode:
+		run('chmod %s "%s"' % (recursive, mode,  location))
+	if owner:
+		run('chown %s "%s"' % (recursive, owner, location))
+	if group:
+		run('chgrp %s "%s"' % (recursive, group, location))
 
 def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
