@@ -2,3 +2,5 @@ api/.doctrees
 .buildinfo
 src/cuisine.egg-info
 *.pyc
+build/*
+dist/*

@@ -210,10 +210,10 @@ def connect( host, user="root"):
 
 def dispatch(prefix=None):
 	"""Dispatches the current function to specific implementation. The `prefix`
-	parameter indicates the common option prefix, and the `option_select()`
+	parameter indicates the common option prefix, and the `select_[option]()`
 	function will determine the function suffix.
 
-	For instance the package functions are defined like that:
+	For instance the package functions are defined like this:
 
 	{{{
 	@dispatch("package")
@@ -228,7 +228,7 @@ def dispatch(prefix=None):
 	and then when a user does
 
 	{{{
-	cuisine.option_select("package", "yum")
+	cuisine.select_package("yum")
 	cuisine.package_ensure(...)
 	}}}
 
