@@ -211,6 +211,11 @@ class Files(unittest.TestCase):
 		finally:
 			os.unlink(path)
 
+	def attribs( self ):
+		cuisine.file_write("/tmp/cuisine.attribs.text")
+		cuisine.file_attribs("/tmp/cuisine.attribs.text", "777")
+		cuisine.file_unlink("/tmp/cuisine.attribs.text")
+
 
 class Packages(unittest.TestCase):
 
