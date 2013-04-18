@@ -576,12 +576,13 @@ def process_kill(name, signal=9, exact=False):
 
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
+	recursive = recursive and "-R " or ""
 	if mode:
-		run('chmod %s "%s"' % (recursive, mode,  location))
+		run('chmod %s %s "%s"' % (recursive, mode,  location))
 	if owner:
-		run('chown %s "%s"' % (recursive, owner, location))
+		run('chown %s %s "%s"' % (recursive, owner, location))
 	if group:
-		run('chgrp %s "%s"' % (recursive, group, location))
+		run('chgrp %s %s "%s"' % (recursive, group, location))
 
 def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
