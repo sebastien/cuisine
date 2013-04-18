@@ -210,10 +210,10 @@ def connect( host, user="root"):
 
 def dispatch(prefix=None):
 	"""Dispatches the current function to specific implementation. The `prefix`
-	parameter indicates the common option prefix, and the `option_select()`
+	parameter indicates the common option prefix, and the `select_[option]()`
 	function will determine the function suffix.
 
-	For instance the package functions are defined like that:
+	For instance the package functions are defined like this:
 
 	{{{
 	@dispatch("package")
@@ -228,7 +228,7 @@ def dispatch(prefix=None):
 	and then when a user does
 
 	{{{
-	cuisine.option_select("package", "yum")
+	cuisine.select_package("yum")
 	cuisine.package_ensure(...)
 	}}}
 
@@ -576,7 +576,7 @@ def process_kill(name, signal=9, exact=False):
 
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
-	recursive = "-R" if recursive else ""
+	recursive = recursive and "-R " or ""
 	if mode:
 		run('chmod %s %s "%s"' % (recursive, mode,  location))
 	if owner:
