@@ -396,7 +396,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_K' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
 <div class='content'><p>Returns the SHA-256 sum (as a hex string) for the remote file at the given location.</p></div>
 
-</div></div><div id='d_L' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x2b23050> )</code></div><div class='docstring'>
+</div></div><div id='d_L' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0xfd4050> )</code></div><div class='docstring'>
 <div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div>
 
@@ -538,7 +538,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_sc' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
 <div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div>
 
-</div></div><div id='d_tc' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x2b1a7d0>, process=<function <lambda> at 0x2b1a848> )</code></div><div class='docstring'>
+</div></div><div id='d_tc' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0xfcb7d0>, process=<function <lambda> at 0xfcb848> )</code></div><div class='docstring'>
 <div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div>
 
 </div></div><div id='d_uc' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_vc' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
@@ -583,7 +583,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_Ic' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_SUDO_PASSWORD'</code></div><div class='docstring'>
 <div class='content'><p>str(object='') -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
-</div></div><div id='d_Jc' class='description'><h1>str</h1><div class='representation'><code>'0.5.7'</code></div><div class='docstring'>
+</div></div><div id='d_Jc' class='description'><h1>str</h1><div class='representation'><code>'0.5.8'</code></div><div class='docstring'>
 <div class='content'><p>str(object='') -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
 </div></div><div id='d_Kc' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
@@ -597,7 +597,7 @@ jQuery(document).ready(function(){
 </div>
 <div id='hidden'>
 	<!-- hidden-snip -->
-	<div id='d_bc' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x2b23050> )</code></div><div class='docstring'>
+	<div id='d_bc' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0xfd4050> )</code></div><div class='docstring'>
 <div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div>
 
@@ -775,7 +775,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_dc' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
 <div class='content'><p>A wrapper to Fabric's run/sudo commands that takes into account the <code>MODE_LOCAL</code> and <code>MODE_SUDO</code> modes of Cuisine.</p></div>
 
-</div></div><div id='d_db' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_tc' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x2b1a7d0>, process=<function <lambda> at 0x2b1a848> )</code></div><div class='docstring'>
+</div></div><div id='d_db' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_tc' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0xfcb7d0>, process=<function <lambda> at 0xfcb848> )</code></div><div class='docstring'>
 <div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div>
 
 </div></div><div id='d_tb' class='description'><h1>Function <span class='name'>package_install_zypper</span></h1><div class='representation'><code>package_install_zypper( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_Ob' class='description'><h1>Function <span class='name'>python_package_ensure_pip</span></h1><div class='representation'><code>python_package_ensure_pip( package=None, r=None, pip=None )</code></div><div class='docstring'>
@@ -888,7 +888,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_sb' class='description'><h1>Function <span class='name'>package_install_yum</span></h1><div class='representation'><code>package_install_yum( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_sc' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
 <div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div>
 
-</div></div><div id='d_Jc' class='description'><h1>str</h1><div class='representation'><code>'0.5.7'</code></div><div class='docstring'>
+</div></div><div id='d_Jc' class='description'><h1>str</h1><div class='representation'><code>'0.5.8'</code></div><div class='docstring'>
 <div class='content'><p>str(object='') -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
 </div></div><div id='d_Jb' class='description'><h1>Function <span class='name'>package_upgrade_zypper</span></h1><div class='representation'><code>package_upgrade_zypper(  )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='a' class='root'><div class='name'><a href='javascript:describeElement("a");'>cuisine</a></div><div class='title'>Classes</div class='title'><div class='group'><div class='slot documented'><span
