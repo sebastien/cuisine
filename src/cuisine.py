@@ -9,7 +9,7 @@
 #             Warren Moore (zypper package)               <warren@wamonite.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 17-Apr-2013
+# Last mod  : 02-May-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -44,7 +44,7 @@ import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION               = "0.5.8"
+VERSION               = "0.6.0"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
 UNIX_EOL              = "\n"
@@ -54,6 +54,7 @@ MODE_SUDO             = "CUISINE_MODE_SUDO"
 SUDO_PASSWORD         = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE        = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE = "CUISINE_OPTION_PYTHON_PACKAGE"
+CMD_APT_GET           = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
 
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper", "pacman", "emerge"],
@@ -649,49 +650,67 @@ def repository_ensure_apt(repository):
 	package_ensure_apt('python-software-properties')
 	sudo("add-apt-repository --yes " + repository)
 
+def apt_get(cmd):
+	cmd    = CMD_APT_GET + cmd
+	result = sudo(cmd)
+	# If the installation process was interrupted, we might get the following message
+	# E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem.
+	if "sudo dpkg --configure -a" in result:
+		sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
+	return sudo(cmd)
+
 def package_update_apt(package=None):
 	if package == None:
-		sudo("apt-get -q --yes update")
+		return apt_get("-q --yes update")
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade ' + package)
+		return apt_get(' upgrade ' + package)
 
 def package_upgrade_apt(distupgrade=False):
 	if distupgrade:
-		sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade')
+		return apt_get("dist-upgrade")
 	else:
-		sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade')
+		return apt_get("upgrade")
 
 def package_install_apt(package, update=False):
-	if update:
-		sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update')
+	if update: apt_get("update")
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("DEBIAN_FRONTEND=noninteractive apt-get -q --yes install %s" % (package))
+	return apt_get("install " + package)
 
 def package_ensure_apt(package, update=False):
 	"""Ensure apt packages are installed"""
-	if not isinstance(package, basestring):
-		package = " ".join(package)
-	status = run("dpkg-query -W -f='${Status} ' %s ; true" % package)
-	if ('No packages found' in status) or ('not-installed' in status) or ("installed" not in status):
-		package_install_apt(package)
-		return False
+	if isinstance(package, basestring):
+		package = package.split("")
+	res = {}
+	for p in package:
+		p = p.strip()
+		if not p: continue
+		# The most reliable way to detect success is to use the command status
+		# and suffix it with OK. This won't break with other locales.
+		status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
+		if not status.endswith("OK"):
+			package_install_apt(p)
+			res[p]=False
+		else:
+			if update:
+				package_update_apt(p)
+			res[p]=True
+	if len(res) == 1:
+		return res.values()[0]
 	else:
-		if update:
-			package_update_apt(package)
-		return True
+		return res
 
 def package_clean_apt(package=None):
 	if type(package) in (list, tuple):
 		package = " ".join(package)
-	sudo("DEBIAN_FRONTEND=noninteractive apt-get -q -y --purge remove %s" % package)
+	return apt_get("-y --purge remove %s" % package)
 
 def package_remove_apt(package, autoclean=False):
-	sudo('DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove ' + package)
+	apt_get('remove ' + package)
 	if autoclean:
-		sudo('apt-get -q --yes autoclean')
+		apt_get("autoclean")
 
 # -----------------------------------------------------------------------------
 # YUM PACKAGE (RedHat, CentOS)
@@ -774,7 +793,6 @@ def package_ensure_zypper(package, update=False):
 
 def package_clean_zypper():
 	sudo("zypper --non-interactive clean")
-
 
 # -----------------------------------------------------------------------------
 # PACMAN PACKAGE (Arch)
