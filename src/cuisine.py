@@ -44,7 +44,7 @@ import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION               = "0.6.0"
+VERSION               = "0.6.1"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
 UNIX_EOL              = "\n"
@@ -682,7 +682,7 @@ def package_install_apt(package, update=False):
 def package_ensure_apt(package, update=False):
 	"""Ensure apt packages are installed"""
 	if isinstance(package, basestring):
-		package = package.split("")
+		package = package.split()
 	res = {}
 	for p in package:
 		p = p.strip()
