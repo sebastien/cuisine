@@ -222,6 +222,8 @@ class Packages(unittest.TestCase):
 	def testInstall( self ):
 		with cuisine.mode_sudo():
 			cuisine.package_ensure("tree")
+			cuisine.package_ensure("tree htop")
+			cuisine.package_ensure(["tree", "htop"])
 		self.assertTrue(cuisine.run("tree --version").startswith("tree "))
 
 class SSHKeys(unittest.TestCase):
