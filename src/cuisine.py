@@ -690,7 +690,7 @@ def package_ensure_apt(package, update=False):
 		# The most reliable way to detect success is to use the command status
 		# and suffix it with OK. This won't break with other locales.
 		status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
-		if not status.endswith("OK"):
+		if not status.endswith("OK") or "not-installed" in status:
 			package_install_apt(p)
 			res[p]=False
 		else:
