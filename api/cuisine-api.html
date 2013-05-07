@@ -396,7 +396,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_L' class='description'><h1>Function <span class='name'>file_sha256</span></h1><div class='representation'><code>file_sha256( location )</code></div><div class='docstring'>
 <div class='content'><p>Returns the SHA-256 sum (as a hex string) for the remote file at the given location.</p></div>
 
-</div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_N' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0xf2af50> )</code></div><div class='docstring'>
+</div></div><div id='d_M' class='description'><h1>Function <span class='name'>file_unlink</span></h1><div class='representation'><code>file_unlink( path )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_N' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x160c050> )</code></div><div class='docstring'>
 <div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div>
 
@@ -467,7 +467,7 @@ jQuery(document).ready(function(){
 <div class='content'><p>The "package" argument, defines the name of the package that will be ensured.</p></div>
 
 </div></div><div id='d_Pb' class='description'><h1>Function <span class='name'>python_package_ensure_pip</span></h1><div class='representation'><code>python_package_ensure_pip( package=None, r=None, pip=None )</code></div><div class='docstring'>
-<div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div>
+<div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided</p></div>
 
 </div></div><div id='d_Qb' class='description'><h1>Function <span class='name'>python_package_install</span></h1><div class='representation'><code>python_package_install( *args, **kwargs )</code></div><div class='docstring'>
 <div class='content'><p>Installs the given python package/list of python packages.</p></div>
@@ -484,8 +484,8 @@ jQuery(document).ready(function(){
 </div></div><div id='d_Ub' class='description'><h1>Function <span class='name'>python_package_remove_easy_install</span></h1><div class='representation'><code>python_package_remove_easy_install( package )</code></div><div class='docstring'>
 <div class='content'><p>The "package" argument, defines the name of the package that will be removed.</p></div>
 
-</div></div><div id='d_Vb' class='description'><h1>Function <span class='name'>python_package_remove_pip</span></h1><div class='representation'><code>python_package_remove_pip( package, E=None, pip=None )</code></div><div class='docstring'>
-<div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div>
+</div></div><div id='d_Vb' class='description'><h1>Function <span class='name'>python_package_remove_pip</span></h1><div class='representation'><code>python_package_remove_pip( package, pip=None )</code></div><div class='docstring'>
+<div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided</p></div>
 
 </div></div><div id='d_Wb' class='description'><h1>Function <span class='name'>python_package_upgrade</span></h1><div class='representation'><code>python_package_upgrade( *args, **kwargs )</code></div><div class='docstring'>
 <div class='content'><p>Upgrades the defined python package.</p></div>
@@ -493,8 +493,8 @@ jQuery(document).ready(function(){
 </div></div><div id='d_Xb' class='description'><h1>Function <span class='name'>python_package_upgrade_easy_install</span></h1><div class='representation'><code>python_package_upgrade_easy_install( package )</code></div><div class='docstring'>
 <div class='content'><p>The "package" argument, defines the name of the package that will be upgraded.</p></div>
 
-</div></div><div id='d_Yb' class='description'><h1>Function <span class='name'>python_package_upgrade_pip</span></h1><div class='representation'><code>python_package_upgrade_pip( package, E=None )</code></div><div class='docstring'>
-<div class='content'><p>The "package" argument, defines the name of the package that will be upgraded. The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div>
+</div></div><div id='d_Yb' class='description'><h1>Function <span class='name'>python_package_upgrade_pip</span></h1><div class='representation'><code>python_package_upgrade_pip( package )</code></div><div class='docstring'>
+<div class='content'><p>The "package" argument, defines the name of the package that will be upgraded.</p></div>
 
 </div></div><div id='d_Zb' class='description'><h1>Function <span class='name'>repository_ensure_apt</span></h1><div class='representation'><code>repository_ensure_apt( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ac' class='description'><h1>Function <span class='name'>repository_ensure_emerge</span></h1><div class='representation'><code>repository_ensure_emerge( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_bc' class='description'><h1>Function <span class='name'>repository_ensure_pacman</span></h1><div class='representation'><code>repository_ensure_pacman( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_cc' class='description'><h1>Function <span class='name'>repository_ensure_yum</span></h1><div class='representation'><code>repository_ensure_yum( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_dc' class='description'><h1>Function <span class='name'>repository_ensure_zypper</span></h1><div class='representation'><code>repository_ensure_zypper( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ec' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
 <div class='content'><p>A wrapper to Fabric's run/sudo commands that takes into account the <code>MODE_LOCAL</code> and <code>MODE_SUDO</code> modes of Cuisine.</p></div>
@@ -538,7 +538,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_tc' class='description'><h1>Function <span class='name'>text_nospace</span></h1><div class='representation'><code>text_nospace( text )</code></div><div class='docstring'>
 <div class='content'><p>Converts tabs and spaces to single space and strips the text.</p></div>
 
-</div></div><div id='d_uc' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0xf2a758>, process=<function <lambda> at 0xf2a7d0> )</code></div><div class='docstring'>
+</div></div><div id='d_uc' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x16037d0>, process=<function <lambda> at 0x1603848> )</code></div><div class='docstring'>
 <div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div>
 
 </div></div><div id='d_vc' class='description'><h1>Function <span class='name'>text_strip_margin</span></h1><div class='representation'><code>text_strip_margin( text, margin='|' )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_wc' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
@@ -586,7 +586,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_Kc' class='description'><h1>str</h1><div class='representation'><code>'CUISINE_SUDO_PASSWORD'</code></div><div class='docstring'>
 <div class='content'><p>str(object='') -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
-</div></div><div id='d_Lc' class='description'><h1>str</h1><div class='representation'><code>'0.6.1'</code></div><div class='docstring'>
+</div></div><div id='d_Lc' class='description'><h1>str</h1><div class='representation'><code>'0.6.3'</code></div><div class='docstring'>
 <div class='content'><p>str(object='') -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
 </div></div><div id='d_Mc' class='description'><h1>str</h1><div class='representation'><code>'\r\n'</code></div><div class='docstring'>
@@ -606,7 +606,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_wc' class='description'><h1>Function <span class='name'>text_template</span></h1><div class='representation'><code>text_template( text, variables )</code></div><div class='docstring'>
 <div class='content'><p>Substitutes <code>${PLACEHOLDER}</code>s within the text with the corresponding values from variables.</p></div>
 
-</div></div><div id='d_Lc' class='description'><h1>str</h1><div class='representation'><code>'0.6.1'</code></div><div class='docstring'>
+</div></div><div id='d_Lc' class='description'><h1>str</h1><div class='representation'><code>'0.6.3'</code></div><div class='docstring'>
 <div class='content'><p>str(object='') -&gt; string</p><p>Return a nice string representation of the object. If the argument is a string, the return value is the same object.</p></div>
 
 </div></div><div id='d_eb' class='description'><h1>Function <span class='name'>package_clean_apt</span></h1><div class='representation'><code>package_clean_apt( package=None )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_ec' class='description'><h1>Function <span class='name'>run</span></h1><div class='representation'><code>run( *args, **kwargs )</code></div><div class='docstring'>
@@ -615,7 +615,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_Lb' class='description'><h1>Function <span class='name'>process_find</span></h1><div class='representation'><code>process_find( name, exact=False )</code></div><div class='docstring'>
 <div class='content'><p>Returns the pids of processes with the given name. If exact is <code>False</code> it will return the list of all processes that start with the given <code>name</code>.</p></div>
 
-</div></div><div id='d_ub' class='description'><h1>Function <span class='name'>package_install_zypper</span></h1><div class='representation'><code>package_install_zypper( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_uc' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0xf2a758>, process=<function <lambda> at 0xf2a7d0> )</code></div><div class='docstring'>
+</div></div><div id='d_ub' class='description'><h1>Function <span class='name'>package_install_zypper</span></h1><div class='representation'><code>package_install_zypper( package, update=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_uc' class='description'><h1>Function <span class='name'>text_replace_line</span></h1><div class='representation'><code>text_replace_line( text, old, new, find=<function <lambda> at 0x16037d0>, process=<function <lambda> at 0x1603848> )</code></div><div class='docstring'>
 <div class='content'><p>Replaces lines equal to <code>old</code> with <code>new</code>, returning the new text and the count of replacements.</p></div>
 
 </div></div><div id='d_Dc' class='description'><h1>dict</h1><div class='representation'><code>{'python_package': ['easy_install', 'pip'], 'package': ['apt', 'yum', 'zypper', 'pacman', 'emerge']}</code></div><div class='docstring'>
@@ -666,7 +666,7 @@ jQuery(document).ready(function(){
 </div></div><div id='d_I' class='description'><h1>Function <span class='name'>file_local_read</span></h1><div class='representation'><code>file_local_read( location )</code></div><div class='docstring'>
 <div class='content'><p>Reads a <em>local</em> file from the given location, expanding <code>~</code> and shell variables.</p></div>
 
-</div></div><div id='d_N' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0xf2af50> )</code></div><div class='docstring'>
+</div></div><div id='d_N' class='description'><h1>Function <span class='name'>file_update</span></h1><div class='representation'><code>file_update( location, updater=<function <lambda> at 0x160c050> )</code></div><div class='docstring'>
 <div class='content'><p>Updates the content of the given by passing the existing content of the remote file at the given location to the <code>updater</code> function.</p><p>For instance, if you'd like to convert an existing file to all uppercase, simply do:</p><p><pre>file_update("/etc/myfile", lambda _:_.upper())
 </pre></p></div>
 
@@ -763,8 +763,8 @@ jQuery(document).ready(function(){
 </div></div><div id='d_Nb' class='description'><h1>Function <span class='name'>python_package_ensure</span></h1><div class='representation'><code>python_package_ensure( *args, **kwargs )</code></div><div class='docstring'>
 <div class='content'><p>Tests if the given python package is installed, and installes it in case it's not already there.</p></div>
 
-</div></div><div id='d_Yb' class='description'><h1>Function <span class='name'>python_package_upgrade_pip</span></h1><div class='representation'><code>python_package_upgrade_pip( package, E=None )</code></div><div class='docstring'>
-<div class='content'><p>The "package" argument, defines the name of the package that will be upgraded. The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div>
+</div></div><div id='d_Yb' class='description'><h1>Function <span class='name'>python_package_upgrade_pip</span></h1><div class='representation'><code>python_package_upgrade_pip( package )</code></div><div class='docstring'>
+<div class='content'><p>The "package" argument, defines the name of the package that will be upgraded.</p></div>
 
 </div></div><div id='d_wb' class='description'><h1>Function <span class='name'>package_remove_apt</span></h1><div class='representation'><code>package_remove_apt( package, autoclean=False )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_h' class='description'><h1>Class <span class='name'>mode_remote</span></h1><div class='representation'></div><div class='docstring'>
 <div class='content'><p>Comes back to Fabric's API for run/sudo. This basically reverts the effect of calling <code>mode_local()</code>.</p></div>
@@ -781,8 +781,8 @@ jQuery(document).ready(function(){
 </div></div><div id='d_Qb' class='description'><h1>Function <span class='name'>python_package_install</span></h1><div class='representation'><code>python_package_install( *args, **kwargs )</code></div><div class='docstring'>
 <div class='content'><p>Installs the given python package/list of python packages.</p></div>
 
-</div></div><div id='d_Vb' class='description'><h1>Function <span class='name'>python_package_remove_pip</span></h1><div class='representation'><code>python_package_remove_pip( package, E=None, pip=None )</code></div><div class='docstring'>
-<div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div>
+</div></div><div id='d_Vb' class='description'><h1>Function <span class='name'>python_package_remove_pip</span></h1><div class='representation'><code>python_package_remove_pip( package, pip=None )</code></div><div class='docstring'>
+<div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided</p></div>
 
 </div></div><div id='d_dc' class='description'><h1>Function <span class='name'>repository_ensure_zypper</span></h1><div class='representation'><code>repository_ensure_zypper( repository )</code></div><div class='docstring'><span class='undocumented'>Undocumented</span></div></div><div id='d_db' class='description'><h1>Function <span class='name'>package_clean</span></h1><div class='representation'><code>package_clean( *args, **kwargs )</code></div><div class='docstring'>
 <div class='content'><p>Clean the repository for un-needed files.</p></div>
@@ -862,7 +862,7 @@ jQuery(document).ready(function(){
 					class='prefix'>&bull;</span><a href='javascript:documentElement("n","j");'>MODE_VALUE</a></div></div><div class='title'>Inhertied Values</div class='title'><div class='group'><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("n","f");'><span class='special __repr__'>string repr</span></a></div><div class='slot documented'><span
 					class='prefix'>&equiv;</span><a href='javascript:documentElement("n","g");'><span class='special __str__'>string conversion</span></a></div></div></div><div id='d_Pb' class='description'><h1>Function <span class='name'>python_package_ensure_pip</span></h1><div class='representation'><code>python_package_ensure_pip( package=None, r=None, pip=None )</code></div><div class='docstring'>
-<div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided The optional argument "E" is equivalent to the "-E" parameter of pip. E is the path to a virtualenv. If provided, it will be added to the pip call.</p></div>
+<div class='content'><p>The "package" argument, defines the name of the package that will be ensured. The argument "r" referes to the requirements file that will be used by pip and is equivalent to the "-r" parameter of pip. Either "package" or "r" needs to be provided</p></div>
 
 </div></div><div id='d_Ub' class='description'><h1>Function <span class='name'>python_package_remove_easy_install</span></h1><div class='representation'><code>python_package_remove_easy_install( package )</code></div><div class='docstring'>
 <div class='content'><p>The "package" argument, defines the name of the package that will be removed.</p></div>
