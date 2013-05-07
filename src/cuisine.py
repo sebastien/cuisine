@@ -9,7 +9,7 @@
 #             Warren Moore (zypper package)               <warren@wamonite.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 02-May-2013
+# Last mod  : 07-May-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -44,7 +44,7 @@ import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION               = "0.6.1"
+VERSION               = "0.6.3"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
 UNIX_EOL              = "\n"
@@ -929,17 +929,11 @@ def python_package_remove(package):
 # PIP PYTHON PACKAGE MANAGER
 # -----------------------------------------------------------------------------
 
-def python_package_upgrade_pip(package,E=None):
+def python_package_upgrade_pip(package):
 	'''
 	The "package" argument, defines the name of the package that will be upgraded.
-	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-	path to a virtualenv. If provided, it will be added to the pip call.
 	'''
-	if E:
-		E='-E %s' %E
-	else:
-		E=''
-	run('pip install --upgrade %s %s' %(E,package))
+	run('pip install --upgrade %s' %(package))
 
 def python_package_install_pip(package=None,r=None,pip=None):
 	'''
@@ -964,8 +958,6 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
 	The argument "r" referes to the requirements file that will be used by pip and
 	is equivalent to the "-r" parameter of pip.
 	Either "package" or "r" needs to be provided
-	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-	path to a virtualenv. If provided, it will be added to the pip call.
 	'''
 	#FIXME: At the moment, I do not know how to check for the existence of a pip package and
 	# I am not sure if this really makes sense, based on the pip built in functionality.
@@ -973,14 +965,12 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
 	pip=pip or fabric.api.env.get('pip','pip')
 	python_package_install_pip(package,r,pip)
 
-def python_package_remove_pip(package, E=None, pip=None):
+def python_package_remove_pip(package, pip=None):
 	'''
 	The "package" argument, defines the name of the package that will be ensured.
 	The argument "r" referes to the requirements file that will be used by pip and
 	is equivalent to the "-r" parameter of pip.
 	Either "package" or "r" needs to be provided
-	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-	path to a virtualenv. If provided, it will be added to the pip call.
 	'''
 	pip=pip or fabric.api.env.get('pip','pip')
 	return run('%s uninstall %s' %(pip,package))

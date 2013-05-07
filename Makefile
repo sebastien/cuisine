@@ -14,6 +14,9 @@ release: $(PRODUCT)
 	git push --all ; true
 	python setup.py clean sdist register upload
 
+test:
+	python tests/test-all.py
+
 clean:
 	@rm -rf api/ build dist MANIFEST ; true
 
