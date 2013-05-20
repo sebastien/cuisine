@@ -7,9 +7,10 @@
 #             Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
 #             Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
 #             Warren Moore (zypper package)               <warren@wamonite.com>
+#	   Lorenzo Bivens (pkgin package)	<lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 07-May-2013
+# Last mod  : 20-May-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -57,7 +58,7 @@ OPTION_PYTHON_PACKAGE = "CUISINE_OPTION_PYTHON_PACKAGE"
 CMD_APT_GET           = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
 
 AVAILABLE_OPTIONS = dict(
-	package=["apt", "yum", "zypper", "pacman", "emerge"],
+	package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin"],
 	python_package=["easy_install","pip"]
 )
 
@@ -893,6 +894,47 @@ def package_remove_emerge(package, autoclean=False):
 		sudo('revdep-rebuild -q')
 	else:
 		sudo('emerge --quiet-unmerge-warn --unmerge ' + package)
+
+# -----------------------------------------------------------------------------
+# PKGIN (Illumos, SmartOS, BSD, OSX)
+# added by lbivens - 20130520 - v0.5 (this works but can be better)
+# -----------------------------------------------------------------------------
+
+# This should be simple but I have to think it properly
+def repository_ensure_pkgin(repository):
+	raise Exception("Not implemented for pkgin")
+
+def package_upgrade_pkgin():
+	sudo("pkgin -y upgrade")
+
+def package_update_pkgin(package=None):
+	#test if this works
+	if package == None:
+		sudo("pkgin -y update")
+	else:
+		if type(package) in (list, tuple):
+			package = " ".join(package)
+		sudo("pkgin -y upgrade " + package)
+
+def package_install_pkgin(package, update=False):
+	if update:
+		sudo("pkgin -y update")
+	if type(package) in (list, tuple):
+		package = " ".join(package)
+	sudo("pkgin -y install %s" % (package))
+
+def package_ensure_pkgin(package, update=False):
+	# I am gonna have to do something different here
+	status = run("pkgin list | grep %s ; true" % package)
+	if status.find("No matching Packages") != -1 or status.find(package) == -1:
+		package_install(package, update)
+		return False
+	else:
+		if update: package_update(package)
+		return True
+
+def package_clean_pkgin(package=None):
+	sudo("pkgin -y clean")
 
 # =============================================================================
 #
