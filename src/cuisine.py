@@ -45,7 +45,7 @@ import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers
 
-VERSION               = "0.6.3"
+VERSION               = "0.6.4"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
 UNIX_EOL              = "\n"
