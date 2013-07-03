@@ -605,7 +605,7 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	If we are not updating the owner/group then this can be done as a single
 	ssh call, so use that method, otherwise set owner/group after creation."""
 	if not dir_exists(location):
-		run('mkdir %s "%s" && echo OK ; true' % (recursive and "-p" or "", location))
+		run('mkdir %s "%s"' % (recursive and "-p" or "", location))
 	if owner or group or mode:
 		dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
