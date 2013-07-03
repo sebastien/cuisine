@@ -374,7 +374,7 @@ def file_read(location):
 	with fabric.context_managers.settings(
 		fabric.api.hide('stdout')
 	):
-		return base64.b64decode(run('cat "%s" | openssl base64' % (location)))
+		return base64.b64decode(sudo('cat "%s" | openssl base64' % (location)))
 
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
