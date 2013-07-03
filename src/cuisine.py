@@ -43,7 +43,7 @@ See also:
 from __future__ import with_statement
 import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
-import fabric, fabric.api, fabric.operations, fabric.context_managers
+import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state
 
 VERSION               = "0.6.4"
 RE_SPACES             = re.compile("[\s\t]+")
@@ -165,7 +165,8 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	# TODO: Pass the SUDO_PASSWORD variable to the command here
 	if sudo: command = "sudo " + command
 	stderr   = subprocess.STDOUT if combine_stderr else subprocess.PIPE
-	process  = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=stderr)
+	lcwd = fabric.state.env.get('lcwd', None) or None #sets lcwd to None if it bools to false as well
+	process  = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=stderr, cwd=lcwd)
 	out, err = process.communicate()
 	# FIXME: Should stream the output, and only print it if fabric's properties allow it
 	# print out
@@ -189,6 +190,14 @@ def run(*args, **kwargs):
 			return fabric.api.sudo(*args, **kwargs)
 		else:
 			return fabric.api.run(*args, **kwargs)
+
+def cd(*args, **kwargs):
+	"""A wrapper around Fabric's cd to change the local directory if
+	mode is local"""
+	if is_local():
+		return fabric.api.lcd(*args, **kwargs)
+	return fabric.api.cd(*args, **kwargs)
+
 
 def sudo(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
