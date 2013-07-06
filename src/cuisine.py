@@ -751,7 +751,7 @@ def package_install_yum(package, update=False):
 def package_ensure_yum(package, update=False):
 	status = run("yum list installed %s ; true" % package)
 	if status.find("No matching Packages") != -1 or status.find(package) == -1:
-		package_install(package, update)
+		package_install_yum(package, update)
 		return False
 	else:
 		if update: package_update(package)
