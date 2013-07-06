@@ -754,7 +754,7 @@ def package_ensure_yum(package, update=False):
 		package_install_yum(package, update)
 		return False
 	else:
-		if update: package_update(package)
+		if update: package_update_yum(package)
 		return True
 
 def package_clean_yum(package=None):
