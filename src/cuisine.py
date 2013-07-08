@@ -1249,6 +1249,31 @@ def group_user_del(group, user):
 				else:
 						sudo("usermod -G '' '%s'" % (user))
 
+def group_remove(group=None, wipe=False):
+    """ Removes the given group, this implies to take members out the group
+    if there are any.  If wipe=True and the group is a primary one,
+    deletes its user as well.
+    """
+    assert group_check(group), "Group does not exist: %s" % (group)
+    members_of_group = run("getent group %s | awk -F':' '{print $4}'" % group)
+    members = members_of_group.split(",")
+    is_primary_group = user_check(name=group)
+
+    if wipe:
+        if len(members_of_group):
+            for user in members:
+                group_user_del(group, user)
+        if is_primary_group:
+            user_remove(group)
+        else:
+            sudo("groupdel %s" % group)
+
+    elif not is_primary_group:
+            if len(members_of_group):
+                for user in members:
+                    group_user_del(group, user)
+            sudo("groupdel %s" % group)
+
 # =============================================================================
 #
 # SSH
