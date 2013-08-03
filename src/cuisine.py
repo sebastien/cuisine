@@ -1352,6 +1352,15 @@ def upstart_ensure(name):
 	if status.failed:
 		sudo("service %s start" % name)
 
+
+def upstart_stop(name):
+	"""Ensures that the given upstart service is stopped."""
+	with fabric.api.settings(warn_only=True):
+		status = sudo("service %s status" % name)
+	if status.succeeded:
+		sudo("service %s stop" % name)
+
+
 # =============================================================================
 #
 # SYSTEM
