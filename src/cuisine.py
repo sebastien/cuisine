@@ -1345,14 +1345,12 @@ def ssh_unauthorize(user, key):
 # =============================================================================
 
 def upstart_ensure(name):
-	"""Ensures that the given upstart service is running, restarting
+	"""Ensures that the given upstart service is running, starting
 	it if necessary."""
 	with fabric.api.settings(warn_only=True):
 		status = sudo("service %s status" % name)
 	if status.failed:
 		sudo("service %s start" % name)
-	else:
-		sudo("service %s restart" % name)
 
 # =============================================================================
 #
