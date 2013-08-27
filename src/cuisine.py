@@ -80,7 +80,7 @@ def sudo_password(password=None):
 class CuisineResult():
     """ A Cuisine operation result. Each operation may 
         consist of multiple Fabric calls that are logged inside. """
-    results = []
+    fabricResults = []
     gotError = False
     
     def __init__( self, external_result=None ):
@@ -89,37 +89,33 @@ class CuisineResult():
     
     def __str__(self):
         text = ""
-        for result in self.results:
-            if result['succeeded']:
-                status = "  OK"
+        for result in self.fabricResults:
+            if result.succeeded:
+                status = "OK"
             else:
                 status = "FAIL"
-            text += "Return Code (%s): %s"%(status, result['return_code'])
-            if not result['succeeded']:
-                text += "\nOutput      :"
-                text += "\nresult['output']"
+            text += "\nCommand    : "+result.command
+            text += "\nReturn Code: %s (%s)"%(result.return_code, status)
+            if not result.succeeded:
+                text += "\nOutput     :\n"+str(result)
         return text
     
     def add( self, output, return_code=None, succeeded=None ):
         if type(output) == type(CuisineResult):
             # Merge the given result object with our own
-            self.results.append( output.results )
+            self.fabricResults.append( output.results )
             if output.isError:
                 self.gotError = True
         else:
             # Assume default Fabric call result type
-            singleResult = { 'output': str(output) }
-            if hasattr(output, 'return_code'):
-                singleResult['return_code'] = output.return_code
-            if hasattr(output, 'succeeded'):
-                singleResult['succeeded'] = output.succeeded
-            else:
+            self.fabricResults.append( output )
+            if not output.succeeded:
                 self.gotError = True
     
-    def isError( self ):
+    def is_error( self ):
         return self.gotError
     
-    def isSuccess( self ):
+    def is_success( self ):
         return not self.gotError    
 
 class __mode_switcher(object):
@@ -217,10 +213,12 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	# print out
 	# Wrap stdout string and add extra status attributes
 	result = fabric.operations._AttributeString(out.rstrip('\n'))
-	result.return_code = process.returncode
-	result.succeeded   = process.returncode == 0
-	result.failed      = not result.succeeded
-	result.stderr      = StringIO.StringIO(err)
+	result.return_code  = process.returncode
+	result.command      = command
+	result.real_command = command 
+	result.succeeded    = process.returncode == 0
+	result.failed       = not result.succeeded
+	result.stderr       = StringIO.StringIO(err)
 	return result
 
 def run(*args, **kwargs):
