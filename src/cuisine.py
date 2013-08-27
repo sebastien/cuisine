@@ -101,10 +101,10 @@ class CuisineResult():
         return text
     
     def add( self, output, return_code=None, succeeded=None ):
-        if type(output) == type(CuisineResult):
+        if isinstance(output, CuisineResult):
             # Merge the given result object with our own
-            self.fabricResults.append( output.results )
-            if output.isError:
+            self.fabricResults.append( output.fabricResults )
+            if output.gotError:
                 self.gotError = True
         else:
             # Assume default Fabric call result type
