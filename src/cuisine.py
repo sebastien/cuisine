@@ -77,6 +77,51 @@ def sudo_password(password=None):
 		else:
 			fabric.api.env[SUDO_PASSWORD] = password
 
+class CuisineResult():
+    """ A Cuisine operation result. Each operation may 
+        consist of multiple Fabric calls that are logged inside. """
+    results = []
+    gotError = False
+    
+    def __init__( self, external_result=None ):
+        if external_result:
+            self.add( external_result )
+    
+    def __str__(self):
+        text = ""
+        for result in self.results:
+            if result['succeeded']:
+                status = "  OK"
+            else:
+                status = "FAIL"
+            text += "Return Code (%s): %s"%(status, result['return_code'])
+            if not result['succeeded']:
+                text += "\nOutput      :"
+                text += "\nresult['output']"
+        return text
+    
+    def add( self, output, return_code=None, succeeded=None ):
+        if type(output) == type(CuisineResult):
+            # Merge the given result object with our own
+            self.results.append( output.results )
+            if output.isError:
+                self.gotError = True
+        else:
+            # Assume default Fabric call result type
+            singleResult = { 'output': str(output) }
+            if hasattr(output, 'return_code'):
+                singleResult['return_code'] = output.return_code
+            if hasattr(output, 'succeeded'):
+                singleResult['succeeded'] = output.succeeded
+            else:
+                self.gotError = True
+    
+    def isError( self ):
+        return self.gotError
+    
+    def isSuccess( self ):
+        return not self.gotError    
+
 class __mode_switcher(object):
 	"""A class that can be used to switch Cuisine's run modes by
 	instanciating the class or using it as a context manager"""
