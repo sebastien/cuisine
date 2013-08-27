@@ -1063,7 +1063,7 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
 	# I am not sure if this really makes sense, based on the pip built in functionality.
 	# So I just call the install functions
 	pip=pip or fabric.api.env.get('pip','pip')
-	python_package_install_pip(package,r,pip)
+	return python_package_install_pip(package,r,pip)
 
 def python_package_remove_pip(package, pip=None):
 	'''
