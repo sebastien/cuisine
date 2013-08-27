@@ -702,8 +702,10 @@ def package_remove(package, autoclean=False):
 # -----------------------------------------------------------------------------
 
 def repository_ensure_apt(repository):
-	package_ensure_apt('python-software-properties')
-	sudo("add-apt-repository --yes " + repository)
+    result = CuisineResult()
+    result.add( package_ensure_apt('python-software-properties') )
+    result.add( sudo("add-apt-repository --yes " + repository) )
+    return result
 
 def apt_get(cmd):
 	cmd    = CMD_APT_GET + cmd
@@ -715,57 +717,58 @@ def apt_get(cmd):
 	return sudo(cmd)
 
 def package_update_apt(package=None):
-	if package == None:
-		return apt_get("-q --yes update")
-	else:
-		if type(package) in (list, tuple):
-			package = " ".join(package)
-		return apt_get(' upgrade ' + package)
+    result = CuisineResult()
+    result.add( apt_get("-q --yes update") )
+    if package != None:
+        if type(package) in (list, tuple):
+            package = " ".join(package)
+        result.add( apt_get(' upgrade ' + package) )
+    return result
 
 def package_upgrade_apt(distupgrade=False):
-	if distupgrade:
-		return apt_get("dist-upgrade")
-	else:
-		return apt_get("upgrade")
+    if distupgrade:
+        return CuisineResult( apt_get("dist-upgrade") )
+    else:
+        return CuisineResult( apt_get("upgrade") )
 
 def package_install_apt(package, update=False):
-	if update: apt_get("update")
-	if type(package) in (list, tuple):
-		package = " ".join(package)
-	return apt_get("install " + package)
+    result = CuisineResult()
+    if update: 
+        result.add( apt_get("update") )
+    if type(package) in (list, tuple):
+        package = " ".join(package)
+    result.add( apt_get("install " + package) )
+    return result
 
 def package_ensure_apt(package, update=False):
-	"""Ensure apt packages are installed"""
-	if isinstance(package, basestring):
-		package = package.split()
-	res = {}
-	for p in package:
-		p = p.strip()
-		if not p: continue
-		# The most reliable way to detect success is to use the command status
-		# and suffix it with OK. This won't break with other locales.
-		status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
-		if not status.endswith("OK") or "not-installed" in status:
-			package_install_apt(p)
-			res[p]=False
-		else:
-			if update:
-				package_update_apt(p)
-			res[p]=True
-	if len(res) == 1:
-		return res.values()[0]
-	else:
-		return res
+    """Ensure apt packages are installed"""
+    result = CuisineResult()
+    if isinstance(package, basestring):
+        package = package.split()
+    for p in package:
+        p = p.strip()
+        if not p: continue
+        # The most reliable way to detect success is to use the command status
+        # and suffix it with OK. This won't break with other locales.
+        status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
+        result.add( status )
+        if not status.endswith("OK") or "not-installed" in status:
+            result.add( package_install_apt(p) )
+        elif update:
+            result.add( package_update_apt(p) )
+    return result
 
 def package_clean_apt(package=None):
-	if type(package) in (list, tuple):
-		package = " ".join(package)
-	return apt_get("-y --purge remove %s" % package)
+    if type(package) in (list, tuple):
+        package = " ".join(package)
+    return CuisineResult( apt_get("-y --purge remove %s" % package) )
 
 def package_remove_apt(package, autoclean=False):
-	apt_get('remove ' + package)
-	if autoclean:
-		apt_get("autoclean")
+    result = CuisineResult()
+    result.add( apt_get('remove ' + package) )
+    if autoclean:
+        result.add( apt_get("autoclean") )
+    return result
 
 # -----------------------------------------------------------------------------
 # YUM PACKAGE (RedHat, CentOS)
