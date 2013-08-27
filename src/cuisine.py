@@ -1002,13 +1002,14 @@ def package_clean_pkgin(package=None):
 @dispatch('python_package')
 def python_package_upgrade(package):
 	'''
-	Upgrades the defined python package.
+	Upgrades the defined python package. Returns a CuisineResult object.
 	'''
 
 @dispatch('python_package')
 def python_package_install(package=None):
 	'''
 	Installs the given python package/list of python packages.
+	Returns a CuisineResult object.
 	'''
 
 @dispatch('python_package')
@@ -1016,12 +1017,14 @@ def python_package_ensure(package):
 	'''
 	Tests if the given python package is installed, and installes it in
 	case it's not already there.
+	Returns a CuisineResult object.
 	'''
 
 @dispatch('python_package')
 def python_package_remove(package):
 	'''
 	Removes the given python package.
+	Returns a CuisineResult object.
 	'''
 
 # -----------------------------------------------------------------------------
@@ -1032,7 +1035,7 @@ def python_package_upgrade_pip(package):
 	'''
 	The "package" argument, defines the name of the package that will be upgraded.
 	'''
-	run('pip install --upgrade %s' %(package))
+	return CuisineResult( run('pip install --upgrade %s' %(package)) )
 
 def python_package_install_pip(package=None,r=None,pip=None):
 	'''
@@ -1045,9 +1048,9 @@ def python_package_install_pip(package=None,r=None,pip=None):
 	'''
 	pip=pip or fabric.api.env.get('pip','pip')
 	if package:
-		run('%s install %s' %(pip,package))
+		return CuisineResult( run('%s install %s' %(pip,package)) )
 	elif r:
-		run('%s install -r %s' %(pip,r))
+		return CuisineResult( run('%s install -r %s' %(pip,r)) )
 	else:
 		raise Exception("Either a package name or the requirements file has to be provided.")
 
@@ -1072,7 +1075,7 @@ def python_package_remove_pip(package, pip=None):
 	Either "package" or "r" needs to be provided
 	'''
 	pip=pip or fabric.api.env.get('pip','pip')
-	return run('%s uninstall %s' %(pip,package))
+	return CuisineResult( run('%s uninstall %s' %(pip,package)) )
 
 # -----------------------------------------------------------------------------
 # EASY_INSTALL PYTHON PACKAGE MANAGER
@@ -1082,13 +1085,13 @@ def python_package_upgrade_easy_install(package):
 	'''
 	The "package" argument, defines the name of the package that will be upgraded.
 	'''
-	run('easy_install --upgrade %s' %package)
+	return CuisineResult( run('easy_install --upgrade %s' %package) )
 
 def python_package_install_easy_install(package):
 	'''
 	The "package" argument, defines the name of the package that will be installed.
 	'''
-	sudo('easy_install %s' %package)
+	return CuisineResult( sudo('easy_install %s' %package) )
 
 def python_package_ensure_easy_install(package):
 	'''
@@ -1097,14 +1100,14 @@ def python_package_ensure_easy_install(package):
 	#FIXME: At the moment, I do not know how to check for the existence of a py package and
 	# I am not sure if this really makes sense, based on the easy_install built in functionality.
 	# So I just call the install functions
-	python_package_install_easy_install(package)
+	return CuisineResult( python_package_install_easy_install(package) )
 
 def python_package_remove_easy_install(package):
 	'''
 	The "package" argument, defines the name of the package that will be removed.
 	'''
 	#FIXME: this will not remove egg file etc.
-	run('easy_install -m %s' %package)
+	return CuisineResult( run('easy_install -m %s' %package) )
 
 # =============================================================================
 #
