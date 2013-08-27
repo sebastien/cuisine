@@ -671,31 +671,31 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 
 @dispatch
 def package_upgrade(distupgrade=False):
-	"""Updates every package present on the system."""
+	"""Updates every package present on the system. Returns a CuisineResult object."""
 
 @dispatch
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
-	or list of packages given as argument."""
+	or list of packages given as argument. Returns a CuisineResult object."""
 
 @dispatch
 def package_install(package, update=False):
 	"""Installs the given package/list of package, optionally updating
-	the package database."""
+	the package database. Returns a CuisineResult object."""
 
 @dispatch
 def package_ensure(package, update=False):
 	"""Tests if the given package is installed, and installs it in
 	case it's not already there. If `update` is true, then the
-	package will be updated if it already exists."""
+	package will be updated if it already exists. Returns a CuisineResult object."""
 
 @dispatch
 def package_clean(package=None):
-	"""Clean the repository for un-needed files."""
+	"""Clean the repository for un-needed files. Returns a CuisineResult object."""
 
 @dispatch
 def package_remove(package, autoclean=False):
-	"""Remove package and optionally clean unused packages"""
+	"""Remove package and optionally clean unused packages. Returns a CuisineResult object."""
 
 # -----------------------------------------------------------------------------
 # APT PACKAGE (DEBIAN/UBUNTU)
