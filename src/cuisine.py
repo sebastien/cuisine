@@ -100,7 +100,7 @@ class CuisineResult():
                 text += "\nOutput     :\n"+str(result)
         return text
     
-    def add( self, output, return_code=None, succeeded=None ):
+    def add( self, output ):
         if isinstance(output, CuisineResult):
             # Merge the given result object with our own
             self.fabricResults.append( output.fabricResults )
