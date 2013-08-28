@@ -221,10 +221,17 @@ class Packages(unittest.TestCase):
 
 	def testInstall( self ):
 		with cuisine.mode_sudo():
-			cuisine.package_ensure("tree")
-			cuisine.package_ensure("tree htop")
-			cuisine.package_ensure(["tree", "htop"])
+                    for test in ["tree", "tree htop", ["tree", "htop"]]:
+                        result=cuisine.package_ensure(test)
+                        self.assertTrue(result.is_success())			
 		self.assertTrue(cuisine.run("tree --version").startswith("tree "))
+
+	def testPythonInstall( self ):
+		with cuisine.mode_sudo():
+		        result=cuisine.python_package_ensure("fabric")
+                        self.assertTrue(result.is_success())			
+		self.assertTrue(cuisine.run("python -m fabric.version").startswith("{"))
+
 
 class SSHKeys(unittest.TestCase):
 

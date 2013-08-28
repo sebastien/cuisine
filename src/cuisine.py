@@ -77,6 +77,47 @@ def sudo_password(password=None):
 		else:
 			fabric.api.env[SUDO_PASSWORD] = password
 
+class CuisineResult():
+    """ A Cuisine operation result. Each operation may 
+        consist of multiple Fabric calls that are logged inside. """
+    fabricResults = []
+    gotError = False
+    
+    def __init__( self, external_result=None ):
+        if external_result:
+            self.add( external_result )
+    
+    def __str__(self):
+        text = ""
+        for result in self.fabricResults:
+            if result.succeeded:
+                status = "OK"
+            else:
+                status = "FAIL"
+            text += "\nCommand    : "+result.command
+            text += "\nReturn Code: %s (%s)"%(result.return_code, status)
+            if not result.succeeded:
+                text += "\nOutput     :\n"+str(result)
+        return text
+    
+    def add( self, output ):
+        if isinstance(output, CuisineResult):
+            # Merge the given result object with our own
+            self.fabricResults.append( output.fabricResults )
+            if output.gotError:
+                self.gotError = True
+        else:
+            # Assume default Fabric call result type
+            self.fabricResults.append( output )
+            if not output.succeeded:
+                self.gotError = True
+    
+    def is_error( self ):
+        return self.gotError
+    
+    def is_success( self ):
+        return not self.gotError    
+
 class __mode_switcher(object):
 	"""A class that can be used to switch Cuisine's run modes by
 	instanciating the class or using it as a context manager"""
@@ -172,10 +213,12 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	# print out
 	# Wrap stdout string and add extra status attributes
 	result = fabric.operations._AttributeString(out.rstrip('\n'))
-	result.return_code = process.returncode
-	result.succeeded   = process.returncode == 0
-	result.failed      = not result.succeeded
-	result.stderr      = StringIO.StringIO(err)
+	result.return_code  = process.returncode
+	result.command      = command
+	result.real_command = command 
+	result.succeeded    = process.returncode == 0
+	result.failed       = not result.succeeded
+	result.stderr       = StringIO.StringIO(err)
 	return result
 
 def run(*args, **kwargs):
@@ -626,39 +669,41 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 
 @dispatch
 def package_upgrade(distupgrade=False):
-	"""Updates every package present on the system."""
+	"""Updates every package present on the system. Returns a CuisineResult object."""
 
 @dispatch
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
-	or list of packages given as argument."""
+	or list of packages given as argument. Returns a CuisineResult object."""
 
 @dispatch
 def package_install(package, update=False):
 	"""Installs the given package/list of package, optionally updating
-	the package database."""
+	the package database. Returns a CuisineResult object."""
 
 @dispatch
 def package_ensure(package, update=False):
 	"""Tests if the given package is installed, and installs it in
 	case it's not already there. If `update` is true, then the
-	package will be updated if it already exists."""
+	package will be updated if it already exists. Returns a CuisineResult object."""
 
 @dispatch
 def package_clean(package=None):
-	"""Clean the repository for un-needed files."""
+	"""Clean the repository for un-needed files. Returns a CuisineResult object."""
 
 @dispatch
 def package_remove(package, autoclean=False):
-	"""Remove package and optionally clean unused packages"""
+	"""Remove package and optionally clean unused packages. Returns a CuisineResult object."""
 
 # -----------------------------------------------------------------------------
 # APT PACKAGE (DEBIAN/UBUNTU)
 # -----------------------------------------------------------------------------
 
 def repository_ensure_apt(repository):
-	package_ensure_apt('python-software-properties')
-	sudo("add-apt-repository --yes " + repository)
+    result = CuisineResult()
+    result.add( package_ensure_apt('python-software-properties') )
+    result.add( sudo("add-apt-repository --yes " + repository) )
+    return result
 
 def apt_get(cmd):
 	cmd    = CMD_APT_GET + cmd
@@ -670,57 +715,58 @@ def apt_get(cmd):
 	return sudo(cmd)
 
 def package_update_apt(package=None):
-	if package == None:
-		return apt_get("-q --yes update")
-	else:
-		if type(package) in (list, tuple):
-			package = " ".join(package)
-		return apt_get(' upgrade ' + package)
+    result = CuisineResult()
+    result.add( apt_get("-q --yes update") )
+    if package != None:
+        if type(package) in (list, tuple):
+            package = " ".join(package)
+        result.add( apt_get(' upgrade ' + package) )
+    return result
 
 def package_upgrade_apt(distupgrade=False):
-	if distupgrade:
-		return apt_get("dist-upgrade")
-	else:
-		return apt_get("upgrade")
+    if distupgrade:
+        return CuisineResult( apt_get("dist-upgrade") )
+    else:
+        return CuisineResult( apt_get("upgrade") )
 
 def package_install_apt(package, update=False):
-	if update: apt_get("update")
-	if type(package) in (list, tuple):
-		package = " ".join(package)
-	return apt_get("install " + package)
+    result = CuisineResult()
+    if update: 
+        result.add( apt_get("update") )
+    if type(package) in (list, tuple):
+        package = " ".join(package)
+    result.add( apt_get("install " + package) )
+    return result
 
 def package_ensure_apt(package, update=False):
-	"""Ensure apt packages are installed"""
-	if isinstance(package, basestring):
-		package = package.split()
-	res = {}
-	for p in package:
-		p = p.strip()
-		if not p: continue
-		# The most reliable way to detect success is to use the command status
-		# and suffix it with OK. This won't break with other locales.
-		status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
-		if not status.endswith("OK") or "not-installed" in status:
-			package_install_apt(p)
-			res[p]=False
-		else:
-			if update:
-				package_update_apt(p)
-			res[p]=True
-	if len(res) == 1:
-		return res.values()[0]
-	else:
-		return res
+    """Ensure apt packages are installed"""
+    result = CuisineResult()
+    if isinstance(package, basestring):
+        package = package.split()
+    for p in package:
+        p = p.strip()
+        if not p: continue
+        # The most reliable way to detect success is to use the command status
+        # and suffix it with OK. This won't break with other locales.
+        status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
+        result.add( status )
+        if not status.endswith("OK") or "not-installed" in status:
+            result.add( package_install_apt(p) )
+        elif update:
+            result.add( package_update_apt(p) )
+    return result
 
 def package_clean_apt(package=None):
-	if type(package) in (list, tuple):
-		package = " ".join(package)
-	return apt_get("-y --purge remove %s" % package)
+    if type(package) in (list, tuple):
+        package = " ".join(package)
+    return CuisineResult( apt_get("-y --purge remove %s" % package) )
 
 def package_remove_apt(package, autoclean=False):
-	apt_get('remove ' + package)
-	if autoclean:
-		apt_get("autoclean")
+    result = CuisineResult()
+    result.add( apt_get('remove ' + package) )
+    if autoclean:
+        result.add( apt_get("autoclean") )
+    return result
 
 # -----------------------------------------------------------------------------
 # YUM PACKAGE (RedHat, CentOS)
@@ -954,13 +1000,14 @@ def package_clean_pkgin(package=None):
 @dispatch('python_package')
 def python_package_upgrade(package):
 	'''
-	Upgrades the defined python package.
+	Upgrades the defined python package. Returns a CuisineResult object.
 	'''
 
 @dispatch('python_package')
 def python_package_install(package=None):
 	'''
 	Installs the given python package/list of python packages.
+	Returns a CuisineResult object.
 	'''
 
 @dispatch('python_package')
@@ -968,12 +1015,14 @@ def python_package_ensure(package):
 	'''
 	Tests if the given python package is installed, and installes it in
 	case it's not already there.
+	Returns a CuisineResult object.
 	'''
 
 @dispatch('python_package')
 def python_package_remove(package):
 	'''
 	Removes the given python package.
+	Returns a CuisineResult object.
 	'''
 
 # -----------------------------------------------------------------------------
@@ -984,7 +1033,7 @@ def python_package_upgrade_pip(package):
 	'''
 	The "package" argument, defines the name of the package that will be upgraded.
 	'''
-	run('pip install --upgrade %s' %(package))
+	return CuisineResult( run('pip install --upgrade %s' %(package)) )
 
 def python_package_install_pip(package=None,r=None,pip=None):
 	'''
@@ -997,9 +1046,9 @@ def python_package_install_pip(package=None,r=None,pip=None):
 	'''
 	pip=pip or fabric.api.env.get('pip','pip')
 	if package:
-		run('%s install %s' %(pip,package))
+		return CuisineResult( run('%s install %s' %(pip,package)) )
 	elif r:
-		run('%s install -r %s' %(pip,r))
+		return CuisineResult( run('%s install -r %s' %(pip,r)) )
 	else:
 		raise Exception("Either a package name or the requirements file has to be provided.")
 
@@ -1014,7 +1063,7 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
 	# I am not sure if this really makes sense, based on the pip built in functionality.
 	# So I just call the install functions
 	pip=pip or fabric.api.env.get('pip','pip')
-	python_package_install_pip(package,r,pip)
+	return python_package_install_pip(package,r,pip)
 
 def python_package_remove_pip(package, pip=None):
 	'''
@@ -1024,7 +1073,7 @@ def python_package_remove_pip(package, pip=None):
 	Either "package" or "r" needs to be provided
 	'''
 	pip=pip or fabric.api.env.get('pip','pip')
-	return run('%s uninstall %s' %(pip,package))
+	return CuisineResult( run('%s uninstall %s' %(pip,package)) )
 
 # -----------------------------------------------------------------------------
 # EASY_INSTALL PYTHON PACKAGE MANAGER
@@ -1034,13 +1083,13 @@ def python_package_upgrade_easy_install(package):
 	'''
 	The "package" argument, defines the name of the package that will be upgraded.
 	'''
-	run('easy_install --upgrade %s' %package)
+	return CuisineResult( run('easy_install --upgrade %s' %package) )
 
 def python_package_install_easy_install(package):
 	'''
 	The "package" argument, defines the name of the package that will be installed.
 	'''
-	sudo('easy_install %s' %package)
+	return CuisineResult( sudo('easy_install %s' %package) )
 
 def python_package_ensure_easy_install(package):
 	'''
@@ -1049,14 +1098,14 @@ def python_package_ensure_easy_install(package):
 	#FIXME: At the moment, I do not know how to check for the existence of a py package and
 	# I am not sure if this really makes sense, based on the easy_install built in functionality.
 	# So I just call the install functions
-	python_package_install_easy_install(package)
+	return CuisineResult( python_package_install_easy_install(package) )
 
 def python_package_remove_easy_install(package):
 	'''
 	The "package" argument, defines the name of the package that will be removed.
 	'''
 	#FIXME: this will not remove egg file etc.
-	run('easy_install -m %s' %package)
+	return CuisineResult( run('easy_install -m %s' %package) )
 
 # =============================================================================
 #
