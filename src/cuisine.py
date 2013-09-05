@@ -3,14 +3,15 @@
 # Project   : Cuisine - Functions to write Fabric recipes
 # -----------------------------------------------------------------------------
 # License   : Revised BSD License
+# -----------------------------------------------------------------------------
 # Authors   : Sebastien Pierre                            <sebastien@ffctn.com>
 #             Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
 #             Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
 #             Warren Moore (zypper package)               <warren@wamonite.com>
-#	   Lorenzo Bivens (pkgin package)	<lorenzobivens@gmail.com>
+#             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 20-May-2013
+# Last mod  : 05-Sep-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -45,7 +46,7 @@ import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state
 
-VERSION               = "0.6.4"
+VERSION               = "0.6.5"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
 UNIX_EOL              = "\n"
@@ -170,12 +171,15 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	out, err = process.communicate()
 	# FIXME: Should stream the output, and only print it if fabric's properties allow it
 	# print out
+	# SEE: http://docs.fabfile.org/en/1.7/api/core/operations.html#fabric.operations.run
 	# Wrap stdout string and add extra status attributes
-	result = fabric.operations._AttributeString(out.rstrip('\n'))
-	result.return_code = process.returncode
-	result.succeeded   = process.returncode == 0
-	result.failed      = not result.succeeded
-	result.stderr      = StringIO.StringIO(err)
+	result              = fabric.operations._AttributeString(out.rstrip('\n'))
+	result.command      = command
+	result.real_command = command
+	result.return_code  = process.returncode
+	result.succeeded    = process.returncode == 0
+	result.failed       = not result.succeeded
+	result.stderr       = StringIO.StringIO(err)
 	return result
 
 def run(*args, **kwargs):
@@ -368,13 +372,19 @@ def file_local_read(location):
 	f.close()
 	return t
 
-def file_read(location):
-	"""Reads the *remote* file at the given location."""
+def file_read(location, default=None):
+	"""Reads the *remote* file at the given location, if default is not `None`,
+	default will be returned if the file does not exist."""
 	# NOTE: We use base64 here to be sure to preserve the encoding (UNIX/DOC/MAC) of EOLs
+	if default is None:
+		assert file_exists(location), "cuisine.file_read: file does not exists {0}".format(location)
+	elif not file_exists(location):
+		return default
 	with fabric.context_managers.settings(
 		fabric.api.hide('stdout')
 	):
-		return base64.b64decode(run('cat "%s" | openssl base64' % (location)))
+		frame = run('cat "%s" | openssl base64' % (location))
+		return base64.b64decode(frame)
 
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
