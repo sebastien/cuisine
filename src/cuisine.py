@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 05-Sep-2013
+# Last mod  : 18-Oct-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -1360,15 +1360,31 @@ def upstart_ensure(name):
 	with fabric.api.settings(warn_only=True):
 		status = sudo("service %s status" % name)
 	if status.failed:
-		sudo("service %s start" % name)
+		status = sudo("service %s start" % name)
+	return status
 
+def upstart_restart(name):
+	"""Tries a `restart` command to the given service, if not successful
+	will stop it and start it. If the service is not started, will start it."""
+	with fabric.api.settings(warn_only=True):
+		status = sudo("service %s status" % name)
+	if status.failed:
+		return sudo("service %s start" % name)
+	else:
+		status = sudo("service %s restart" % name)
+		if status.failed:
+			sudo("service %s stop"  % name)
+			return sudo("service %s start" % name)
+		else:
+			return status
 
 def upstart_stop(name):
 	"""Ensures that the given upstart service is stopped."""
 	with fabric.api.settings(warn_only=True):
 		status = sudo("service %s status" % name)
 	if status.succeeded:
-		sudo("service %s stop" % name)
+		status = sudo("service %s stop" % name)
+	return status
 
 
 # =============================================================================
