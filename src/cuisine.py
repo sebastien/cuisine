@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 18-Oct-2013
+# Last mod  : 28-Oct-2013
 # -----------------------------------------------------------------------------
 
 """
@@ -46,7 +46,7 @@ import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state
 
-VERSION               = "0.6.5"
+VERSION               = "0.7.0"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
 UNIX_EOL              = "\n"
@@ -57,6 +57,7 @@ SUDO_PASSWORD         = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE        = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE = "CUISINE_OPTION_PYTHON_PACKAGE"
 CMD_APT_GET           = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
+SHELL_ESCAPE          = " '\";`"
 
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin"],
@@ -127,6 +128,10 @@ def mode(key):
 def is_local():  return mode(MODE_LOCAL)
 def is_remote(): return not mode(MODE_LOCAL)
 def is_sudo():   return mode(MODE_SUDO)
+
+def shell_safe( path ):
+	"""Makes sure that the given path/string is escaped and safe for shell"""
+	return "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
 
 # =============================================================================
 #
@@ -383,21 +388,21 @@ def file_read(location, default=None):
 	with fabric.context_managers.settings(
 		fabric.api.hide('stdout')
 	):
-		frame = run('cat "%s" | openssl base64' % (location))
+		frame = run("cat {0} | openssl base64".format(shell_safe((location))))
 		return base64.b64decode(frame)
 
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
-	return run('test -e "%s" && echo OK ; true' % (location)).endswith("OK")
+	return run('test -e %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
 
 def file_is_file(location):
-	return run("test -f '%s' && echo OK ; true" % (location)).endswith("OK")
+	return run("test -f %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
 def file_is_dir(location):
-	return run("test -d '%s' && echo OK ; true" % (location)).endswith("OK")
+	return run("test -d %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
 def file_is_link(location):
-	return run("test -L '%s' && echo OK ; true" % (location)).endswith("OK")
+	return run("test -L %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
 def file_attribs(location, mode=None, owner=None, group=None):
 	"""Updates the mode/owner/group for the remote file at the given
@@ -410,7 +415,7 @@ def file_attribs_get(location):
 	otherwise.
 	"""
 	if file_exists(location):
-		fs_check = run('stat %s %s' % (location, '--format="%a %U %G"'))
+		fs_check = run('stat %s %s' % (shell_safe(location), '--format="%a %U %G"'))
 		(mode, owner, group) = fs_check.split(' ')
 		return {'mode': mode, 'owner': owner, 'group': group}
 	else:
@@ -429,11 +434,11 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	if sig != file_md5(location):
 		if is_local():
 			with mode_sudo(use_sudo):
-				run('cp "%s" "%s"'%(local_path,location))
+				run('cp %s %s'%(shell_safe(local_path), shell_safe(location)))
 		else:
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
-				scp_cmd = 'scp "%s" "%s"@"%s":"%s"'%(local_path,fabric.api.env.user,hostname,location)
+				scp_cmd = 'scp %s %s@%s:%s'% (shell_safe(local_path), shell_safe(fabric.api.env.user), shell_safe(hostname,location))
 				print('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
@@ -447,7 +452,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 					**{MODE_SUDO: use_sudo}
 				):
 					# See: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
-					result = run("echo '%s' | openssl base64 -A -d -out \"%s\"" % (base64.b64encode(content), location))
+					result = run("echo '%s' | openssl base64 -A -d -out %s" % (base64.b64encode(content), shell_safe(location)))
 					if "openssl:Error" in result:
 						fabric.api.abort('cuisine.file_write("%s",...) failed because openssl does not support base64 command.' % (location))
 	# Remove the local temp file
@@ -482,13 +487,13 @@ def file_upload(remote, local, sudo=None, scp=False):
 	if not file_exists(remote) or sig != file_md5(remote):
 		if is_local():
 			if use_sudo:
-				globals()['sudo']('cp "%s" "%s"'%(local,remote))
+				globals()['sudo']('cp %s %s'%(shell_safe(local), shell_safe(remote)))
 			else:
 				run('cp "%s" "%s"'%(local,remote))
 		else:
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
-				scp_cmd = 'scp "%s" "%s"@"%s":"%s"'%(local,fabric.api.env.user,hostname,remote)
+				scp_cmd = 'scp %s %s@%s:%s'%( shell_safe(local), shell_safe(fabric.api.env.user), shell_safe(hostname), shell_safe(remote))
 				print('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
@@ -507,17 +512,17 @@ def file_update(location, updater=lambda x: x):
 	assert file_exists(location), "File does not exists: " + location
 	new_content = updater(file_read(location))
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
-	run('echo "%s" | openssl base64 -A -d -out "%s"' % (base64.b64encode(new_content), location))
+	run('echo "%s" | openssl base64 -A -d -out %s' % (base64.b64encode(new_content), shell_safe(location)))
 
 def file_append(location, content, mode=None, owner=None, group=None):
 	"""Appends the given content to the remote file at the given
 	location, optionally updating its mode/owner/group."""
-	run('echo "%s" | openssl base64 -A -d >> "%s"' % (base64.b64encode(content), location))
+	run('echo "%s" | openssl base64 -A -d >> %s' % (base64.b64encode(content), shell_safe(location)))
 	file_attribs(location, mode, owner, group)
 
 def file_unlink(path):
 	if file_exists(path):
-		run("unlink '%s'" % (path))
+		run("unlink %s" % (shell_safe(path)))
 
 def file_link(source, destination, symbolic=True, mode=None, owner=None, group=None):
 	"""Creates a (symbolic) link between source and destination on the remote host,
@@ -528,9 +533,9 @@ def file_link(source, destination, symbolic=True, mode=None, owner=None, group=N
 	if file_is_link(destination):
 		file_unlink(destination)
 	if symbolic:
-		run('ln -sf "%s" "%s"' % (source, destination))
+		run('ln -sf %s %s' % (shell_safe(source), shell_safe(destination)))
 	else:
-		run('ln -f "%s" "%s"' % (source, destination))
+		run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
 	file_attribs(destination, mode, owner, group)
 
 def file_sha256(location):
@@ -538,7 +543,7 @@ def file_sha256(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	sig = run('shasum -a 256 "%s" | cut -d" " -f1' % (location)).split("\n")
+	sig = run('shasum -a 256 %s | cut -d" " -f1' % (shell_safe(location))).split("\n")
 	return sig[-1].strip()
 
 def file_md5(location):
@@ -546,7 +551,7 @@ def file_md5(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	sig = run('md5sum "%s" | cut -d" " -f1' % (location)).split("\n")
+	sig = run('md5sum %s | cut -d" " -f1' % (shell_safe(location))).split("\n")
 	return sig[-1].strip()
 
 # =============================================================================
@@ -599,15 +604,15 @@ def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
 	recursive = recursive and "-R " or ""
 	if mode:
-		run('chmod %s %s "%s"' % (recursive, mode,  location))
+		run('chmod %s %s %s' % (recursive, mode,  shell_safe(location)))
 	if owner:
-		run('chown %s %s "%s"' % (recursive, owner, location))
+		run('chown %s %s %s' % (recursive, owner, shell_safe(location)))
 	if group:
-		run('chgrp %s %s "%s"' % (recursive, group, location))
+		run('chgrp %s %s %s' % (recursive, group, shell_safe(location)))
 
 def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
-	return run('test -d "%s" && echo OK ; true' % (location)).endswith("OK")
+	return run('test -d %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
 
 def dir_remove(location, recursive=True):
 	""" Removes a directory """
@@ -615,7 +620,7 @@ def dir_remove(location, recursive=True):
 	if recursive:
 		flag = 'r'
 	if dir_exists(location):
-		return run('rm -%sf %s && echo OK ; true' % (flag, location))
+		return run('rm -%sf %s && echo OK ; true' % (flag, shell_safe(location)))
 
 def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	"""Ensures that there is a remote directory at the given location,
@@ -624,7 +629,7 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 	If we are not updating the owner/group then this can be done as a single
 	ssh call, so use that method, otherwise set owner/group after creation."""
 	if not dir_exists(location):
-		run('mkdir %s "%s"' % (recursive and "-p" or "", location))
+		run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(location)))
 	if owner or group or mode:
 		dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
