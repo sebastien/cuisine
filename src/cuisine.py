@@ -46,6 +46,12 @@ import base64, hashlib, os, re, string, tempfile, subprocess, types
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state
 
+try:
+	import reporter as logging
+	logging.StdoutReporter.Install()
+except ImportError:
+	import logging
+
 VERSION               = "0.7.0"
 RE_SPACES             = re.compile("[\s\t]+")
 MAC_EOL               = "\n"
@@ -68,6 +74,109 @@ DEFAULT_OPTIONS = dict(
 	package="apt",
 	python_package="pip"
 )
+
+# =============================================================================
+#
+# DECORATORS
+#
+# =============================================================================
+
+def stringify( value ):
+	"""Turns the given value in a user-friendly string that can be displayed"""
+	if   type(value) in (str, unicode, bytes) and len(value) > 50:
+		return "{0}...".format(value[0:50])
+	elif type(value) in (list, tuple) and len(value) > 10:
+		return"[{0},...]".format(", ".join([summarize(_) for _ in value[0:10]]))
+	else:
+		return str(value)
+
+def log_message( message ):
+	"""Logs the given message"""
+	logging.info( message )
+
+def log_call( function, args, kwargs ):
+	"""Logs the given function call"""
+	function_name = function.__name__
+	a = ", ".join([stringify(_) for _ in args] + [str(k) + "=" + stringify(v) for k,v in kwargs.items()])
+	log_message("cuisine.{0}({1})".format(function_name, a))
+
+def logged(message=None):
+	"""Logs the invoked function name and arguments."""
+	# TODO: Options - prevent sub @logged to output anything
+	# TODO: Message - allow to specify a message
+	# TODO: Category - read/write/exec as well as mode
+	# [2013-10-28T10:18:32] user@host [sudo|user] [R/W] cuinine.function(xx,xxx,xx) [time]
+	# [2013-10-28T10:18:32] user@host [sudo|user] [!] Exception
+	def logged_wrapper(function, message=message):
+		def wrapper(*args, **kwargs):
+			log_call(function, args, kwargs)
+			return function(*args, **kwargs)
+		# We copy name and docstring
+		functools.update_wrapper(wrapper, function)
+		return wrapper
+	if type(message) == types.FunctionType:
+		return logged_wrapper(message, None)
+	else:
+		return logged_wrapper
+
+def dispatch(prefix=None):
+	"""Dispatches the current function to specific implementation. The `prefix`
+	parameter indicates the common option prefix, and the `select_[option]()`
+	function will determine the function suffix.
+
+	For instance the package functions are defined like this:
+
+	{{{
+	@dispatch("package")
+	def package_ensure(...):
+		...
+	def package_ensure_apt(...):
+		...
+	def package_ensure_yum(...):
+		...
+	}}}
+
+	and then when a user does
+
+	{{{
+	cuisine.select_package("yum")
+	cuisine.package_ensure(...)
+	}}}
+
+	then the `dispatch` function will dispatch `package_ensure` to
+	`package_ensure_yum`.
+
+	If your prefix is the first word of the function name before the
+	first `_` then you can simply use `@dispatch` without parameters.
+	"""
+	def dispatch_wrapper(function, prefix=prefix):
+		def wrapper(*args, **kwargs):
+			function_name = function.__name__
+			_prefix       = prefix or function_name.split("_")[0].replace(".","_")
+			select        = fabric.api.env.get("CUISINE_OPTION_" + _prefix.upper())
+			assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix.upper(), prefix.lower().replace(".","_"))
+			function_name = function.__name__ + "_" + select
+			specific      = eval(function_name)
+			if specific:
+				if type(specific) == types.FunctionType:
+					return specific(*args, **kwargs)
+				else:
+					raise Exception("Function expected for: " + function_name)
+			else:
+				raise Exception("Function variant not defined: " + function_name)
+		# We copy name and docstring
+		functools.update_wrapper(wrapper, function)
+		return wrapper
+	if type(prefix) == types.FunctionType:
+		return dispatch_wrapper(prefix, None)
+	else:
+		return dispatch_wrapper
+
+# =============================================================================
+#
+# MODES
+#
+# =============================================================================
 
 def sudo_password(password=None):
 	"""Sets the password for the sudo command."""
@@ -208,6 +317,7 @@ def cd(*args, **kwargs):
 	return fabric.api.cd(*args, **kwargs)
 
 
+@logged
 def sudo(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands, using the
 	'cuisine.MODE_SUDO' global to tell whether the command should be run as
@@ -215,71 +325,13 @@ def sudo(*args, **kwargs):
 	with mode_sudo():
 		return run(*args, **kwargs)
 
+@logged
 def connect( host, user="root"):
 	"""Sets Fabric's current host to the given host. This is useful when
 	using Cuisine in standalone."""
 	# See http://docs.fabfile.org/en/1.3.2/usage/library.html
 	fabric.api.env.host_string = host
 	fabric.api.env.user        = user
-
-# =============================================================================
-#
-# DECORATORS
-#
-# =============================================================================
-
-def dispatch(prefix=None):
-	"""Dispatches the current function to specific implementation. The `prefix`
-	parameter indicates the common option prefix, and the `select_[option]()`
-	function will determine the function suffix.
-
-	For instance the package functions are defined like this:
-
-	{{{
-	@dispatch("package")
-	def package_ensure(...):
-		...
-	def package_ensure_apt(...):
-		...
-	def package_ensure_yum(...):
-		...
-	}}}
-
-	and then when a user does
-
-	{{{
-	cuisine.select_package("yum")
-	cuisine.package_ensure(...)
-	}}}
-
-	then the `dispatch` function will dispatch `package_ensure` to
-	`package_ensure_yum`.
-
-	If your prefix is the first word of the function name before the
-	first `_` then you can simply use `@dispatch` without parameters.
-	"""
-	def dispatch_wrapper(function, prefix=prefix):
-		def wrapper(*args, **kwargs):
-			function_name = function.__name__
-			_prefix       = prefix or function_name.split("_")[0].replace(".","_")
-			select        = fabric.api.env.get("CUISINE_OPTION_" + _prefix.upper())
-			assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix.upper(), prefix.lower().replace(".","_"))
-			function_name = function.__name__ + "_" + select
-			specific      = eval(function_name)
-			if specific:
-				if type(specific) == types.FunctionType:
-					return specific(*args, **kwargs)
-				else:
-					raise Exception("Function expected for: " + function_name)
-			else:
-				raise Exception("Function variant not defined: " + function_name)
-		# We copy name and docstring
-		functools.update_wrapper(wrapper, function)
-		return wrapper
-	if type(prefix) == types.FunctionType:
-		return dispatch_wrapper(prefix, None)
-	else:
-		return dispatch_wrapper
 
 # =============================================================================
 #
@@ -368,6 +420,7 @@ def text_template(text, variables):
 #
 # =============================================================================
 
+@logged
 def file_local_read(location):
 	"""Reads a *local* file from the given location, expanding '~' and
 	shell variables."""
@@ -377,6 +430,7 @@ def file_local_read(location):
 	f.close()
 	return t
 
+@logged
 def file_read(location, default=None):
 	"""Reads the *remote* file at the given location, if default is not `None`,
 	default will be returned if the file does not exist."""
@@ -391,24 +445,30 @@ def file_read(location, default=None):
 		frame = run("cat {0} | openssl base64".format(shell_safe((location))))
 		return base64.b64decode(frame)
 
+@logged
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
 	return run('test -e %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
 
+@logged
 def file_is_file(location):
 	return run("test -f %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
+@logged
 def file_is_dir(location):
 	return run("test -d %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
+@logged
 def file_is_link(location):
 	return run("test -L %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
+@logged
 def file_attribs(location, mode=None, owner=None, group=None):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
 	return dir_attribs(location, mode, owner, group, False)
 
+@logged
 def file_attribs_get(location):
 	"""Return mode, owner, and group for remote path.
 	Return mode, owner, and group if remote path exists, 'None'
@@ -421,6 +481,7 @@ def file_attribs_get(location):
 	else:
 		return None
 
+@logged
 def file_write(location, content, mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
 	"""Writes the given content to the file at the given remote
 	location, optionally setting mode/owner/group."""
@@ -467,6 +528,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 	with mode_sudo(use_sudo):
 		file_attribs(location, mode=mode, owner=owner, group=group)
 
+@logged
 def file_ensure(location, mode=None, owner=None, group=None, scp=False):
 	"""Updates the mode/owner/group for the remote file at the given
 	location."""
@@ -475,6 +537,7 @@ def file_ensure(location, mode=None, owner=None, group=None, scp=False):
 	else:
 		file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
 
+@logged
 def file_upload(remote, local, sudo=None, scp=False):
 	"""Uploads the local file to the remote location only if the remote location does not
 	exists or the content are different."""
@@ -499,6 +562,7 @@ def file_upload(remote, local, sudo=None, scp=False):
 			else:
 				fabric.operations.put(local, remote, use_sudo=use_sudo)
 
+@logged
 def file_update(location, updater=lambda x: x):
 	"""Updates the content of the given by passing the existing
 	content of the remote file at the given location to the 'updater'
@@ -514,16 +578,19 @@ def file_update(location, updater=lambda x: x):
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
 	run('echo "%s" | openssl base64 -A -d -out %s' % (base64.b64encode(new_content), shell_safe(location)))
 
+@logged
 def file_append(location, content, mode=None, owner=None, group=None):
 	"""Appends the given content to the remote file at the given
 	location, optionally updating its mode/owner/group."""
 	run('echo "%s" | openssl base64 -A -d >> %s' % (base64.b64encode(content), shell_safe(location)))
 	file_attribs(location, mode, owner, group)
 
+@logged
 def file_unlink(path):
 	if file_exists(path):
 		run("unlink %s" % (shell_safe(path)))
 
+@logged
 def file_link(source, destination, symbolic=True, mode=None, owner=None, group=None):
 	"""Creates a (symbolic) link between source and destination on the remote host,
 	optionally setting its mode/owner/group."""
@@ -538,6 +605,7 @@ def file_link(source, destination, symbolic=True, mode=None, owner=None, group=N
 		run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
 	file_attribs(destination, mode, owner, group)
 
+@logged
 def file_sha256(location):
 	"""Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
@@ -546,6 +614,7 @@ def file_sha256(location):
 	sig = run('shasum -a 256 %s | cut -d" " -f1' % (shell_safe(location))).split("\n")
 	return sig[-1].strip()
 
+@logged
 def file_md5(location):
 	"""Returns the MD5 sum (as a hex string) for the remote file at the given location."""
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
@@ -560,6 +629,7 @@ def file_md5(location):
 #
 # =============================================================================
 
+@logged
 def process_find(name, exact=False):
 	"""Returns the pids of processes with the given name. If exact is `False`
 	it will return the list of all processes that start with the given
@@ -587,6 +657,7 @@ def process_find(name, exact=False):
 			res.append(pid)
 	return res
 
+@logged
 def process_kill(name, signal=9, exact=False):
 	"""Kills the given processes with the given name. If exact is `False`
 	it will return the list of all processes that start with the given
@@ -600,6 +671,7 @@ def process_kill(name, signal=9, exact=False):
 #
 # =============================================================================
 
+@logged
 def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the given remote directory."""
 	recursive = recursive and "-R " or ""
@@ -610,10 +682,12 @@ def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	if group:
 		run('chgrp %s %s %s' % (recursive, group, shell_safe(location)))
 
+@logged
 def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
 	return run('test -d %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
 
+@logged
 def dir_remove(location, recursive=True):
 	""" Removes a directory """
 	flag = ''
@@ -639,30 +713,36 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 #
 # =============================================================================
 
+@logged
 @dispatch
 def package_upgrade(distupgrade=False):
 	"""Updates every package present on the system."""
 
+@logged
 @dispatch
 def package_update(package=None):
 	"""Updates the package database (when no argument) or update the package
 	or list of packages given as argument."""
 
+@logged
 @dispatch
 def package_install(package, update=False):
 	"""Installs the given package/list of package, optionally updating
 	the package database."""
 
+@logged
 @dispatch
 def package_ensure(package, update=False):
 	"""Tests if the given package is installed, and installs it in
 	case it's not already there. If `update` is true, then the
 	package will be updated if it already exists."""
 
+@logged
 @dispatch
 def package_clean(package=None):
 	"""Clean the repository for un-needed files."""
 
+@logged
 @dispatch
 def package_remove(package, autoclean=False):
 	"""Remove package and optionally clean unused packages"""
@@ -671,6 +751,7 @@ def package_remove(package, autoclean=False):
 # APT PACKAGE (DEBIAN/UBUNTU)
 # -----------------------------------------------------------------------------
 
+@logged
 def repository_ensure_apt(repository):
 	package_ensure_apt('python-software-properties')
 	sudo("add-apt-repository --yes " + repository)
