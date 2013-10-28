@@ -57,7 +57,7 @@ SUDO_PASSWORD         = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE        = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE = "CUISINE_OPTION_PYTHON_PACKAGE"
 CMD_APT_GET           = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
-SHELL_ESCAPE          = " '\";`"
+SHELL_ESCAPE          = " '\";`|"
 
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin"],
