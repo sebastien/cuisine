@@ -47,23 +47,27 @@ import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state
 
 try:
-	import reporter as logging
-	logging.StdoutReporter.Install()
+	import reporter
+	reporter.StdoutReporter.Install()
+	logging = reporter.bind("cuisine")
 except ImportError:
 	import logging
 
-VERSION               = "0.7.0"
-RE_SPACES             = re.compile("[\s\t]+")
-MAC_EOL               = "\n"
-UNIX_EOL              = "\n"
-WINDOWS_EOL           = "\r\n"
-MODE_LOCAL            = "CUISINE_MODE_LOCAL"
-MODE_SUDO             = "CUISINE_MODE_SUDO"
-SUDO_PASSWORD         = "CUISINE_SUDO_PASSWORD"
-OPTION_PACKAGE        = "CUISINE_OPTION_PACKAGE"
-OPTION_PYTHON_PACKAGE = "CUISINE_OPTION_PYTHON_PACKAGE"
-CMD_APT_GET           = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
-SHELL_ESCAPE          = " '\";`|"
+VERSION                 = "0.7.1"
+RE_SPACES               = re.compile("[\s\t]+")
+STRINGIFY_MAXSTRING     = 80
+STRINGIFY_MAXLISTSTRING = 20
+MAC_EOL                 = "\n"
+UNIX_EOL                = "\n"
+WINDOWS_EOL             = "\r\n"
+MODE_LOCAL              = "CUISINE_MODE_LOCAL"
+MODE_SUDO               = "CUISINE_MODE_SUDO"
+SUDO_PASSWORD           = "CUISINE_SUDO_PASSWORD"
+OPTION_PACKAGE          = "CUISINE_OPTION_PACKAGE"
+OPTION_PYTHON_PACKAGE   = "CUISINE_OPTION_PYTHON_PACKAGE"
+CMD_APT_GET             = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
+SHELL_ESCAPE            = " '\";`|"
+STATS                   = None
 
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin"],
@@ -77,16 +81,31 @@ DEFAULT_OPTIONS = dict(
 
 # =============================================================================
 #
+# STATS
+#
+# =============================================================================
+
+class Stats(object):
+	"""A work-in-progress class to store cuisine's statistics, so that you
+	can have a summary of what has been done."""
+
+	def __init__( self ):
+		self.filesRead         = []
+		self.filesWritten      = []
+		self.packagesInstalled = []
+
+# =============================================================================
+#
 # DECORATORS
 #
 # =============================================================================
 
 def stringify( value ):
 	"""Turns the given value in a user-friendly string that can be displayed"""
-	if   type(value) in (str, unicode, bytes) and len(value) > 50:
-		return "{0}...".format(value[0:50])
+	if   type(value) in (str, unicode, bytes) and len(value) > STRINGIFY_MAXSTRING:
+		return "{0}...".format(value[0:STRINGIFY_MAXSTRING])
 	elif type(value) in (list, tuple) and len(value) > 10:
-		return"[{0},...]".format(", ".join([summarize(_) for _ in value[0:10]]))
+		return"[{0},...]".format(", ".join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
 	else:
 		return str(value)
 
@@ -98,7 +117,7 @@ def log_call( function, args, kwargs ):
 	"""Logs the given function call"""
 	function_name = function.__name__
 	a = ", ".join([stringify(_) for _ in args] + [str(k) + "=" + stringify(v) for k,v in kwargs.items()])
-	log_message("cuisine.{0}({1})".format(function_name, a))
+	log_message("{0}({1})".format(function_name, a))
 
 def logged(message=None):
 	"""Logs the invoked function name and arguments."""
@@ -367,7 +386,18 @@ def text_nospace(text):
 
 def text_replace_line(text, old, new, find=lambda old, new: old == new, process=lambda _: _):
 	"""Replaces lines equal to 'old' with 'new', returning the new
-	text and the count of replacements."""
+	text and the count of replacements.
+
+	Returns: (text, number of lines replaced)
+
+	`process` is a function that will pre-process each line (you can think of
+	it as a normalization function, by default it will return the string as-is),
+	and `find` is the function that will compare the current line to the
+	`old` line.
+
+	The finds the line using `find(process(current_line), process(old_line))`,
+	and if this matches, will insert the new line instead.
+	"""
 	res = []
 	replaced = 0
 	eol = text_detect_eol(text)
@@ -399,6 +429,19 @@ def text_ensure_line(text, *lines):
 	return eol.join(res)
 
 def text_strip_margin(text, margin="|"):
+	"""Will strip all the characters before the left margin identified
+	by the `margin` character in your text. For instance
+
+	```
+			|Hello, world!
+	```
+
+	will result in
+
+	```
+	Hello, world!
+	```
+	"""
 	res = []
 	eol = text_detect_eol(text)
 	for line in text.split(eol):
@@ -430,6 +473,21 @@ def file_local_read(location):
 	f.close()
 	return t
 
+
+@logged
+def file_backup(location, suffix=".orig", once=False):
+	"""Backups the file at the given location in the same directory, appending
+	the given suffix. If `once` is True, then the backup will be skipped if
+	there is already a backup file."""
+	backup_location = location + suffix
+	if once and file_exists(backup_location):
+		return False
+	else:
+		return run("cp -a {0} {1}".format(
+			shell_safe(location),
+			shell_safe(backup_location)
+		))
+
 @logged
 def file_read(location, default=None):
 	"""Reads the *remote* file at the given location, if default is not `None`,
@@ -445,20 +503,16 @@ def file_read(location, default=None):
 		frame = run("cat {0} | openssl base64".format(shell_safe((location))))
 		return base64.b64decode(frame)
 
-@logged
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
 	return run('test -e %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
 
-@logged
 def file_is_file(location):
 	return run("test -f %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
-@logged
 def file_is_dir(location):
 	return run("test -d %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
-@logged
 def file_is_link(location):
 	return run("test -L %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
 
@@ -682,7 +736,6 @@ def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	if group:
 		run('chgrp %s %s %s' % (recursive, group, shell_safe(location)))
 
-@logged
 def dir_exists(location):
 	"""Tells if there is a remote directory at the given location."""
 	return run('test -d %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
@@ -1449,6 +1502,14 @@ def upstart_ensure(name):
 		status = sudo("service %s start" % name)
 	return status
 
+def upstart_reload(name):
+	"""Reloads the given service, or starts it if it is not running."""
+	with fabric.api.settings(warn_only=True):
+		status = sudo("service %s reload" % name)
+	if status.failed:
+		status = sudo("service %s start" % name)
+	return status
+
 def upstart_restart(name):
 	"""Tries a `restart` command to the given service, if not successful
 	will stop it and start it. If the service is not started, will start it."""
@@ -1499,7 +1560,6 @@ def system_uuid():
 #
 # =============================================================================
 
-
 def locale_check(locale):
 	locale_data = sudo("locale -a | egrep '^%s$' ; true" % (locale,))
 	return locale_data == locale
@@ -1512,6 +1572,7 @@ def locale_ensure(locale):
 
 # Sets up the default options so that @dispatch'ed functions work
 def _init():
+	STATS = Stats()
 	for option, value in DEFAULT_OPTIONS.items():
 		eval("select_" + option)(value)
 
