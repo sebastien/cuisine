@@ -553,7 +553,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 		else:
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
-				scp_cmd = 'scp %s %s@%s:%s'% (shell_safe(local_path), shell_safe(fabric.api.env.user), shell_safe(hostname,location))
+				scp_cmd = 'scp %s %s@%s:%s'% (shell_safe(local_path), shell_safe(fabric.api.env.user), shell_safe(hostname), shell_safe(location))
 				print('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
