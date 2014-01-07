@@ -620,17 +620,25 @@ def file_upload(remote, local, sudo=None, scp=False):
 def file_update(location, updater=lambda x: x):
 	"""Updates the content of the given by passing the existing
 	content of the remote file at the given location to the 'updater'
-	function.
+	function. Return true if file content was changed.
 
 	For instance, if you'd like to convert an existing file to all
 	uppercase, simply do:
 
 	>   file_update("/etc/myfile", lambda _:_.upper())
+
+	Or restart service on config change:
+
+	>   if file_update("/etc/myfile.cfg", lambda _: text_ensure_line(_, line)): run("service restart")
 	"""
 	assert file_exists(location), "File does not exists: " + location
-	new_content = updater(file_read(location))
+	old_content = file_read(location)
+	new_content = updater(old_content)
+	if (old_content == new_content):
+		return False
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
 	run('echo "%s" | openssl base64 -A -d -out %s' % (base64.b64encode(new_content), shell_safe(location)))
+	return True
 
 @logged
 def file_append(location, content, mode=None, owner=None, group=None):
