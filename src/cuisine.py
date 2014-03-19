@@ -637,7 +637,7 @@ def file_update(location, updater=lambda x: x):
 	if (old_content == new_content):
 		return False
 	# assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
-	run('echo "%s" | openssl base64 -A -d -out %s' % (base64.b64encode(new_content), shell_safe(location)))
+	file_write(location, new_content)
 	return True
 
 @logged
