@@ -1249,7 +1249,7 @@ def user_passwd(name, passwd, encrypted_passwd=True):
 		sudo("usermod -p '%s' %s" % (passwd,name))
 	else:
 		# NOTE: We use base64 here in case the password contains special chars
-		sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
+		sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
 
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
