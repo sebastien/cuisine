@@ -481,9 +481,9 @@ def file_ensure_content(location, content):
 	# Add support for choosing where content should be appended
         with settings(warn_only=True):
                 if file_exists(location):
-                        content_check = run('grep \'%s\' %s' % (shell_safe(content), shell_safe(location)))
+                        content_check = run('grep \'%s\' %s' % (content, shell_safe(location)))
                         if not content_check:
-                                run('echo %s >> %s' % (shell_safe(content), shell_safe(location)))
+                                run('echo %s >> %s' % (content, shell_safe(location)))
 
 def file_upload(remote, local, sudo=None, scp=False):
 	"""Uploads the local file to the remote location only if the remote location does not
