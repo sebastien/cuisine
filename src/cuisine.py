@@ -475,6 +475,16 @@ def file_ensure(location, mode=None, owner=None, group=None, scp=False):
 	else:
 		file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
 
+def file_ensure_content(location, content):
+	"""Checks a file for 'content' and appends it to the end if it
+	is missing. """
+	# Add support for choosing where content should be appended
+        with settings(warn_only=True):
+                if file_exists(location):
+                        content_check = run('grep \'%s\' %s' % (content, shell_safe(location)))
+                        if not content_check:
+                                run('echo %s >> %s' % (content, shell_safe(location)))
+
 def file_upload(remote, local, sudo=None, scp=False):
 	"""Uploads the local file to the remote location only if the remote location does not
 	exists or the content are different."""
