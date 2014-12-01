@@ -1219,7 +1219,7 @@ def python_package_install_pip(package=None,r=None,pip=None):
 	'''
 	pip=pip or fabric.api.env.get('pip','pip')
 	if package:
-		run('%s install %s' %(pip,package))
+		sudo('%s install %s' %(pip,package))
 	elif r:
 		run('%s install -r %s' %(pip,r))
 	else:
