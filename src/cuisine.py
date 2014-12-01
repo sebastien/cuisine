@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 28-Oct-2013
+# Last mod  : 01-Dec-2014
 # -----------------------------------------------------------------------------
 
 """
@@ -42,18 +42,25 @@ See also:
 """
 
 from __future__ import with_statement
-import base64, hashlib, os, re, string, tempfile, subprocess, types
+import base64, hashlib, os, re, string, tempfile, subprocess, types, threading, sys
 import tempfile, functools, StringIO
-import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state
+import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state, fabric.version
 
 try:
+	# NOTE: Reporter is a custom module that follows the logging interface
+	# but provides more backends and options.
 	import reporter
 	reporter.StdoutReporter.Install()
+	reporter.setLevel(reporter.TRACE)
 	logging = reporter.bind("cuisine")
 except ImportError:
 	import logging
 
-VERSION                 = "0.7.1"
+if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
+	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
+
+VERSION                 = "0.7.3"
+NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
 STRINGIFY_MAXLISTSTRING = 20
@@ -78,6 +85,8 @@ DEFAULT_OPTIONS = dict(
 	package="apt",
 	python_package="pip"
 )
+
+logging.info("Welcome to Cuisine v{0}".format(VERSION))
 
 # =============================================================================
 #
@@ -300,20 +309,59 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	if sudo: command = "sudo " + command
 	stderr   = subprocess.STDOUT if combine_stderr else subprocess.PIPE
 	lcwd = fabric.state.env.get('lcwd', None) or None #sets lcwd to None if it bools to false as well
-	process  = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=stderr, cwd=lcwd)
-	out, err = process.communicate()
-	# FIXME: Should stream the output, and only print it if fabric's properties allow it
-	# print out
+	logging.info("Local: {0} in {1}".format(command, lcwd or "."))
+	process  = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=lcwd)
+	# NOTE: This is not ideal, but works well.
+	# See http://stackoverflow.com/questions/15654163/how-to-capture-streaming-output-in-python-from-subprocess-communicate
+	# At some point, we should use a single thread.
+	out = []
+	err = []
+	# FIXME: This does not seem to stream
+	def stdout_reader():
+		for line in process.stdout:
+			if line: logging.trace(line.rstrip("\n").rstrip("\r"))
+			out.append(line)
+	def stderr_reader():
+		for line in process.stderr:
+			logging.error(line.rstrip("\n").rstrip("\r"))
+			err.append(line)
+	t0 = threading.Thread(target=stdout_reader)
+	t1 = threading.Thread(target=stderr_reader)
+	t0.start()
+	t1.start()
+	process.wait()
+	t0.join()
+	t1.join()
+	out = "".join(out)
+	err = "".join(err)
 	# SEE: http://docs.fabfile.org/en/1.7/api/core/operations.html#fabric.operations.run
 	# Wrap stdout string and add extra status attributes
-	result              = fabric.operations._AttributeString(out.rstrip('\n'))
-	result.command      = command
-	result.real_command = command
-	result.return_code  = process.returncode
-	result.succeeded    = process.returncode == 0
-	result.failed       = not result.succeeded
-	result.stderr       = StringIO.StringIO(err)
-	return result
+	# SEE: fabric.operations._run_command. for the code below
+	out = fabric.operations._AttributeString(out.rstrip('\n'))
+	err = fabric.operations._AttributeString(err.rstrip('\n'))
+	# Error handling
+	status           = process.returncode
+	out.failed       = False
+	out.command      = command
+	out.real_command = command
+	if status not in fabric.state.env.ok_ret_codes:
+		out.failed = True
+		msg = "run_local received nonzero return code %s while executing" % (status)
+		if fabric.state.env.warn_only:
+			msg += " '%s'!" % command
+		else:
+			msg += "!\nExecuted: %s" % (command)
+		logging.info(msg)
+		for _ in err.split("\n"):logging.error(_)
+		fabric.utils.error(message=msg, stdout=out, stderr=err)
+	# Attach return code to output string so users who have set things to
+	# warn only, can inspect the error code.
+	out.return_code = status
+	# Convenience mirror of .failed
+	out.succeeded = not out.failed
+	# Attach stderr for anyone interested in that.
+	out.stderr = err
+	return out
 
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands that takes into account
@@ -335,6 +383,10 @@ def cd(*args, **kwargs):
 		return fabric.api.lcd(*args, **kwargs)
 	return fabric.api.cd(*args, **kwargs)
 
+def pwd():
+	"""Returns the current directory."""
+	# FIXME: Might not work with Fabric's lpwd
+	return run("pwd")
 
 @logged
 def sudo(*args, **kwargs):
@@ -345,12 +397,26 @@ def sudo(*args, **kwargs):
 		return run(*args, **kwargs)
 
 @logged
-def connect( host, user="root"):
+def connect( host, user="root", password=NOTHING):
 	"""Sets Fabric's current host to the given host. This is useful when
 	using Cuisine in standalone."""
 	# See http://docs.fabfile.org/en/1.3.2/usage/library.html
 	fabric.api.env.host_string = host
 	fabric.api.env.user        = user
+	if password is not NOTHING:
+		fabric.api.env.password = password
+
+def host( name=NOTHING ):
+	"""Returns or sets the host"""
+	if name is not NOTHING:
+		fabric.api.env.host_string = name
+	return fabric.api.env.host_string
+
+def user( name=NOTHING ):
+	"""Returns or sets the user"""
+	if name is not NOTHING:
+		fabric.api.env.user = name
+	return fabric.api.env.user
 
 # =============================================================================
 #
@@ -554,7 +620,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
 				scp_cmd = 'scp %s %s@%s:%s'% (shell_safe(local_path), shell_safe(fabric.api.env.user), shell_safe(hostname), shell_safe(location))
-				print('[localhost] ' +  scp_cmd)
+				logging.trace('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
 				# FIXME: Put is not working properly, I often get stuff like:
@@ -611,7 +677,7 @@ def file_upload(remote, local, sudo=None, scp=False):
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
 				scp_cmd = 'scp %s %s@%s:%s'%( shell_safe(local), shell_safe(fabric.api.env.user), shell_safe(hostname), shell_safe(remote))
-				print('[localhost] ' +  scp_cmd)
+				logging.trace('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
 				fabric.operations.put(local, remote, use_sudo=use_sudo)
@@ -1008,7 +1074,6 @@ def package_remove_pacman(package, autoclean=False):
 	else:
 		sudo('pacman --noconfirm -R ' + package)
 
-
 # -----------------------------------------------------------------------------
 # EMERGE PACKAGE (Gentoo Portage)
 # added by davidmmiller - 20130417 - v0.1 (status - works for me...)
@@ -1393,6 +1458,9 @@ def group_user_add(group, user):
 def group_user_ensure(group, user):
 	"""Ensure that a given user is a member of a given group."""
 	d = group_check(group)
+	if not d:
+		group_ensure("group")
+		d = group_check(group)
 	if user not in d["members"]:
 		group_user_add(group, user)
 
@@ -1561,6 +1629,27 @@ def system_uuid_alias_add():
 def system_uuid():
 	"""Gets a machines UUID (Universally Unique Identifier)."""
 	return sudo('dmidecode -s system-uuid | tr "[A-Z]" "[a-z]"')
+
+# =============================================================================
+#
+# RSYNC
+#
+# =============================================================================
+
+def rsync(local_path, remote_path, compress=True, progress=True, verbose=True):
+	"""Rsyncs local to remote, using the connection's host and user."""
+	options = "-a"
+	if compress: options += "z"
+	if verbose:  options += "v"
+	if progress: options += " --progress"
+	with mode_local():
+		run("rsync {options} {local} {user}@{host}:{remote}".format(
+			options = options,
+			host    = host(),
+			user    = user(),
+			local   = local_path,
+			remote  = remote_path,
+		))
 
 # =============================================================================
 #
