@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 01-Dec-2014
+# Last mod  : 02-Dec-2014
 # -----------------------------------------------------------------------------
 
 """
@@ -59,7 +59,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.3"
+VERSION                 = "0.7.4"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
@@ -319,7 +319,7 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	# FIXME: This does not seem to stream
 	def stdout_reader():
 		for line in process.stdout:
-			if line: logging.trace(line.rstrip("\n").rstrip("\r"))
+			if line: logging.debug(line.rstrip("\n").rstrip("\r"))
 			out.append(line)
 	def stderr_reader():
 		for line in process.stderr:
@@ -620,7 +620,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
 				scp_cmd = 'scp %s %s@%s:%s'% (shell_safe(local_path), shell_safe(fabric.api.env.user), shell_safe(hostname), shell_safe(location))
-				logging.trace('[localhost] ' +  scp_cmd)
+				logging.debug('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
 				# FIXME: Put is not working properly, I often get stuff like:
@@ -677,7 +677,7 @@ def file_upload(remote, local, sudo=None, scp=False):
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
 				scp_cmd = 'scp %s %s@%s:%s'%( shell_safe(local), shell_safe(fabric.api.env.user), shell_safe(hostname), shell_safe(remote))
-				logging.trace('[localhost] ' +  scp_cmd)
+				logging.debug('[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
 				fabric.operations.put(local, remote, use_sudo=use_sudo)

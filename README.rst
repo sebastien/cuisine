@@ -189,5 +189,5 @@ More?
 If you want more information, you can:
 
 * Read the `presentation on Cuisine <http://ur1.ca/45ku5>`_
-* Read `Cuisine: the Lightweight Chef/Puppet Alternative <http://ur1.ca/iy9h5>`_
+* Read `Cuisine: the Lightweight Chef/Puppet Alternative <http://stackful-dev.com/cuisine-the-lightweight-chefpuppet-alternative>`_
 
