@@ -45,7 +45,7 @@ How to get started
 
 Open up a python shell and type:
 
-::
+.. code-block:: python
 
     import cuisine
 
@@ -100,7 +100,7 @@ easy to get started using an interactive shell.
 If you would like to use cuisine without using a `fabfile`, you can call the
 `mode_local()` function.
 
-::
+.. code-block:: python
 
     import cuisine
     cuisine.mode_local()
@@ -108,7 +108,7 @@ If you would like to use cuisine without using a `fabfile`, you can call the
 
 alternatively, you can also directly connect to a server
 
-::
+.. code-block:: python
 
     import cuisine
     cuisine.connect("my.server.com")
@@ -117,7 +117,7 @@ alternatively, you can also directly connect to a server
 If you want to use cuisine within a `fabfile`, simply create a `fabfile`
 with the following content:
 
-::
+.. code-block:: python
 
     from cuisine import *
 
@@ -126,13 +126,14 @@ with the following content:
         user_ensure("admin")
         group_user_ensure("remote_admin", admin")
 
+
 Troubleshooting
 ---------------
 
 If you are encoutering problems, please check the following:
 
-- The user@host is running an SH-compatible (sh, dash, bash, zsh would work)
-- The system has`openssl base64`, `md5sum` and `sha1sum` commands in addition
+- The user@host is running an SH-compatible shell (sh, dash, bash, zsh should work)
+- The system has `openssl base64`, `md5sum` and `sha1sum` commands in addition
   to the basic UNIX ones.
 
 If you still have a problem, simply file a bug report
@@ -171,7 +172,7 @@ platform, you should do the following:
 To use a specific backend implementation of a set of features, use the 
 `select_*` functions.
 
-::
+.. code-block:: python
 
     # To use the 'apt' backend
     cuisine.select_package("apt")
