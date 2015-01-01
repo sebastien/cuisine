@@ -124,7 +124,7 @@ with the following content:
     def setup():
         group_ensure("remote_admin")
         user_ensure("admin")
-        group_user_ensure("remote_admin", admin")
+        group_user_ensure("remote_admin", "admin")
 
 
 Troubleshooting
