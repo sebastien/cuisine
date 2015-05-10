@@ -45,6 +45,7 @@ from __future__ import with_statement
 import base64, hashlib, os, re, string, tempfile, subprocess, types, threading, sys
 import tempfile, functools, StringIO
 import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state, fabric.version
+import platform
 
 try:
 	# NOTE: Reporter is a custom module that follows the logging interface
@@ -77,7 +78,7 @@ SHELL_ESCAPE            = " '\";`|"
 STATS                   = None
 
 AVAILABLE_OPTIONS = dict(
-	package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin"],
+	package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
 	python_package=["easy_install","pip"]
 )
 
@@ -748,7 +749,10 @@ def file_md5(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	sig = run('md5sum %s | cut -d" " -f1' % (shell_safe(location))).split("\n")
+	if 'Linux' in platform.uname():
+		sig = run('md5sum %s | cut -d" " -f1' % (shell_safe(location))).split("\n")
+	if 'FreeBSD' in platform.uname():
+		sig = run('md5 %s | cut -d" " -f4' % (shell_safe(location))).split("\n")
 	return sig[-1].strip()
 
 # =============================================================================
@@ -1167,6 +1171,46 @@ def package_ensure_pkgin(package, update=False):
 def package_clean_pkgin(package=None):
 	sudo("pkgin -y clean")
 
+
+# -----------------------------------------------------------------------------
+# PKG - FreeBSD
+# -----------------------------------------------------------------------------
+
+def repository_ensure_pkgng(repository):
+	raise Exception("Not implemented for pkgng")
+
+def package_upgrade_pkgng():
+	sudo("pkg -y upgrade")
+
+def package_update_pkgng(package=None):
+	#test if this works
+	if package == None:
+		sudo("pkg -y update")
+	else:
+		if type(package) in (list, tuple):
+			package = " ".join(package)
+		sudo("pkg upgrade " + package)
+
+def package_install_pkgng(package, update=False):
+	if update:
+		sudo("pkg update")
+	if type(package) in (list, tuple):
+		package = " ".join(package)
+	sudo("echo y | pkg install %s" % (package))
+
+def package_ensure_pkgng(package, update=False):
+	# I am gonna have to do something different here
+	status = run("pkg info %s ; true" % package)
+	if status.stderr.find("No package(s) matching") != -1 or status.find(package) == -1:
+		package_install_pkgng(package, update)
+		return False
+	else:
+		if update: package_update_pkgng(package)
+		return True
+
+def package_clean_pkgng(package=None):
+	sudo("pkg delete %s" % (package))
+
 # =============================================================================
 #
 # PYTHON PACKAGE OPERATIONS
@@ -1307,6 +1351,11 @@ def command_ensure(command, package=None):
 #
 # =============================================================================
 
+
+# =============================================================================
+# Linux support (useradd, usermod)
+# =============================================================================
+
 def user_passwd(name, passwd, encrypted_passwd=True):
 	"""Sets the given user password. Password is expected to be encrypted by default."""
 	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
@@ -1342,6 +1391,35 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	if createhome:
 		options.append("-m")
 	sudo("useradd %s '%s'" % (" ".join(options), name))
+	if passwd:
+		user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
+
+def user_create_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None,
+	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
+	"""Creates the user with the given name, optionally giving a
+	specific password/home/uid/gid/shell."""
+	options = []
+
+	if home:
+		options.append("-d '%s'" % (home))
+	if uid:
+		options.append("-u %s" % (uid))
+	#if group exists already but is not specified, useradd fails
+	if not gid and group_check(name):
+		gid = name
+	if gid:
+		options.append("-g '%s'" % (gid))
+	if shell:
+		options.append("-s '%s'" % (shell))
+	if uid_min:
+		options.append("-u %s," % (uid_min))
+	if uid_max:
+		options.append("%s" % (uid_max))
+	if fullname:
+		options.append("-c '%s'" % (fullname))
+	if createhome:
+		options.append("-m")
+	sudo("pw useradd -n %s %s" % (name, " ".join(options)))
 	if passwd:
 		user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
 
@@ -1404,7 +1482,139 @@ def user_remove(name, rmhome=None):
 		options.append("-r")
 	sudo("userdel %s '%s'" % (" ".join(options), name))
 
+
 # =============================================================================
+# BSD support (pw useradd, userdel )
+# =============================================================================
+
+def user_passwd_bsd(name, passwd, encrypted_passwd=True):
+	"""Sets the given user password. Password is expected to be encrypted by default."""
+	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
+	if encrypted_passwd:
+		sudo("pw usermod '%s' -p %s" % (name, passwd))
+	else:
+		# NOTE: We use base64 here in case the password contains special chars
+		sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
+
+def user_create_passwd_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None,
+	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
+	"""Creates the user with the given name, optionally giving a
+	specific password/home/uid/gid/shell."""
+	options = []
+
+	if home:
+		options.append("-d '%s'" % (home))
+	if uid:
+		options.append("-u '%s'" % (uid))
+	#if group exists already but is not specified, useradd fails
+	if not gid and group_check(name):
+		gid = name
+	if gid:
+		options.append("-g '%s'" % (gid))
+	if shell:
+		options.append("-s '%s'" % (shell))
+	if uid_min:
+		options.append("-K UID_MIN='%s'" % (uid_min))
+	if uid_max:
+		options.append("-K UID_MAX='%s'" % (uid_max))
+	if fullname:
+		options.append("-c '%s'" % (fullname))
+	if createhome:
+		options.append("-m")
+	sudo("useradd %s '%s'" % (" ".join(options), name))
+	if passwd:
+		user_passwd_bsd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
+
+def user_create_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None,
+	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
+	"""Creates the user with the given name, optionally giving a
+	specific password/home/uid/gid/shell."""
+	options = []
+
+	if home:
+		options.append("-d '%s'" % (home))
+	if uid:
+		options.append("-u %s" % (uid))
+	#if group exists already but is not specified, useradd fails
+	if not gid and group_check_bsd(name):
+		gid = name
+	if gid:
+		options.append("-g '%s'" % (gid))
+	if shell:
+		options.append("-s '%s'" % (shell))
+	if uid_min:
+		options.append("-u %s," % (uid_min))
+	if uid_max:
+		options.append("%s" % (uid_max))
+	if fullname:
+		options.append("-c '%s'" % (fullname))
+	if createhome:
+					options.append("-m")
+	sudo("pw useradd -n %s %s" % (name, " ".join(options)))
+	if passwd:
+		user_passwd_bsd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
+
+def user_check_bsd(name=None, uid=None, need_passwd=True):
+	"""Checks if there is a user defined with the given name,
+	returning its information as a
+	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
+	or 'None' if the user does not exists.
+	need_passwd (Boolean) indicates if password to be included in result or not.
+		If set to True it parses 'getent passwd' and needs sudo access
+	"""
+	assert name!=None or uid!=None,     "user_check: either `uid` or `name` should be given"
+	assert name is None or uid is None,"user_check: `uid` and `name` both given, only one should be provided"
+	if   name != None:
+		d = run("getent passwd | egrep '^%s:' ; true" % (name))
+	elif uid != None:
+		d = run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+	results = {}
+	s = None
+	if d:
+		d = d.split(":")
+		assert len(d) >= 7, "passwd entry returned by getent is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
+		results = dict(name=d[0], uid=d[2], gid=d[3], fullname=d[4], home=d[5], shell=d[6])
+		if need_passwd:
+			s = sudo("getent passwd | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
+			if s: results['passwd'] = s
+	if results:
+		return results
+	else:
+		return None
+
+def user_ensure_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
+	"""Ensures that the given users exists, optionally updating their
+	passwd/home/uid/gid/shell."""
+	d = user_check_bsd(name)
+	if not d:
+		user_create_bsd(name, passwd, home, uid, gid, shell, fullname=fullname, encrypted_passwd=encrypted_passwd)
+	else:
+		options = []
+		if home != None and d.get("home") != home:
+			options.append("-d '%s'" % (home))
+		if uid != None and d.get("uid") != uid:
+			options.append("-u '%s'" % (uid))
+		if gid != None and d.get("gid") != gid:
+			options.append("-g '%s'" % (gid))
+		if shell != None and d.get("shell") != shell:
+			options.append("-s '%s'" % (shell))
+		if fullname != None and d.get("fullname") != fullname:
+			options.append("-c '%s'" % fullname)
+		if options:
+			sudo("pw usermod %s '%s'" % (name, " ".join(options)))
+		if passwd:
+			user_passwd_bsd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
+
+def user_remove_bsd(name, rmhome=None):
+	"""Removes the user with the given name, optionally
+	removing the home directory and mail spool."""
+	options = ["-f"]
+	if rmhome:
+		options.append("-r")
+	sudo("pw userdel %s '%s'" % (" ".join(options), name))
+
+
+
 #
 # GROUP OPERATIONS
 #
@@ -1498,6 +1708,101 @@ def group_remove(group=None, wipe=False):
                 for user in members:
                     group_user_del(group, user)
             sudo("groupdel %s" % group)
+
+def group_create_bsd(name, gid=None):
+	"""Creates a group with the given name, and optionally given gid."""
+	options = []
+	if gid:
+		options.append("-g '%s'" % (gid))
+	sudo("pw groupadd %s -n %s" % (" ".join(options), name))
+
+def group_check_bsd(name):
+	"""Checks if there is a group defined with the given name,
+	returning its information as:
+	'{"name":<str>,"gid":<str>,"members":<list[str]>}'
+	or
+	'{"name":<str>,"gid":<str>}' if the group has no members
+	or
+	'None' if the group does not exists."""
+	group_data = run("getent group | egrep '^%s:' ; true" % (name))
+	if len(group_data.split(":")) == 4:
+		name, _, gid, members = group_data.split(":", 4)
+		return dict(name=name, gid=gid,
+					members=tuple(m.strip() for m in members.split(",")))
+	elif len(group_data.split(":")) == 3:
+		name, _, gid = group_data.split(":", 3)
+		return dict(name=name, gid=gid, members=(''))
+	else:
+		return None
+
+def group_ensure_bsd(name, gid=None):
+	"""Ensures that the group with the given name (and optional gid)
+	exists."""
+	d = group_check_bsd(name)
+	if not d:
+		group_create_bsd(name, gid)
+	else:
+		if gid != None and d.get("gid") != gid:
+			sudo("pw groupmod -g %s -n %s" % (gid, name))
+
+def group_user_check_bsd(group, user):
+	"""Checks if the given user is a member of the given group. It
+	will return 'False' if the group does not exist."""
+	d = group_check_bsd(group)
+	if d is None:
+		return False
+	else:
+		return user in d["members"]
+
+def group_user_add_bsd(group, user):
+	"""Adds the given user/list of users to the given group/groups."""
+	assert group_check_bsd(group), "Group does not exist: %s" % (group)
+	if not group_user_check_bsd(group, user):
+		sudo("pw usermod -a -G '%s' -n '%s'" % (group, user))
+
+def group_user_ensure_bsd(group, user):
+	"""Ensure that a given user is a member of a given group."""
+	d = group_check_bsd(group)
+	if not d:
+		group_ensure_bsd("group")
+		d = group_check_bsd(group)
+	if user not in d["members"]:
+		group_user_add_bsd(group, user)
+
+def group_user_del_bsd(group, user):
+		"""remove the given user from the given group."""
+		assert group_check_bsd(group), "Group does not exist: %s" % (group)
+		if group_user_check_bsd(group, user):
+				group_for_user = run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
+				if group_for_user:
+						sudo("pw usermod -G '%s' '%s'" % (",".join(group_for_user), user))
+				else:
+						sudo("pw usermod -G '' '%s'" % (user))
+
+def group_remove_bsd(group=None, wipe=False):
+    """ Removes the given group, this implies to take members out the group
+    if there are any.  If wipe=True and the group is a primary one,
+    deletes its user as well.
+    """
+    assert group_check_bsd(group), "Group does not exist: %s" % (group)
+    members_of_group = run("getent group %s | awk -F':' '{print $4}'" % group)
+    members = members_of_group.split(",")
+    is_primary_group = user_check_bsd(name=group)
+
+    if wipe:
+        if len(members_of_group):
+            for user in members:
+                group_user_del_bsd(group, user)
+        if is_primary_group:
+            user_remove_bsd(group)
+        else:
+            sudo("pw groupdel %s" % group)
+
+    elif not is_primary_group:
+            if len(members_of_group):
+                for user in members:
+                    group_user_del_bsd(group, user)
+            sudo("pw groupdel %s" % group)
 
 # =============================================================================
 #
