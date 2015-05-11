@@ -5,7 +5,7 @@ VERSION     = `grep VERSION src/cuisine.py | cut -d '=' -f2  | xargs echo`
 PRODUCT     = MANIFEST doc
 
 .PHONY: all doc clean check
-	
+
 all: $(PRODUCT)
 
 release: $(PRODUCT)
@@ -19,6 +19,7 @@ test:
 
 clean:
 	@rm -rf api/ build dist MANIFEST ; true
+	vagrant destroy -f
 
 check:
 	pychecker -100 $(SOURCES)
@@ -29,6 +30,12 @@ doc: $(DOC_SOURCES)
 
 test:
 	python tests/all.py
+
+up:
+	vagrant up --no-provision --provider virtualbox
+
+provision:
+	vagrant provision
 
 MANIFEST: $(MANIFEST)
 	echo $(MANIFEST) | xargs -n1 | sort | uniq > $@

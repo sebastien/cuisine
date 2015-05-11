@@ -4,3 +4,7 @@ src/cuisine.egg-info
 *.pyc
 build/*
 dist/*
+run_cuisine.py
+tests/integration/freebsd/bash/run_cuisine.py
+.vagrant
+.bundle/
