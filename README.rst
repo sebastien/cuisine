@@ -192,6 +192,7 @@ This repository contains a vagrantfile that will build a freebsd box, and a ubun
 Simply type:
 
     make up
+
     make provision
 
 *make provision* will run the integration tests against the Virtual Machines

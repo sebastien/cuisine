@@ -73,18 +73,27 @@ MODE_SUDO               = "CUISINE_MODE_SUDO"
 SUDO_PASSWORD           = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE          = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE   = "CUISINE_OPTION_PYTHON_PACKAGE"
+OPTION_OS_FLAVOUR       = "CUISINE_OPTION_OS_FLAVOUR"
+OPTION_USER             = "CUISINE_OPTION_USER"
+OPTION_GROUP            = "CUISINE_OPTION_GROUP"
 CMD_APT_GET             = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
 SHELL_ESCAPE            = " '\";`|"
 STATS                   = None
 
 AVAILABLE_OPTIONS = dict(
 	package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
-	python_package=["easy_install","pip"]
+	python_package=["easy_install","pip"],
+	os_flavour=["linux","bsd"],
+	user=["linux","bsd"],
+	group=["linux","bsd"]
 )
 
 DEFAULT_OPTIONS = dict(
 	package="apt",
-	python_package="pip"
+	python_package="pip",
+	os_flavour="linux",
+	user="linux",
+	group="linux"
 )
 
 logging.info("Welcome to Cuisine v{0}".format(VERSION))
@@ -183,6 +192,7 @@ def dispatch(prefix=None):
 			function_name = function.__name__
 			_prefix       = prefix or function_name.split("_")[0].replace(".","_")
 			select        = fabric.api.env.get("CUISINE_OPTION_" + _prefix.upper())
+
 			assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (_prefix.upper(), prefix.lower().replace(".","_"))
 			function_name = function.__name__ + "_" + select
 			specific      = eval(function_name)
@@ -291,6 +301,31 @@ def select_python_package( selection=None ):
 		assert selection in supported, "Option must be one of: %s"  % (supported)
 		fabric.api.env[OPTION_PYTHON_PACKAGE] = selection
 	return (fabric.api.env[OPTION_PYTHON_PACKAGE], supported)
+
+def select_user( selection=None ):
+	supported = AVAILABLE_OPTIONS["user"]
+	if not (selection is None):
+		assert selection in supported, "Option must be one of: %s"  % (supported)
+		fabric.api.env[OPTION_USER] = selection
+	return (fabric.api.env[OPTION_USER], supported)
+
+def select_group( selection=None ):
+	supported = AVAILABLE_OPTIONS["group"]
+	if not (selection is None):
+		assert selection in supported, "Option must be one of: %s"  % (supported)
+		fabric.api.env[OPTION_GROUP] = selection
+	return (fabric.api.env[OPTION_GROUP], supported)
+
+def select_os_flavour( selection=None ):
+	supported = AVAILABLE_OPTIONS["os_flavour"]
+	if not (selection is None):
+		assert selection in supported, "Option must be one of: %s"  % (supported)
+		fabric.api.env[OPTION_OS_FLAVOUR] = selection
+		# select the correct implementation for user,group management
+		# either useradd,groupadd for linux, or pw user/pw group for BSD
+		select_user(selection)
+		select_group(selection)
+	return (fabric.api.env[OPTION_OS_FLAVOUR], supported)
 
 # =============================================================================
 #
@@ -755,6 +790,8 @@ def file_md5(location):
 		sig = run('md5 %s | cut -d" " -f4' % (shell_safe(location))).split("\n")
 	return sig[-1].strip()
 
+
+
 # =============================================================================
 #
 # PROCESS OPERATIONS
@@ -1180,7 +1217,7 @@ def repository_ensure_pkgng(repository):
 	raise Exception("Not implemented for pkgng")
 
 def package_upgrade_pkgng():
-	sudo("pkg -y upgrade")
+	sudo("echo y | pkg upgrade")
 
 def package_update_pkgng(package=None):
 	#test if this works
@@ -1351,12 +1388,47 @@ def command_ensure(command, package=None):
 #
 # =============================================================================
 
+@dispatch('user')
+def user_passwd(name, passwd, encrypted_passwd=True):
+	"""Sets the given user password. Password is expected to be encrypted by default."""
+
+@dispatch('user')
+def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
+	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
+	"""Creates the user with the given name, optionally giving a
+	specific password/home/uid/gid/shell."""
+
+@dispatch('user')
+def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
+	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
+	"""Creates the user with the given name, optionally giving a
+	specific password/home/uid/gid/shell."""
+
+@dispatch('user')
+def user_check(name=None, uid=None, need_passwd=True):
+	"""Checks if there is a user defined with the given name,
+	returning its information as a
+	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
+	or 'None' if the user does not exists.
+	need_passwd (Boolean) indicates if password to be included in result or not.
+		If set to True it parses 'getent shadow' and needs sudo access
+	"""
+
+@dispatch('user')
+def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
+	"""Ensures that the given users exists, optionally updating their
+	passwd/home/uid/gid/shell."""
+
+@dispatch('user')
+def user_remove(name, rmhome=None):
+	"""Removes the user with the given name, optionally
+	removing the home directory and mail spool."""
 
 # =============================================================================
 # Linux support (useradd, usermod)
 # =============================================================================
 
-def user_passwd(name, passwd, encrypted_passwd=True):
+def user_passwd_linux(name, passwd, encrypted_passwd=True):
 	"""Sets the given user password. Password is expected to be encrypted by default."""
 	encoded_password = base64.b64encode("%s:%s" % (name, passwd))
 	if encrypted_passwd:
@@ -1365,7 +1437,7 @@ def user_passwd(name, passwd, encrypted_passwd=True):
 		# NOTE: We use base64 here in case the password contains special chars
 		sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
 
-def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
+def user_create_linux(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
 	"""Creates the user with the given name, optionally giving a
 	specific password/home/uid/gid/shell."""
@@ -1423,7 +1495,7 @@ def user_create_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None
 	if passwd:
 		user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
 
-def user_check(name=None, uid=None, need_passwd=True):
+def user_check_linux(name=None, uid=None, need_passwd=True):
 	"""Checks if there is a user defined with the given name,
 	returning its information as a
 	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
@@ -1451,7 +1523,7 @@ def user_check(name=None, uid=None, need_passwd=True):
 	else:
 		return None
 
-def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
+def user_ensure_linux(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
 	"""Ensures that the given users exists, optionally updating their
 	passwd/home/uid/gid/shell."""
 	d = user_check(name)
@@ -1474,14 +1546,13 @@ def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fu
 		if passwd:
 			user_passwd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
 
-def user_remove(name, rmhome=None):
+def user_remove_linux(name, rmhome=None):
 	"""Removes the user with the given name, optionally
 	removing the home directory and mail spool."""
 	options = ["-f"]
 	if rmhome:
 		options.append("-r")
 	sudo("userdel %s '%s'" % (" ".join(options), name))
-
 
 # =============================================================================
 # BSD support (pw useradd, userdel )
@@ -1523,7 +1594,7 @@ def user_create_passwd_bsd(name, passwd=None, home=None, uid=None, gid=None, she
 		options.append("-m")
 	sudo("useradd %s '%s'" % (" ".join(options), name))
 	if passwd:
-		user_passwd_bsd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
+		user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
 
 def user_create_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
@@ -1536,7 +1607,7 @@ def user_create_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None
 	if uid:
 		options.append("-u %s" % (uid))
 	#if group exists already but is not specified, useradd fails
-	if not gid and group_check_bsd(name):
+	if not gid and group_check(name):
 		gid = name
 	if gid:
 		options.append("-g '%s'" % (gid))
@@ -1552,7 +1623,7 @@ def user_create_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None
 					options.append("-m")
 	sudo("pw useradd -n %s %s" % (name, " ".join(options)))
 	if passwd:
-		user_passwd_bsd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
+		user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
 
 def user_check_bsd(name=None, uid=None, need_passwd=True):
 	"""Checks if there is a user defined with the given name,
@@ -1585,9 +1656,9 @@ def user_check_bsd(name=None, uid=None, need_passwd=True):
 def user_ensure_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
 	"""Ensures that the given users exists, optionally updating their
 	passwd/home/uid/gid/shell."""
-	d = user_check_bsd(name)
+	d = user_check(name)
 	if not d:
-		user_create_bsd(name, passwd, home, uid, gid, shell, fullname=fullname, encrypted_passwd=encrypted_passwd)
+		user_create(name, passwd, home, uid, gid, shell, fullname=fullname, encrypted_passwd=encrypted_passwd)
 	else:
 		options = []
 		if home != None and d.get("home") != home:
@@ -1603,7 +1674,7 @@ def user_ensure_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None
 		if options:
 			sudo("pw usermod %s '%s'" % (name, " ".join(options)))
 		if passwd:
-			user_passwd_bsd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
+			user_passwd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
 
 def user_remove_bsd(name, rmhome=None):
 	"""Removes the user with the given name, optionally
@@ -1620,14 +1691,59 @@ def user_remove_bsd(name, rmhome=None):
 #
 # =============================================================================
 
+
+@dispatch('group')
 def group_create(name, gid=None):
+	"""Creates a group with the given name, and optionally given gid."""
+
+@dispatch('group')
+def group_check(name):
+	"""Checks if there is a group defined with the given name,
+	returning its information as a
+	'{"name":<str>,"gid":<str>,"members":<list[str]>}' or 'None' if
+	the group does not exists."""
+
+@dispatch('group')
+def group_ensure(name, gid=None):
+	"""Ensures that the group with the given name (and optional gid)
+	exists."""
+
+@dispatch('group')
+def group_user_check(group, user):
+	"""Checks if the given user is a member of the given group. It
+	will return 'False' if the group does not exist."""
+
+@dispatch('group')
+def group_user_add(group, user):
+	"""Adds the given user/list of users to the given group/groups."""
+
+@dispatch('group')
+def group_user_ensure(group, user):
+	"""Ensure that a given user is a member of a given group."""
+
+@dispatch('group')
+def group_user_del(group, user):
+		"""remove the given user from the given group."""
+
+@dispatch('group')
+def group_remove(group=None, wipe=False):
+    """ Removes the given group, this implies to take members out the group
+    if there are any.  If wipe=True and the group is a primary one,
+    deletes its user as well.
+    """
+
+# Linux support
+#
+# =============================================================================
+
+def group_create_linux(name, gid=None):
 	"""Creates a group with the given name, and optionally given gid."""
 	options = []
 	if gid:
 		options.append("-g '%s'" % (gid))
 	sudo("groupadd %s '%s'" % (" ".join(options), name))
 
-def group_check(name):
+def group_check_linux(name):
 	"""Checks if there is a group defined with the given name,
 	returning its information as a
 	'{"name":<str>,"gid":<str>,"members":<list[str]>}' or 'None' if
@@ -1640,7 +1756,7 @@ def group_check(name):
 	else:
 		return None
 
-def group_ensure(name, gid=None):
+def group_ensure_linux(name, gid=None):
 	"""Ensures that the group with the given name (and optional gid)
 	exists."""
 	d = group_check(name)
@@ -1650,7 +1766,7 @@ def group_ensure(name, gid=None):
 		if gid != None and d.get("gid") != gid:
 			sudo("groupmod -g %s '%s'" % (gid, name))
 
-def group_user_check(group, user):
+def group_user_check_linux(group, user):
 	"""Checks if the given user is a member of the given group. It
 	will return 'False' if the group does not exist."""
 	d = group_check(group)
@@ -1659,13 +1775,13 @@ def group_user_check(group, user):
 	else:
 		return user in d["members"]
 
-def group_user_add(group, user):
+def group_user_add_linux(group, user):
 	"""Adds the given user/list of users to the given group/groups."""
 	assert group_check(group), "Group does not exist: %s" % (group)
 	if not group_user_check(group, user):
 		sudo("usermod -a -G '%s' '%s'" % (group, user))
 
-def group_user_ensure(group, user):
+def group_user_ensure_linux(group, user):
 	"""Ensure that a given user is a member of a given group."""
 	d = group_check(group)
 	if not d:
@@ -1674,7 +1790,7 @@ def group_user_ensure(group, user):
 	if user not in d["members"]:
 		group_user_add(group, user)
 
-def group_user_del(group, user):
+def group_user_del_linux(group, user):
 		"""remove the given user from the given group."""
 		assert group_check(group), "Group does not exist: %s" % (group)
 		if group_user_check(group, user):
@@ -1684,7 +1800,7 @@ def group_user_del(group, user):
 				else:
 						sudo("usermod -G '' '%s'" % (user))
 
-def group_remove(group=None, wipe=False):
+def group_remove_linux(group=None, wipe=False):
     """ Removes the given group, this implies to take members out the group
     if there are any.  If wipe=True and the group is a primary one,
     deletes its user as well.
@@ -1708,6 +1824,12 @@ def group_remove(group=None, wipe=False):
                 for user in members:
                     group_user_del(group, user)
             sudo("groupdel %s" % group)
+
+
+
+# BSD support
+#
+# =============================================================================
 
 def group_create_bsd(name, gid=None):
 	"""Creates a group with the given name, and optionally given gid."""
@@ -1738,9 +1860,9 @@ def group_check_bsd(name):
 def group_ensure_bsd(name, gid=None):
 	"""Ensures that the group with the given name (and optional gid)
 	exists."""
-	d = group_check_bsd(name)
+	d = group_check(name)
 	if not d:
-		group_create_bsd(name, gid)
+		group_create(name, gid)
 	else:
 		if gid != None and d.get("gid") != gid:
 			sudo("pw groupmod -g %s -n %s" % (gid, name))
@@ -1748,7 +1870,7 @@ def group_ensure_bsd(name, gid=None):
 def group_user_check_bsd(group, user):
 	"""Checks if the given user is a member of the given group. It
 	will return 'False' if the group does not exist."""
-	d = group_check_bsd(group)
+	d = group_check(group)
 	if d is None:
 		return False
 	else:
@@ -1756,23 +1878,23 @@ def group_user_check_bsd(group, user):
 
 def group_user_add_bsd(group, user):
 	"""Adds the given user/list of users to the given group/groups."""
-	assert group_check_bsd(group), "Group does not exist: %s" % (group)
-	if not group_user_check_bsd(group, user):
-		sudo("pw usermod -a -G '%s' -n '%s'" % (group, user))
+	assert group_check(group), "Group does not exist: %s" % (group)
+	if not group_user_check(group, user):
+		sudo("pw usermod '%s' -G '%s'" % (user, group))
 
 def group_user_ensure_bsd(group, user):
 	"""Ensure that a given user is a member of a given group."""
-	d = group_check_bsd(group)
+	d = group_check(group)
 	if not d:
-		group_ensure_bsd("group")
-		d = group_check_bsd(group)
+		group_ensure("group")
+		d = group_check(group)
 	if user not in d["members"]:
-		group_user_add_bsd(group, user)
+		group_user_add(group, user)
 
 def group_user_del_bsd(group, user):
 		"""remove the given user from the given group."""
-		assert group_check_bsd(group), "Group does not exist: %s" % (group)
-		if group_user_check_bsd(group, user):
+		assert group_check(group), "Group does not exist: %s" % (group)
+		if group_user_check(group, user):
 				group_for_user = run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
 				if group_for_user:
 						sudo("pw usermod -G '%s' '%s'" % (",".join(group_for_user), user))
@@ -1784,24 +1906,24 @@ def group_remove_bsd(group=None, wipe=False):
     if there are any.  If wipe=True and the group is a primary one,
     deletes its user as well.
     """
-    assert group_check_bsd(group), "Group does not exist: %s" % (group)
+    assert group_check(group), "Group does not exist: %s" % (group)
     members_of_group = run("getent group %s | awk -F':' '{print $4}'" % group)
     members = members_of_group.split(",")
-    is_primary_group = user_check_bsd(name=group)
+    is_primary_group = user_check(name=group)
 
     if wipe:
         if len(members_of_group):
             for user in members:
-                group_user_del_bsd(group, user)
+                group_user_del(group, user)
         if is_primary_group:
-            user_remove_bsd(group)
+            user_remove(group)
         else:
             sudo("pw groupdel %s" % group)
 
     elif not is_primary_group:
             if len(members_of_group):
                 for user in members:
-                    group_user_del_bsd(group, user)
+                    group_user_del(group, user)
             sudo("pw groupdel %s" % group)
 
 # =============================================================================
