@@ -4,3 +4,5 @@ src/cuisine.egg-info
 *.pyc
 build/*
 dist/*
+.vagrant
+.bundle/
