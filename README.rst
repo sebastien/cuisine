@@ -45,7 +45,7 @@ How to get started
 
 Open up a python shell and type:
 
-::
+.. code-block:: python
 
     import cuisine
 
@@ -100,7 +100,7 @@ easy to get started using an interactive shell.
 If you would like to use cuisine without using a `fabfile`, you can call the
 `mode_local()` function.
 
-::
+.. code-block:: python
 
     import cuisine
     cuisine.mode_local()
@@ -108,7 +108,7 @@ If you would like to use cuisine without using a `fabfile`, you can call the
 
 alternatively, you can also directly connect to a server
 
-::
+.. code-block:: python
 
     import cuisine
     cuisine.connect("my.server.com")
@@ -117,22 +117,23 @@ alternatively, you can also directly connect to a server
 If you want to use cuisine within a `fabfile`, simply create a `fabfile`
 with the following content:
 
-::
+.. code-block:: python
 
     from cuisine import *
 
     def setup():
         group_ensure("remote_admin")
         user_ensure("admin")
-        group_user_ensure("remote_admin", admin")
+        group_user_ensure("remote_admin", "admin")
+
 
 Troubleshooting
 ---------------
 
 If you are encoutering problems, please check the following:
 
-- The user@host is running an SH-compatible (sh, dash, bash, zsh would work)
-- The system has`openssl base64`, `md5sum` and `sha1sum` commands in addition
+- The user@host is running an SH-compatible shell (sh, dash, bash, zsh should work)
+- The system has `openssl base64`, `md5sum` and `sha1sum` commands in addition
   to the basic UNIX ones.
 
 If you still have a problem, simply file a bug report
@@ -159,7 +160,7 @@ platform, you should do the following:
    or read the source and mimic what we've done for `package_*`
 3) Create a specific version of the decorated function by creating a new
    function with the same name, suffixed by your specific backend name. For
-   instance, if you'd like to create a `yum` backend to `package_ensure`, 
+   instance, if you'd like to create a `yum` backend to `package_ensure`,
    you would need to create a function `package_ensure_yum` with the same
    arguments as `package_ensure`
 4) Once you've created your specific functions, make sure that you have
@@ -168,10 +169,10 @@ platform, you should do the following:
 5) Look for the `supported` variable in the `select_*` and add your backend
    suffix to it (in our example, this would be `yum`)
 
-To use a specific backend implementation of a set of features, use the 
+To use a specific backend implementation of a set of features, use the
 `select_*` functions.
 
-::
+.. code-block:: python
 
     # To use the 'apt' backend
     cuisine.select_package("apt")
@@ -182,6 +183,19 @@ Modules
 -------
 
 Cuisine-PostgreSQL http://pypi.python.org/pypi/cuisine-postgresql/
+
+Integration testings
+--------------------
+
+This repository contains a vagrantfile that will build a freebsd box, and a ubuntu box.
+
+Simply type:
+
+    make up
+
+    make provision
+
+*make provision* will run the integration tests against the Virtual Machines
 
 More?
 -----

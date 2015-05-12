@@ -1,5 +1,6 @@
+import imp
 import unittest, os, hashlib
-import cuisine
+cuisine = imp.load_source('cuisine', '/vagrant/src/cuisine.py')
 import tempfile
 
 USER = os.popen("whoami").read()[:-1]
