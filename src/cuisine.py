@@ -775,8 +775,7 @@ def file_sha256(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	sig = run('shasum -a 256 %s | cut -d" " -f1' % (shell_safe(location))).split("\n")
-	return sig[-1].strip()
+	return run('openssl sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
 
 @logged
 def file_md5(location):
@@ -784,11 +783,7 @@ def file_md5(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	if 'Linux' in platform.uname():
-		sig = run('md5sum %s | cut -d" " -f1' % (shell_safe(location))).split("\n")
-	if 'FreeBSD' in platform.uname():
-		sig = run('md5 %s | cut -d" " -f4' % (shell_safe(location))).split("\n")
-	return sig[-1].strip()
+	return run('openssl md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
 
 # =============================================================================
 #
