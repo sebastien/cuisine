@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 02-Dec-2014
+# Last mod  : 13-May-2015
 # -----------------------------------------------------------------------------
 
 """
@@ -60,7 +60,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.4"
+VERSION                 = "0.7.5"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
@@ -790,8 +790,6 @@ def file_md5(location):
 		sig = run('md5 %s | cut -d" " -f4' % (shell_safe(location))).split("\n")
 	return sig[-1].strip()
 
-
-
 # =============================================================================
 #
 # PROCESS OPERATIONS
@@ -1399,12 +1397,6 @@ def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
 	specific password/home/uid/gid/shell."""
 
 @dispatch('user')
-def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
-	uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
-	"""Creates the user with the given name, optionally giving a
-	specific password/home/uid/gid/shell."""
-
-@dispatch('user')
 def user_check(name=None, uid=None, need_passwd=True):
 	"""Checks if there is a user defined with the given name,
 	returning its information as a
@@ -1684,13 +1676,11 @@ def user_remove_bsd(name, rmhome=None):
 		options.append("-r")
 	sudo("pw userdel %s '%s'" % (" ".join(options), name))
 
-
-
+# =============================================================================
 #
 # GROUP OPERATIONS
 #
 # =============================================================================
-
 
 @dispatch('group')
 def group_create(name, gid=None):
@@ -1723,14 +1713,14 @@ def group_user_ensure(group, user):
 
 @dispatch('group')
 def group_user_del(group, user):
-		"""remove the given user from the given group."""
+	"""remove the given user from the given group."""
 
 @dispatch('group')
 def group_remove(group=None, wipe=False):
-    """ Removes the given group, this implies to take members out the group
-    if there are any.  If wipe=True and the group is a primary one,
-    deletes its user as well.
-    """
+	""" Removes the given group, this implies to take members out the group
+	if there are any.  If wipe=True and the group is a primary one,
+	deletes its user as well.
+	"""
 
 # Linux support
 #
@@ -1801,32 +1791,31 @@ def group_user_del_linux(group, user):
 						sudo("usermod -G '' '%s'" % (user))
 
 def group_remove_linux(group=None, wipe=False):
-    """ Removes the given group, this implies to take members out the group
-    if there are any.  If wipe=True and the group is a primary one,
-    deletes its user as well.
-    """
-    assert group_check(group), "Group does not exist: %s" % (group)
-    members_of_group = run("getent group %s | awk -F':' '{print $4}'" % group)
-    members = members_of_group.split(",")
-    is_primary_group = user_check(name=group)
-
-    if wipe:
-        if len(members_of_group):
-            for user in members:
-                group_user_del(group, user)
-        if is_primary_group:
-            user_remove(group)
-        else:
-            sudo("groupdel %s" % group)
-
-    elif not is_primary_group:
-            if len(members_of_group):
-                for user in members:
-                    group_user_del(group, user)
-            sudo("groupdel %s" % group)
+	""" Removes the given group, this implies to take members out the group
+	if there are any.  If wipe=True and the group is a primary one,
+	deletes its user as well.
+	"""
+	assert group_check(group), "Group does not exist: %s" % (group)
+	members_of_group = run("getent group %s | awk -F':' '{print $4}'" % group)
+	members = members_of_group.split(",")
+	is_primary_group = user_check(name=group)
+	if wipe:
+		if len(members_of_group):
+			for user in members:
+				group_user_del(group, user)
+		if is_primary_group:
+			user_remove(group)
+		else:
+			sudo("groupdel %s" % group)
+	elif not is_primary_group:
+			if len(members_of_group):
+				for user in members:
+					group_user_del(group, user)
+			sudo("groupdel %s" % group)
 
 
-
+# =============================================================================
+#
 # BSD support
 #
 # =============================================================================
@@ -1892,39 +1881,39 @@ def group_user_ensure_bsd(group, user):
 		group_user_add(group, user)
 
 def group_user_del_bsd(group, user):
-		"""remove the given user from the given group."""
-		assert group_check(group), "Group does not exist: %s" % (group)
-		if group_user_check(group, user):
-				group_for_user = run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
-				if group_for_user:
-						sudo("pw usermod -G '%s' '%s'" % (",".join(group_for_user), user))
-				else:
-						sudo("pw usermod -G '' '%s'" % (user))
+	"""remove the given user from the given group."""
+	assert group_check(group), "Group does not exist: %s" % (group)
+	if group_user_check(group, user):
+			group_for_user = run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
+			if group_for_user:
+					sudo("pw usermod -G '%s' '%s'" % (",".join(group_for_user), user))
+			else:
+					sudo("pw usermod -G '' '%s'" % (user))
 
 def group_remove_bsd(group=None, wipe=False):
-    """ Removes the given group, this implies to take members out the group
-    if there are any.  If wipe=True and the group is a primary one,
-    deletes its user as well.
-    """
-    assert group_check(group), "Group does not exist: %s" % (group)
-    members_of_group = run("getent group %s | awk -F':' '{print $4}'" % group)
-    members = members_of_group.split(",")
-    is_primary_group = user_check(name=group)
+	""" Removes the given group, this implies to take members out the group
+	if there are any.  If wipe=True and the group is a primary one,
+	deletes its user as well.
+	"""
+	assert group_check(group), "Group does not exist: %s" % (group)
+	members_of_group = run("getent group %s | awk -F':' '{print $4}'" % group)
+	members = members_of_group.split(",")
+	is_primary_group = user_check(name=group)
 
-    if wipe:
-        if len(members_of_group):
-            for user in members:
-                group_user_del(group, user)
-        if is_primary_group:
-            user_remove(group)
-        else:
-            sudo("pw groupdel %s" % group)
+	if wipe:
+		if len(members_of_group):
+			for user in members:
+				group_user_del(group, user)
+		if is_primary_group:
+			user_remove(group)
+		else:
+			sudo("pw groupdel %s" % group)
 
-    elif not is_primary_group:
-            if len(members_of_group):
-                for user in members:
-                    group_user_del(group, user)
-            sudo("pw groupdel %s" % group)
+	elif not is_primary_group:
+			if len(members_of_group):
+				for user in members:
+					group_user_del(group, user)
+			sudo("pw groupdel %s" % group)
 
 # =============================================================================
 #

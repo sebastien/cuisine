@@ -3,8 +3,9 @@ DOC_SOURCES = $(wildcard docs/* docs/*/*)
 MANIFEST    = $(SOURCES) $(wildcard *.py api/*.* AUTHORS* README* LICENSE*)
 VERSION     = `grep VERSION src/cuisine.py | cut -d '=' -f2  | xargs echo`
 PRODUCT     = MANIFEST doc
+OS          = `uname -s | tr A-Z a-z`
 
-.PHONY: all doc clean check
+.PHONY: all doc clean check tests
 
 all: $(PRODUCT)
 
@@ -14,8 +15,8 @@ release: $(PRODUCT)
 	git push --all ; true
 	python setup.py clean sdist register upload
 
-test:
-	python tests/test-all.py
+tests:
+	PYTHONPATH=src:$(PYTHONPATH) python tests/$(OS)/all.py
 
 clean:
 	@rm -rf api/ build dist MANIFEST ; true
