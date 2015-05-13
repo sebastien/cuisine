@@ -60,7 +60,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.5"
+VERSION                 = "0.7.6"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
