@@ -784,9 +784,10 @@ def file_md5(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	if 'Linux' in platform.uname():
+	local_uname = platform.uname()
+	if 'Linux' in local_uname or 'Darwin' in local_uname:
 		sig = run('md5sum %s | cut -d" " -f1' % (shell_safe(location))).split("\n")
-	if 'FreeBSD' in platform.uname():
+	if 'FreeBSD' in local_uname:
 		sig = run('md5 %s | cut -d" " -f4' % (shell_safe(location))).split("\n")
 	return sig[-1].strip()
 
