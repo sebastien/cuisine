@@ -365,7 +365,7 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	if sudo: command = "sudo " + command
 	stderr   = subprocess.STDOUT if combine_stderr else subprocess.PIPE
 	lcwd = fabric.state.env.get('lcwd', None) or None #sets lcwd to None if it bools to false as well
-	logging.info("Local: {0} in {1}".format(command, lcwd or "."))
+	logging.debug("run_local: {0} in {1}".format(command, lcwd or "."))
 	process  = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=lcwd)
 	# NOTE: This is not ideal, but works well.
 	# See http://stackoverflow.com/questions/15654163/how-to-capture-streaming-output-in-python-from-subprocess-communicate
@@ -407,7 +407,7 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 			msg += " '%s'!" % command
 		else:
 			msg += "!\nExecuted: %s" % (command)
-		logging.info(msg)
+		logging.debug(msg)
 		for _ in err.split("\n"):logging.error(_)
 		fabric.utils.error(message=msg, stdout=out, stderr=err)
 	# Attach return code to output string so users who have set things to
@@ -676,7 +676,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
 				scp_cmd = 'scp %s %s@%s:%s'% (shell_safe(local_path), shell_safe(fabric.api.env.user), shell_safe(hostname), shell_safe(location))
-				logging.debug('[localhost] ' +  scp_cmd)
+				logging.debug('file_write:[localhost]] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
 				# FIXME: Put is not working properly, I often get stuff like:
@@ -734,7 +734,7 @@ def file_upload(remote, local, sudo=None, scp=False):
 			if scp:
 				hostname = fabric.api.env.host_string if len(fabric.api.env.host_string.split(':')) == 1 else fabric.api.env.host_string.split(':')[0]
 				scp_cmd = 'scp %s %s@%s:%s'%( shell_safe(local), shell_safe(fabric.api.env.user), shell_safe(hostname), shell_safe(remote))
-				logging.debug('[localhost] ' +  scp_cmd)
+				logging.debug('file_upload():[localhost] ' +  scp_cmd)
 				run_local(scp_cmd)
 			else:
 				fabric.operations.put(local, remote, use_sudo=use_sudo)
@@ -1977,9 +1977,9 @@ def ssh_keygen(user, keytype="dsa"):
 def ssh_authorize(user, key):
 	"""Adds the given key to the '.ssh/authorized_keys' for the given
 	user."""
-	d = user_check(user, need_passwd=False)
+	d     = user_check(user, need_passwd=False)
 	group = d["gid"]
-	keyf = d["home"] + "/.ssh/authorized_keys"
+	keyf  = d["home"] + "/.ssh/authorized_keys"
 	if key[-1] != "\n":
 		key += "\n"
 	if file_exists(keyf):
@@ -1998,12 +1998,12 @@ def ssh_authorize(user, key):
 def ssh_unauthorize(user, key):
 	"""Removes the given key to the remote '.ssh/authorized_keys' for the given
 	user."""
+	key   = key.strip()
 	d     = user_check(user, need_passwd=False)
 	group = d["gid"]
-	keys  = d["home"] + "/.ssh/authorized_keys"
-	key   = key.strip()
-	if file_exists(keys):
-		file_write(keys, "\n".join(_ for _ in file_read(keys).split("\n") if _.strip() != key), mode="0600")
+	keyf  = d["home"] + "/.ssh/authorized_keys"
+	if file_exists(keyf):
+		file_write(keyf, "\n".join(_ for _ in file_read(keyf).split("\n") if _.strip() != key), owner=user, group=group, mode="600")
 		return True
 	else:
 		return False
