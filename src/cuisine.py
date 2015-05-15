@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 13-May-2015
+# Last mod  : 15-May-2015
 # -----------------------------------------------------------------------------
 
 """
@@ -60,7 +60,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.6"
+VERSION                 = "0.7.7"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
@@ -625,8 +625,6 @@ def file_read(location, default=None):
 		frame = file_base64(location)
 		return base64.b64decode(frame)
 
-
-
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
 	return run('test -e %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
@@ -690,7 +688,8 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
 					warn_only=True,
 					**{MODE_SUDO: use_sudo}
 				):
-					# See: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
+					# SEE: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
+					# TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
 					result = run("echo '%s' | openssl base64 -A -d -out %s" % (base64.b64encode(content), shell_safe(location)))
 					if "openssl:Error" in result:
 						fabric.api.abort('cuisine.file_write("%s",...) failed because openssl does not support base64 command.' % (location))
@@ -768,6 +767,7 @@ def file_update(location, updater=lambda x: x):
 def file_append(location, content, mode=None, owner=None, group=None):
 	"""Appends the given content to the remote file at the given
 	location, optionally updating its mode/owner/group."""
+	# TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
 	run('echo "%s" | openssl base64 -A -d >> %s' % (base64.b64encode(content), shell_safe(location)))
 	file_attribs(location, mode, owner, group)
 
@@ -1462,6 +1462,7 @@ def user_passwd_linux(name, passwd, encrypted_passwd=True):
 		sudo("usermod -p '%s' %s" % (passwd,name))
 	else:
 		# NOTE: We use base64 here in case the password contains special chars
+		# TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
 		sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
 
 def user_create_linux(name, passwd=None, home=None, uid=None, gid=None, shell=None,
@@ -1592,6 +1593,7 @@ def user_passwd_bsd(name, passwd, encrypted_passwd=True):
 		sudo("pw usermod '%s' -p %s" % (name, passwd))
 	else:
 		# NOTE: We use base64 here in case the password contains special chars
+		# TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
 		sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
 
 def user_create_passwd_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None,
@@ -1994,25 +1996,17 @@ def ssh_authorize(user, key):
 		return False
 
 def ssh_unauthorize(user, key):
-	"""Removes the given key to the '.ssh/authorized_keys' for the given
+	"""Removes the given key to the remote '.ssh/authorized_keys' for the given
 	user."""
-	d = user_check(user, need_passwd=False)
+	d     = user_check(user, need_passwd=False)
 	group = d["gid"]
-	keyf = d["home"] + "/.ssh/authorized_keys"
-	if file_exists(keyf):
-		tmpfile = tempfile.NamedTemporaryFile()
-		fabric.operations.get(keyf, tmpfile.name)
-		keys = [line.strip() for line in tmpfile]
-		tmpfile.close()
-		if key in keys:
-			tmpfile = tempfile.NamedTemporaryFile()
-			keys.remove(key)
-			content = '\n'.join(keys) + '\n'
-			tmpfile.write(content)
-			tmpfile.flush()
-			fabric.operations.put(tmpfile.name, keyf, mode=0600)
-			tmpfile.close()
-	return True
+	keys  = d["home"] + "/.ssh/authorized_keys"
+	key   = key.strip()
+	if file_exists(keys):
+		file_write(keys, "\n".join(_ for _ in file_read(keys).split("\n") if _.strip() != key), mode="0600")
+		return True
+	else:
+		return False
 
 # =============================================================================
 #
