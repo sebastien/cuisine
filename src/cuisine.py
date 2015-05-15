@@ -76,24 +76,27 @@ OPTION_PYTHON_PACKAGE   = "CUISINE_OPTION_PYTHON_PACKAGE"
 OPTION_OS_FLAVOUR       = "CUISINE_OPTION_OS_FLAVOUR"
 OPTION_USER             = "CUISINE_OPTION_USER"
 OPTION_GROUP            = "CUISINE_OPTION_GROUP"
+OPTION_HASH             = "CUISINE_OPTION_HASH"
 CMD_APT_GET             = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
 SHELL_ESCAPE            = " '\";`|"
 STATS                   = None
 
 AVAILABLE_OPTIONS = dict(
-	package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
-	python_package=["easy_install","pip"],
-	os_flavour=["linux","bsd"],
-	user=["linux","bsd"],
-	group=["linux","bsd"]
+	package        = ["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
+	python_package = ["easy_install","pip"],
+	os_flavour     = ["linux","bsd"],
+	user           = ["linux","bsd"],
+	group          = ["linux","bsd"],
+	hash           = ["python", "openssl"]
 )
 
 DEFAULT_OPTIONS = dict(
-	package="apt",
-	python_package="pip",
-	os_flavour="linux",
-	user="linux",
-	group="linux"
+	package        = "apt",
+	python_package = "pip",
+	os_flavour     = "linux",
+	user           = "linux",
+	group          = "linux",
+	hash           = "python"
 )
 
 logging.info("Welcome to Cuisine v{0}".format(VERSION))
@@ -326,6 +329,23 @@ def select_os_flavour( selection=None ):
 		select_user(selection)
 		select_group(selection)
 	return (fabric.api.env[OPTION_OS_FLAVOUR], supported)
+
+def select_hash( selection=None ):
+	supported = AVAILABLE_OPTIONS["hash"]
+	if not (selection is None):
+		assert selection in supported, "Option must be one of: %s"  % (supported)
+		fabric.api.env[OPTION_HASH] = selection
+	return (fabric.api.env[OPTION_HASH], supported)
+
+def options():
+	"""Retrieves the list of options as a dictionary."""
+	return {k:fabric.api.env[k] for k in (
+		OPTION_PACKAGE,
+		OPTION_PYTHON_PACKAGE,
+		OPTION_OS_FLAVOUR,
+		OPTION_USER,
+		OPTION_GROUP,
+		OPTION_HASH)}
 
 # =============================================================================
 #
@@ -602,8 +622,10 @@ def file_read(location, default=None):
 	with fabric.context_managers.settings(
 		fabric.api.hide('stdout')
 	):
-		frame = run("cat {0} | openssl base64".format(shell_safe((location))))
+		frame = file_base64(location)
 		return base64.b64decode(frame)
+
+
 
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
@@ -769,13 +791,28 @@ def file_link(source, destination, symbolic=True, mode=None, owner=None, group=N
 		run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
 	file_attribs(destination, mode, owner, group)
 
+# SHA256/MD5 sums with openssl are tricky to get working cross-platform
+# SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
+# SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
+
+@logged
+def file_base64(location):
+	"""Returns the base64-encoded content of the file at the given location."""
+	if fabric.api.env[OPTION_HASH] == "python":
+		return run("cat {0} | python -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read()))'".format(shell_safe((location))))
+	else:
+		return run("cat {0} | openssl base64".format(shell_safe((location))))
+
 @logged
 def file_sha256(location):
 	"""Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	return run('openssl sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+	if fabric.api.env[OPTION_HASH] == "python":
+		return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
+	else:
+		return run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
 
 @logged
 def file_md5(location):
@@ -783,7 +820,10 @@ def file_md5(location):
 	# NOTE: In some cases, sudo can output errors in here -- but the errors will
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
-	return run('openssl md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+	if fabric.api.env[OPTION_HASH] == "python":
+		return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
+	else:
+		return run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
 
 # =============================================================================
 #
@@ -2084,8 +2124,10 @@ def locale_ensure(locale):
 # Sets up the default options so that @dispatch'ed functions work
 def _init():
 	STATS = Stats()
-	for option, value in DEFAULT_OPTIONS.items():
-		eval("select_" + option)(value)
+	# If we don't find a host, we setup the local mode
+	if not fabric.api.env.host_string: mode_local()
+	# We set the default options
+	for option, value in DEFAULT_OPTIONS.items(): eval("select_" + option)(value)
 
 _init()
 
