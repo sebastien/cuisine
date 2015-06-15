@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 15-May-2015
+# Last mod  : 15-Jun-2015
 # -----------------------------------------------------------------------------
 
 """
@@ -60,7 +60,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.7"
+VERSION                 = "0.7.8"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
@@ -810,7 +810,10 @@ def file_sha256(location):
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
 	if fabric.api.env[OPTION_HASH] == "python":
-		return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
+		if file_exists(location):
+			return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
+		else:
+			return None
 	else:
 		return run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
 
@@ -821,7 +824,10 @@ def file_md5(location):
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
 	if fabric.api.env[OPTION_HASH] == "python":
-		return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
+		if file_exists(location):
+			return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
+		else:
+			return None
 	else:
 		return run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
 
