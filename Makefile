@@ -20,23 +20,12 @@ tests:
 
 clean:
 	@rm -rf api/ build dist MANIFEST ; true
-	vagrant destroy -f
 
 check:
 	pychecker -100 $(SOURCES)
 
-doc: $(DOC_SOURCES)
-	#sphinx-build -b html docs api
-	sdoc         --markup=texto src/cuisine.py api/cuisine-api.html
-
 test:
 	python tests/all.py
-
-up:
-	vagrant up --no-provision --provider virtualbox
-
-provision:
-	vagrant provision
 
 MANIFEST: $(MANIFEST)
 	echo $(MANIFEST) | xargs -n1 | sort | uniq > $@
