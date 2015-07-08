@@ -970,7 +970,8 @@ def apt_get(cmd):
 	# E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem.
 	if "sudo dpkg --configure -a" in result:
 		sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
-	return sudo(cmd)
+		result = sudo(cmd)
+	return result
 
 def package_update_apt(package=None):
 	if package == None:
