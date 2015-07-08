@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 15-Jun-2015
+# Last mod  : 08-Jul-2015
 # -----------------------------------------------------------------------------
 
 """
@@ -60,7 +60,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.8"
+VERSION                 = "0.7.9"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
