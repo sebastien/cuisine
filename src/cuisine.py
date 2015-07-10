@@ -1323,11 +1323,12 @@ def python_package_remove(package):
 # PIP PYTHON PACKAGE MANAGER
 # -----------------------------------------------------------------------------
 
-def python_package_upgrade_pip(package):
+def python_package_upgrade_pip(package, pip=None):
 	'''
 	The "package" argument, defines the name of the package that will be upgraded.
 	'''
-	run('pip install --upgrade %s' %(package))
+	pip=pip or fabric.api.env.get('pip','pip')
+	run('%s install --upgrade %s' % (pip, package))
 
 def python_package_install_pip(package=None,r=None,pip=None):
 	'''
