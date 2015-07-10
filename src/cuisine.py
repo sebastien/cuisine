@@ -11,7 +11,7 @@
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 08-Jul-2015
+# Last mod  : 10-Jul-2015
 # -----------------------------------------------------------------------------
 
 """
@@ -60,7 +60,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.9"
+VERSION                 = "0.7.10"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
@@ -2125,8 +2125,9 @@ def locale_ensure(locale):
 # Sets up the default options so that @dispatch'ed functions work
 def _init():
 	STATS = Stats()
-	# If we don't find a host, we setup the local mode
-	if not fabric.api.env.host_string: mode_local()
+	# NOTE: Removed from now as is seems to cause problems #188
+	# # If we don't find a host, we setup the local mode
+	# if not fabric.api.env.host_string: mode_local()
 	# We set the default options
 	for option, value in DEFAULT_OPTIONS.items(): eval("select_" + option)(value)
 
