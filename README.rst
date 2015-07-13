@@ -40,6 +40,8 @@ or ``pip install cuisine`` to install it. Otherwise, you can download
 the source from `GitHub <http://github.com/sebastien/cuisine>`_ and
 run ``python setup.py install``.
 
+Cuisine requires Python 2.7, and has not been tested with Python 3 yet.
+
 How to get started
 ------------------
 
@@ -183,19 +185,6 @@ Modules
 -------
 
 Cuisine-PostgreSQL http://pypi.python.org/pypi/cuisine-postgresql/
-
-Integration testings
---------------------
-
-This repository contains a vagrantfile that will build a freebsd box, and a ubuntu box.
-
-Simply type:
-
-    make up
-
-    make provision
-
-*make provision* will run the integration tests against the Virtual Machines
 
 More?
 -----
