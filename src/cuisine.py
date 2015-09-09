@@ -1064,6 +1064,9 @@ def package_ensure_yum(package, update=False):
 def package_clean_yum(package=None):
 	sudo("yum -y clean all")
 
+def package_remove_yum(package, autoclean=False):
+	sudo("yum -y remove %s" % (package))
+
 # -----------------------------------------------------------------------------
 # ZYPPER PACKAGE (openSUSE)
 # -----------------------------------------------------------------------------
