@@ -531,6 +531,20 @@ def text_replace_line(text, old, new, find=lambda old, new: old == new, process=
 			res.append(line)
 	return eol.join(res), replaced
 
+def text_replace_regex(text, regex, new, **kwargs):
+	"""Replace lines that match with the regex returning the new text
+
+	Returns: text
+
+	`kwargs` is for the compatibility with re.sub(),
+	then we can use flags=re.IGNORECASE there for example.
+	"""
+	res = []
+	eol = text_detect_eol(text)
+	for line in text.split(eol):
+		res.append(re.sub(regex, new, line, **kwargs))
+	return eol.join(res)
+
 def text_ensure_line(text, *lines):
 	"""Ensures that the given lines are present in the given text,
 	otherwise appends the lines that are not already in the text at
