@@ -1111,6 +1111,9 @@ def package_ensure_zypper(package, update=False):
 def package_clean_zypper():
 	sudo("zypper --non-interactive clean")
 
+def package_remove_zypper(package, autoclean=False):
+	sudo("zypper --non-interactive remove %s" % (package))
+
 # -----------------------------------------------------------------------------
 # PACMAN PACKAGE (Arch)
 # -----------------------------------------------------------------------------
