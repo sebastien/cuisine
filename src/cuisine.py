@@ -536,7 +536,7 @@ def text_replace_regex(text, regex, new, **kwargs):
 
 	Returns: text
 
-	`kwargs` is to the compatibility with re.sub(),
+	`kwargs` is for the compatibility with re.sub(),
 	then we can use flags=re.IGNORECASE there for example.
 	"""
 	res = []
