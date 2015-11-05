@@ -99,7 +99,7 @@ DEFAULT_OPTIONS = dict(
 	hash           = "python"
 )
 
-logging.info("Welcome to Cuisine v{0}".format(VERSION))
+# logging.info("Welcome to Cuisine v{0}".format(VERSION))
 
 # =============================================================================
 #
@@ -135,11 +135,15 @@ def log_message( message ):
 	"""Logs the given message"""
 	logging.info( message )
 
+def log_error( message ):
+	"""Logs the given error message"""
+	logging.error( message )
+
 def log_call( function, args, kwargs ):
 	"""Logs the given function call"""
 	function_name = function.__name__
 	a = ", ".join([stringify(_) for _ in args] + [str(k) + "=" + stringify(v) for k,v in kwargs.items()])
-	log_message("{0}({1})".format(function_name, a))
+	logging.debug("{0}({1})".format(function_name, a))
 
 def logged(message=None):
 	"""Logs the invoked function name and arguments."""
@@ -452,15 +456,22 @@ def sudo(*args, **kwargs):
 	with mode_sudo():
 		return run(*args, **kwargs)
 
+def disconnect(host=None):
+	"""Disconnects the current connction, if any."""
+	host = host or fabric.api.env.host_string
+	if host and host in fabric.state.connections:
+		fabric.state.connections[host].get_transport().close()
 @logged
 def connect( host, user="root", password=NOTHING):
 	"""Sets Fabric's current host to the given host. This is useful when
 	using Cuisine in standalone."""
+	disconnect()
 	# See http://docs.fabfile.org/en/1.3.2/usage/library.html
 	fabric.api.env.host_string = host
 	fabric.api.env.user        = user
 	if password is not NOTHING:
 		fabric.api.env.password = password
+
 
 def host( name=NOTHING ):
 	"""Returns or sets the host"""
