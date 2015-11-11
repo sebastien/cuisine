@@ -351,6 +351,12 @@ def options():
 		OPTION_GROUP,
 		OPTION_HASH)}
 
+def is_ok( text ):
+	"""Tells if the given text ends with "OK", swallowing trailing blanks."""
+	while text and text[-1] in "\r\n\t ":
+		text = text[:-1]
+	return text.endswith("OK")
+
 # =============================================================================
 #
 # RUN/SUDO METHODS
@@ -638,16 +644,16 @@ def file_read(location, default=None):
 
 def file_exists(location):
 	"""Tests if there is a *remote* file at the given location."""
-	return run('test -e %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
+	return is_ok(run('test -e %s && echo OK ; true' % (shell_safe(location))))
 
 def file_is_file(location):
-	return run("test -f %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
+	return is_ok(run("test -f %s && echo OK ; true" % (shell_safe(location))))
 
 def file_is_dir(location):
-	return run("test -d %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
+	return is_ok(run("test -d %s && echo OK ; true" % (shell_safe(location))))
 
 def file_is_link(location):
-	return run("test -L %s && echo OK ; true" % (shell_safe(location))).endswith("OK")
+	return is_ok(run("test -L %s && echo OK ; true" % (shell_safe(location))))
 
 @logged
 def file_attribs(location, mode=None, owner=None, group=None):
