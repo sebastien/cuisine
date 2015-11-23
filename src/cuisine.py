@@ -60,43 +60,46 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.11"
-NOTHING                 = base64
-RE_SPACES               = re.compile("[\s\t]+")
-STRINGIFY_MAXSTRING     = 80
-STRINGIFY_MAXLISTSTRING = 20
-MAC_EOL                 = "\n"
-UNIX_EOL                = "\n"
-WINDOWS_EOL             = "\r\n"
-MODE_LOCAL              = "CUISINE_MODE_LOCAL"
-MODE_SUDO               = "CUISINE_MODE_SUDO"
-SUDO_PASSWORD           = "CUISINE_SUDO_PASSWORD"
-OPTION_PACKAGE          = "CUISINE_OPTION_PACKAGE"
-OPTION_PYTHON_PACKAGE   = "CUISINE_OPTION_PYTHON_PACKAGE"
-OPTION_OS_FLAVOUR       = "CUISINE_OPTION_OS_FLAVOUR"
-OPTION_USER             = "CUISINE_OPTION_USER"
-OPTION_GROUP            = "CUISINE_OPTION_GROUP"
-OPTION_HASH             = "CUISINE_OPTION_HASH"
-CMD_APT_GET             = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
-SHELL_ESCAPE            = " '\";`|"
-STATS                   = None
+VERSION                 	= "0.7.11"
+NOTHING                 	= base64
+RE_SPACES               	= re.compile("[\s\t]+")
+STRINGIFY_MAXSTRING     	= 80
+STRINGIFY_MAXLISTSTRING 	= 20
+MAC_EOL                 	= "\n"
+UNIX_EOL                	= "\n"
+WINDOWS_EOL             	= "\r\n"
+MODE_LOCAL              	= "CUISINE_MODE_LOCAL"
+MODE_SUDO               	= "CUISINE_MODE_SUDO"
+SUDO_PASSWORD           	= "CUISINE_SUDO_PASSWORD"
+OPTION_PACKAGE          	= "CUISINE_OPTION_PACKAGE"
+OPTION_PYTHON_PACKAGE   	= "CUISINE_OPTION_PYTHON_PACKAGE"
+OPTION_OS_FLAVOUR       	= "CUISINE_OPTION_OS_FLAVOUR"
+OPTION_USER             	= "CUISINE_OPTION_USER"
+OPTION_GROUP            	= "CUISINE_OPTION_GROUP"
+OPTION_HASH             	= "CUISINE_OPTION_HASH"
+OPTION_REPOSITORY_ENSURE  	= "CUISINE_OPTION_REPOSITORY_ENSURE"
+CMD_APT_GET             	= 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
+SHELL_ESCAPE            	= " '\";`|"
+STATS                   	= None
 
 AVAILABLE_OPTIONS = dict(
-	package        = ["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
-	python_package = ["easy_install","pip"],
-	os_flavour     = ["linux","bsd"],
-	user           = ["linux","bsd"],
-	group          = ["linux","bsd"],
-	hash           = ["python", "openssl"]
+	package        		= ["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
+	python_package 		= ["easy_install","pip"],
+	os_flavour     		= ["linux","bsd"],
+	user           		= ["linux","bsd"],
+	group          		= ["linux","bsd"],
+	hash           		= ["python", "openssl"],
+	repository_ensure 	= ["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
 )
 
 DEFAULT_OPTIONS = dict(
-	package        = "apt",
-	python_package = "pip",
-	os_flavour     = "linux",
-	user           = "linux",
-	group          = "linux",
-	hash           = "python"
+	package        		= "apt",
+	python_package 		= "pip",
+	os_flavour     		= "linux",
+	user           		= "linux",
+	group          		= "linux",
+	hash           		= "python",
+	repository_ensure 	= "apt"
 )
 
 # logging.info("Welcome to Cuisine v{0}".format(VERSION))
@@ -300,7 +303,15 @@ def select_package( selection=None ):
 	if not (selection is None):
 		assert selection in supported, "Option must be one of: %s"  % (supported)
 		fabric.api.env[OPTION_PACKAGE] = selection
+	select_repository_ensure(selection)
 	return (fabric.api.env[OPTION_PACKAGE], supported)
+
+def select_repository_ensure(selection = None):
+	"""Selects the type of package subsystem to use (ex:apt, yum, zypper, pacman, or emerge)."""
+	supported = AVAILABLE_OPTIONS["repository_ensure"]
+	if not (selection is None):
+		assert selection in supported, "Option must be one of: %s"  % (supported)
+		fabric.api.env[OPTION_REPOSITORY_ENSURE] = selection
 
 def select_python_package( selection=None ):
 	supported = AVAILABLE_OPTIONS["python_package"]
@@ -880,6 +891,7 @@ def process_find(name, exact=False):
 	else:         processes = run("ps -A")
 	res = []
 	for line in processes.split("\n"):
+		line = line.strip()
 		if not line.strip(): continue
 		line = RE_SPACES.split(line,3)
 		# 3010 pts/1    00:00:07 gunicorn
@@ -903,6 +915,12 @@ def process_kill(name, signal=9, exact=False):
 	`name`."""
 	for pid in process_find(name, exact):
 		run("kill -s {0} {1} ; true".format(signal, pid))
+
+@logged
+def process_strace(pid,timeout=5,arguments=""):
+	"""Strace a process for a limited amount of time """
+	return run("timeout {0} strace -{1}p {2} ; true".format(timeout,arguments,pid))
+
 
 # =============================================================================
 #
@@ -985,6 +1003,11 @@ def package_clean(package=None):
 def package_remove(package, autoclean=False):
 	"""Remove package and optionally clean unused packages"""
 
+@logged
+@dispatch("repository_ensure")
+def repository_ensure(repository_ensure):
+	"""Ensure repository"""
+
 # -----------------------------------------------------------------------------
 # APT PACKAGE (DEBIAN/UBUNTU)
 # -----------------------------------------------------------------------------
@@ -1061,9 +1084,9 @@ def package_remove_apt(package, autoclean=False):
 # YUM PACKAGE (RedHat, CentOS)
 # added by Prune - 20120408 - v1.0
 # -----------------------------------------------------------------------------
-
+@logged
 def repository_ensure_yum(repository):
-	raise Exception("Not implemented for Yum")
+	sudo("rpm -i %s" % (repository))
 
 def package_upgrade_yum():
 	sudo("yum -y update")
@@ -1355,6 +1378,10 @@ def python_package_remove(package):
 	'''
 	Removes the given python package.
 	'''
+
+
+
+
 
 # -----------------------------------------------------------------------------
 # PIP PYTHON PACKAGE MANAGER
