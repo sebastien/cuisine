@@ -891,6 +891,7 @@ def process_find(name, exact=False):
 	else:         processes = run("ps -A")
 	res = []
 	for line in processes.split("\n"):
+		line = line.strip()
 		if not line.strip(): continue
 		line = RE_SPACES.split(line,3)
 		# 3010 pts/1    00:00:07 gunicorn
