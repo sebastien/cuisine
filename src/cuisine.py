@@ -915,6 +915,12 @@ def process_kill(name, signal=9, exact=False):
 	for pid in process_find(name, exact):
 		run("kill -s {0} {1} ; true".format(signal, pid))
 
+@logged
+def process_strace(pid,timeout=5):
+	"""Strace a process for a limited amount of time """
+	return run("timeout {0} strace -p {1} ; true".format(timeout,pid))
+
+
 # =============================================================================
 #
 # DIRECTORY OPERATIONS
