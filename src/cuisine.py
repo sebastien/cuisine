@@ -1817,14 +1817,20 @@ def group_create_linux(name, gid=None):
 
 def group_check_linux(name):
 	"""Checks if there is a group defined with the given name,
-	returning its information as a
-	'{"name":<str>,"gid":<str>,"members":<list[str]>}' or 'None' if
-	the group does not exists."""
+	returning its information as:
+	'{"name":<str>,"gid":<str>,"members":<list[str]>}'
+	or
+	'{"name":<str>,"gid":<str>}' if the group has no members
+	or
+	'None' if the group does not exists."""
 	group_data = run("getent group | egrep '^%s:' ; true" % (name))
-	if group_data:
+	if len(group_data.split(":")) == 4:
 		name, _, gid, members = group_data.split(":", 4)
 		return dict(name=name, gid=gid,
 					members=tuple(m.strip() for m in members.split(",")))
+	elif len(group_data.split(":")) == 3:
+		name, _, gid = group_data.split(":", 3)
+		return dict(name=name, gid=gid, members=(''))
 	else:
 		return None
 
