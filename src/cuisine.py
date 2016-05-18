@@ -1010,7 +1010,7 @@ def package_update_apt(package=None):
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		return apt_get(' upgrade ' + package)
+		return apt_get(' install --only-upgrade ' + package)
 
 def package_upgrade_apt(distupgrade=False):
 	if distupgrade:
