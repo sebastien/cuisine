@@ -84,9 +84,9 @@ STATS                   = None
 AVAILABLE_OPTIONS = dict(
 	package        = ["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
 	python_package = ["easy_install","pip"],
-	os_flavour     = ["linux","bsd"],
-	user           = ["linux","bsd"],
-	group          = ["linux","bsd"],
+	os_flavour     = ["linux",  "bsd"],
+	user           = ["linux",  "bsd"],
+	group          = ["linux",  "bsd"],
 	hash           = ["python", "openssl"]
 )
 
@@ -1010,13 +1010,13 @@ def package_update_apt(package=None):
 	else:
 		if type(package) in (list, tuple):
 			package = " ".join(package)
-		return apt_get(' upgrade ' + package)
+		return apt_get(' install --only-upgrade ' + package)
 
 def package_upgrade_apt(distupgrade=False):
 	if distupgrade:
 		return apt_get("dist-upgrade")
 	else:
-		return apt_get("upgrade")
+		return apt_get("install --only-upgrade")
 
 def package_install_apt(package, update=False):
 	if update: apt_get("update")
