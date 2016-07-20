@@ -881,7 +881,7 @@ def process_find(name, exact=False):
 	res = []
 	for line in processes.split("\n"):
 		if not line.strip(): continue
-		line = RE_SPACES.split(line,3)
+		line = RE_SPACES.split(line.strip(),3)
 		# 3010 pts/1    00:00:07 gunicorn
 		# PID  TTY      TIME     CMD
 		# 0    1        2        3
