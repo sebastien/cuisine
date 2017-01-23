@@ -841,6 +841,8 @@ def file_sha256(location):
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
 	if fabric.api.env[OPTION_HASH] == "python":
+		if not _hashlib_supported():
+			raise EnvironmentError("Remote host has not hashlib support. Please, use select_hash('openssl')")
 		if file_exists(location):
 			return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
 		else:
@@ -855,12 +857,20 @@ def file_md5(location):
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
 	if fabric.api.env[OPTION_HASH] == "python":
+		if not _hashlib_supported():
+			raise EnvironmentError("Remote host has not hashlib support. Please, use select_hash('openssl')")
 		if file_exists(location):
 			return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
 		else:
 			return None
 	else:
 		return run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+
+def _hashlib_supported():
+	""" Returns True if remote host has hashlib support on Python """
+	return run("python -c 'import hashlib'", warn_only=True).succeeded
+		
+
 
 # =============================================================================
 #
