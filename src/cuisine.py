@@ -848,7 +848,10 @@ def file_sha256(location):
 		else:
 			return None
 	else:
-		return run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+		if file_exists(location):
+			return run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+		else:
+			return None
 
 @logged
 def file_md5(location):
@@ -864,7 +867,10 @@ def file_md5(location):
 		else:
 			return None
 	else:
-		return run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+		if file_exists(location):
+			return run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+		else:
+			return None
 
 def _hashlib_supported():
 	""" Returns True if remote host has hashlib support on Python """
