@@ -2085,7 +2085,7 @@ def upstart_ensure(name):
 	"""Ensures that the given upstart service is running, starting
 	it if necessary."""
 	with fabric.api.settings(warn_only=True):
-		status = sudo("service %s status" % name)
+		status = sudo("service %s status|cat" % name)
 	if status.failed:
 		status = sudo("service %s start" % name)
 	return status
@@ -2102,7 +2102,7 @@ def upstart_restart(name):
 	"""Tries a `restart` command to the given service, if not successful
 	will stop it and start it. If the service is not started, will start it."""
 	with fabric.api.settings(warn_only=True):
-		status = sudo("service %s status" % name)
+		status = sudo("service %s status|cat" % name)
 	if status.failed:
 		return sudo("service %s start" % name)
 	else:
@@ -2116,7 +2116,7 @@ def upstart_restart(name):
 def upstart_stop(name):
 	"""Ensures that the given upstart service is stopped."""
 	with fabric.api.settings(warn_only=True):
-		status = sudo("service %s status" % name)
+		status = sudo("service %s status|cat" % name)
 	if status.succeeded:
 		status = sudo("service %s stop" % name)
 	return status
