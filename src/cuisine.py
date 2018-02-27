@@ -41,9 +41,10 @@ See also:
 :license:   BSD, see LICENSE for more details.
 """
 
+# TODO: Silence/redirect fabric, it's too verbose
 from __future__ import with_statement
 import base64, hashlib, os, re, string, tempfile, subprocess, types, threading, sys
-import tempfile, functools, StringIO
+import tempfile, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state, fabric.version
 import platform
 
@@ -60,7 +61,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.13"
+VERSION                 = "0.7.14"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
@@ -70,6 +71,7 @@ UNIX_EOL                = "\n"
 WINDOWS_EOL             = "\r\n"
 MODE_LOCAL              = "CUISINE_MODE_LOCAL"
 MODE_SUDO               = "CUISINE_MODE_SUDO"
+MODE_DEBUG              = "CUISINE_MODE_DEBUG"
 SUDO_PASSWORD           = "CUISINE_SUDO_PASSWORD"
 OPTION_PACKAGE          = "CUISINE_OPTION_PACKAGE"
 OPTION_PYTHON_PACKAGE   = "CUISINE_OPTION_PYTHON_PACKAGE"
@@ -100,6 +102,9 @@ DEFAULT_OPTIONS = dict(
 )
 
 # logging.info("Welcome to Cuisine v{0}".format(VERSION))
+
+# We add a reference to env
+env = fabric.api.env
 
 # =============================================================================
 #
@@ -276,6 +281,12 @@ class mode_sudo(__mode_switcher):
 	MODE_KEY   = MODE_SUDO
 	MODE_VALUE = True
 
+class mode_debug(__mode_switcher):
+	"""Sets Cuisine into debug mode, where commands are not
+	exectued but instead logged."""
+	MODE_KEY   = MODE_DEBUG
+	MODE_VALUE = True
+
 def mode(key):
 	"""Queries the given Cuisine mode (ie. MODE_LOCAL, MODE_SUDO)"""
 	return fabric.api.env.get(key, False)
@@ -283,6 +294,7 @@ def mode(key):
 def is_local():  return mode(MODE_LOCAL)
 def is_remote(): return not mode(MODE_LOCAL)
 def is_sudo():   return mode(MODE_SUDO)
+def is_debug():   return mode(MODE_DEBUG)
 
 def shell_safe( path ):
 	"""Makes sure that the given path/string is escaped and safe for shell"""
@@ -429,10 +441,17 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 	out.stderr = err
 	return out
 
+def run_debug(command, sudo=False, shell=True, pty=True, combine_stderr=None):
+	sys.stdout.write("debug: {0}{1}".format("sudo " if sudo else "", command))
+
 def run(*args, **kwargs):
 	"""A wrapper to Fabric's run/sudo commands that takes into account
-	the `MODE_LOCAL` and `MODE_SUDO` modes of Cuisine."""
-	if is_local():
+	the `MODE_LOCAL`, `MODE_SUDO` and `MODE_DEBUG` modes of Cuisine."""
+	if is_debug():
+		if is_sudo():
+			kwargs.setdefault("sudo", True)
+		return run_debug(*args, **kwargs)
+	elif is_local():
 		if is_sudo():
 			kwargs.setdefault("sudo", True)
 		return run_local(*args, **kwargs)
