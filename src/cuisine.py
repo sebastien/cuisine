@@ -860,12 +860,17 @@ def file_sha256(location):
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
 	if fabric.api.env[OPTION_HASH] == "python":
+		if not _hashlib_supported():
+			raise EnvironmentError("Remote host has not hashlib support. Please, use select_hash('openssl')")
 		if file_exists(location):
 			return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
 		else:
 			return None
 	else:
-		return run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+		if file_exists(location):
+			return run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+		else:
+			return None
 
 @logged
 def file_md5(location):
@@ -874,12 +879,23 @@ def file_md5(location):
 	# appear before the result, so we simply split and get the last line to
 	# be on the safe side.
 	if fabric.api.env[OPTION_HASH] == "python":
+		if not _hashlib_supported():
+			raise EnvironmentError("Remote host has not hashlib support. Please, use select_hash('openssl')")
 		if file_exists(location):
 			return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
 		else:
 			return None
 	else:
-		return run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+		if file_exists(location):
+			return run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+		else:
+			return None
+
+def _hashlib_supported():
+	""" Returns True if remote host has hashlib support on Python """
+	return run("python -c 'import hashlib'", warn_only=True).succeeded
+		
+
 
 # =============================================================================
 #
@@ -2088,7 +2104,7 @@ def upstart_ensure(name):
 	"""Ensures that the given upstart service is running, starting
 	it if necessary."""
 	with fabric.api.settings(warn_only=True):
-		status = sudo("service %s status" % name)
+		status = sudo("service %s status|cat" % name)
 	if status.failed:
 		status = sudo("service %s start" % name)
 	return status
@@ -2105,7 +2121,7 @@ def upstart_restart(name):
 	"""Tries a `restart` command to the given service, if not successful
 	will stop it and start it. If the service is not started, will start it."""
 	with fabric.api.settings(warn_only=True):
-		status = sudo("service %s status" % name)
+		status = sudo("service %s status|cat" % name)
 	if status.failed:
 		return sudo("service %s start" % name)
 	else:
@@ -2119,7 +2135,7 @@ def upstart_restart(name):
 def upstart_stop(name):
 	"""Ensures that the given upstart service is stopped."""
 	with fabric.api.settings(warn_only=True):
-		status = sudo("service %s status" % name)
+		status = sudo("service %s status|cat" % name)
 	if status.succeeded:
 		status = sudo("service %s stop" % name)
 	return status
