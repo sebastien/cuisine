@@ -61,7 +61,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.14"
+VERSION                 = "0.7.15"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
@@ -894,7 +894,7 @@ def file_md5(location):
 def _hashlib_supported():
 	""" Returns True if remote host has hashlib support on Python """
 	return run("python -c 'import hashlib'", warn_only=True).succeeded
-		
+
 
 
 # =============================================================================
