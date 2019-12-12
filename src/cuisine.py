@@ -1405,7 +1405,7 @@ def python_package_upgrade_pip(package, pip=None):
 def python_package_install_pip(package=None,r=None,pip=None):
 	'''
 	The "package" argument, defines the name of the package that will be installed.
-	The argument "r" referes to the requirements file that will be used by pip and
+	The argument "r" refers to the requirements file that will be used by pip and
 	is equivalent to the "-r" parameter of pip.
 	Either "package" or "r" needs to be provided
 	The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
@@ -1422,7 +1422,7 @@ def python_package_install_pip(package=None,r=None,pip=None):
 def python_package_ensure_pip(package=None, r=None, pip=None):
 	'''
 	The "package" argument, defines the name of the package that will be ensured.
-	The argument "r" referes to the requirements file that will be used by pip and
+	The argument "r" refers to the requirements file that will be used by pip and
 	is equivalent to the "-r" parameter of pip.
 	Either "package" or "r" needs to be provided
 	'''
@@ -1435,7 +1435,7 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
 def python_package_remove_pip(package, pip=None):
 	'''
 	The "package" argument, defines the name of the package that will be ensured.
-	The argument "r" referes to the requirements file that will be used by pip and
+	The argument "r" refers to the requirements file that will be used by pip and
 	is equivalent to the "-r" parameter of pip.
 	Either "package" or "r" needs to be provided
 	'''
