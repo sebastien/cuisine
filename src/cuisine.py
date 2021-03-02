@@ -44,7 +44,7 @@ import sys
 import tempfile
 import functools
 import platform
-from typing import Dict, Tuple, Iterable
+from typing import Dict, Tuple, Iterable, Optional
 
 try:
     # NOTE: Reporter is a custom module that follows the logging interface
@@ -52,11 +52,13 @@ try:
     import reporter
     reporter.StdoutReporter.Install()
     reporter.setLevel(reporter.TRACE)
+    LOGGING_BYTES = False
     logging = reporter.bind("cuisine")
 except ImportError:
+    LOGGING_BYTES = True
     import logging
 
-VERSION = "0.7.15"
+VERSION = "2.0.0"
 NOTHING = base64
 RE_SPACES = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING = 80
@@ -77,9 +79,10 @@ OPTION_HASH = "CUISINE_OPTION_HASH"
 OPTIONS = (OPTION_PACKAGE, OPTION_PYTHON_PACKAGE, OPTION_OS_FLAVOUR,
            OPTION_USER, OPTION_GROUP, OPTION_HASH)
 CMD_APT_GET = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
-SHELL_ESCAPE = " '\";`|"
+CMD_APT_CACHE = 'DEBIAN_FRONTEND=noninteractive apt-cache '
 STATS = None
 STATUS_SUCCESS = (0,)
+RE_INT = re.compile("\s*\d+\s*")
 
 AVAILABLE_OPTIONS = dict(
     package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
@@ -99,22 +102,81 @@ DEFAULT_OPTIONS = dict(
     hash="python"
 )
 
+
+def command_output(command, status, out, err, value=None):
+    res = CommandOutput(out if status in STATUS_SUCCESS else "")
+    res.out = out
+    res.status = status
+    res.err = err
+    res.value = out if value is None else value
+    return res
+
+
+class CommandOutput(str):
+    """Wraps the result of a command output"""
+
+    # I'm not sure how that even works, as we're not initializing self with
+    # `out`, but it still does work.
+    def __init__(self, out):
+        str.__init__(self)
+        self.out = out
+        self.command = None
+        self.status = None
+        self.err = None
+        # NOTE: The value is intended for passing a normalized result, when
+        # the output format might vary.
+
+    @property
+    def has_value(self) -> bool:
+        return bool(self.value)
+
+    @property
+    def last_line(self) -> str:
+        """Returns the last line, stripping the trailing EOL"""
+        i = self.out.rfind("\n", 0, -2)
+        return (self.out if i == -1 else self.out[i:]).rstrip("\n")
+
+    @property
+    def is_success(self) -> bool:
+        """Returns true if the command status is one of `STATUS_SUCCESS`"""
+        return self.status in STATUS_SUCCESS
+
+    @property
+    def has_failed(self) -> bool:
+        return not self.is_success
+
+    def __repr__(self) -> str:
+        return f"Command: {self.command}\nstatus: {self.status}\nout: {repr(log_stringify(self.out))}\nerr: {repr(log_stringify(self.err))}"
+
 # Environment functions
 
 
 def env_get(variable: str, default: Optional[str] = None) -> str:
-    return os.env[variable] if variable in os.env else default
+    value = os.environ[variable] if variable in os.environ else default
+    if isinstance(value, str):
+        if match := RE_INT.match(value):
+            return int(value)
+        else:
+            return value
+    else:
+        return value
 
 
 def env_set(variable: str, value: str) -> str:
-    os.env[variable] = value
+    if isinstance(value, str):
+        env_value = value
+    elif isinstance(value, bool):
+        env_value = "1" if value else "0"
+    else:
+        env_value = str(value, "utf")
+    os.environ[variable] = env_value
     return value
 
 
 def env_clear(variable: str) -> str:
-    if variable in os.env:
-        value = os.env[variable]
-        del os.env[variable]
+    if variable in os.environ:
+        value = os.environ[variable]
+        del os.environ[variable]
         return value
     else:
         return None
@@ -122,19 +184,40 @@ def env_clear(variable: str) -> str:
 
 # =============================================================================
 #
-# STATS
+# LOGGING
 #
 # =============================================================================
 
 
-class Stats(object):
-    """A work-in-progress class to store cuisine's statistics, so that you
-    can have a summary of what has been done."""
+def log_debug(message: str):
+    logging.debug(log_string(message))
 
-    def __init__(self):
-        self.filesRead = []
-        self.filesWritten = []
-        self.packagesInstalled = []
+
+def log_error(message: str):
+    logging.error(log_string(message))
+
+
+def log_string(message: str):
+    """Ensures that the string is safe for logging"""
+    return bytes(message, "UTF8") if LOGGING_BYTES else message
+
+
+def log_stringify(value):
+    """Turns the given value in a user-friendly string that can be displayed"""
+    if type(value) in (str, bytes) and len(value) > STRINGIFY_MAXSTRING:
+        return f"{value[0:STRINGIFY_MAXSTRING]}…"
+    elif type(value) in (list, tuple) and len(value) > 10:
+        return f"[{', '.join([log_stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]])},…]"
+    else:
+        return str(value)
+
+
+def log_call(function, args, kwargs):
+    """Logs the given function call"""
+    function_name = function.__name__
+    a = ", ".join([log_stringify(_) for _ in args] + [str(k) +
+                                                      "=" + log_stringify(v) for k, v in kwargs.items()])
+    log_debug("{0}({1})".format(function_name, a))
 
 # =============================================================================
 #
@@ -143,32 +226,11 @@ class Stats(object):
 # =============================================================================
 
 
-def stringify(value):
-    """Turns the given value in a user-friendly string that can be displayed"""
-    if type(value) in (str, unicode, bytes) and len(value) > STRINGIFY_MAXSTRING:
-        return "{0}...".format(value[0:STRINGIFY_MAXSTRING])
-    elif type(value) in (list, tuple) and len(value) > 10:
-        return"[{0},...]".format(", ".join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
-    else:
-        return str(value)
-
-
-def log_message(message):
-    """Logs the given message"""
-    logging.info(message)
-
-
-def log_error(message):
-    """Logs the given error message"""
-    logging.error(message)
-
-
-def log_call(function, args, kwargs):
-    """Logs the given function call"""
-    function_name = function.__name__
-    a = ", ".join([stringify(_) for _ in args] + [str(k) +
-                                                  "=" + stringify(v) for k, v in kwargs.items()])
-    logging.debug("{0}({1})".format(function_name, a))
+def requires(commands=()):
+    """Decorator that captures requirement metdata for operations."""
+    def decorator(f):
+        return f
+    return decorator
 
 
 def logged(message=None):
@@ -198,7 +260,7 @@ def dispatch(prefix=None):
 
     For instance the package functions are defined like this:
 
-    {{{
+    ```
     @dispatch("package")
     def package_ensure(...):
             ...
@@ -206,14 +268,14 @@ def dispatch(prefix=None):
             ...
     def package_ensure_yum(...):
             ...
-    }}}
+    ```
 
     and then when a user does
 
-    {{{
+    ```
     cuisine.select_package("yum")
     cuisine.package_ensure(...)
-    }}}
+    ```
 
     then the `dispatch` function will dispatch `package_ensure` to
     `package_ensure_yum`.
@@ -225,20 +287,18 @@ def dispatch(prefix=None):
         def wrapper(*args, **kwargs):
             function_name = function.__name__
             _prefix = prefix or function_name.split("_")[0].replace(".", "_")
-            select = env_get("CUISINE_OPTION_" + _prefix.upper())
-
-            assert select, "No option defined for: %s, call select_%s(<YOUR OPTION>) to set it" % (
-                _prefix.upper(), prefix.lower().replace(".", "_"))
+            select = env_get(f"CUISINE_OPTION_{_prefix.upper()}")
+            assert select, f"No option defined for: {_prefix.upper()}, call select_{prefix.lower().replace('.','_')} (<YOUR OPTION>) to set it"
             function_name = function.__name__ + "_" + select
             specific = eval(function_name)
             if specific:
                 if type(specific) == types.FunctionType:
                     return specific(*args, **kwargs)
                 else:
-                    raise Exception("Function expected for: " + function_name)
+                    raise Exception(f"Function expected for: {function_name}")
             else:
                 raise Exception(
-                    "Function variant not defined: " + function_name)
+                    f"Function variant not defined: {function_name}")
         # We copy name and docstring
         functools.update_wrapper(wrapper, function)
         return wrapper
@@ -332,7 +392,12 @@ def is_debug(): return mode(MODE_DEBUG)
 
 def shell_safe(path):
     """Makes sure that the given path/string is escaped and safe for shell"""
-    return "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
+    return "".join([("\\" + _) if _ in " '\";`|" else _ for _ in path])
+
+
+def quote_safe(line):
+    """Makes sure that the single quotes are escaped"""
+    return line.replace("'", "\\'")
 
 # =============================================================================
 #
@@ -342,7 +407,9 @@ def shell_safe(path):
 
 
 def options() -> Dict[str, str]:
-    """Retrieves the list of options as a dictionary."""
+    """Retrieves the list of options as a dictionary. Options can be set with
+    the `options_*`  functions."""
+
     return {k: env_get(k) for k in (
             OPTION_PACKAGE,
             OPTION_PYTHON_PACKAGE,
@@ -365,21 +432,20 @@ def select_package(selection=None) -> Tuple[str, Iterable[str]]:
 def select_python_package(selection=None) -> Tuple[str, Iterable[str]]:
     supported = AVAILABLE_OPTIONS["python_package"]
     if not (selection is None):
-        assert selection in supported, f"Option must be one of: {supprted}"
+        assert selection in supported, f"Option must be one of: {supported}"
         env_set(OPTION_PYTHON_PACKAGE, selection)
     return (env_get(OPTION_PYTHON_PACKAGE), supported)
 
 
-def select_user(selection=None) -> Tuple[str, Iterable[str]]: :
+def select_user(selection=None) -> Tuple[str, Iterable[str]]:
     supported = AVAILABLE_OPTIONS["user"]
     if not (selection is None):
-        assert selection in supported, "Option must be one of: %s" % (
-            supported)
+        assert selection in supported, f"Option must be one of: {supported}"
         env_set(OPTION_USER, selection)
     return (env_get(OPTION_USER), supported)
 
 
-def select_group(selection=None) -> Tuple[str, Iterable[str]]: :
+def select_group(selection=None) -> Tuple[str, Iterable[str]]:
     supported = AVAILABLE_OPTIONS["group"]
     if not (selection is None):
         assert selection in supported, f"Option must be one of: {supported}"
@@ -387,7 +453,7 @@ def select_group(selection=None) -> Tuple[str, Iterable[str]]: :
     return (env_get(OPTION_GROUP), supported)
 
 
-def select_os_flavour(selection=None) -> Tuple[str, Iterable[str]]: :
+def select_os_flavour(selection=None) -> Tuple[str, Iterable[str]]:
     supported = AVAILABLE_OPTIONS["os_flavour"]
     if not (selection is None):
         assert selection in supported, f"Option must be one of: {supported}"
@@ -399,7 +465,7 @@ def select_os_flavour(selection=None) -> Tuple[str, Iterable[str]]: :
     return (env_get(OPTION_OS_FLAVOUR), supported)
 
 
-def select_hash(selection=None) -> Tuple[str, Iterable[str]]: :
+def select_hash(selection=None) -> Tuple[str, Iterable[str]]:
     supported = AVAILABLE_OPTIONS["hash"]
     if not (selection is None):
         assert selection in supported, "Option must be one of: %s" % (
@@ -421,22 +487,22 @@ def is_ok(text: str) -> bool:
 # =============================================================================
 
 
-def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
+def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None) -> CommandOutput:
     """
     Note: pty option exists for function signature compatibility and is
     ignored.
     """
-    if combine_stderr is None:
-        combine_stderr = env_.combine_stderr
+    # TODO: We should retrieve the locale from the environment
+    terminal_encoding = "utf8"
     # TODO: Pass the SUDO_PASSWORD variable to the command here
     if sudo:
         command = "sudo " + command
     stderr = subprocess.STDOUT if combine_stderr else subprocess.PIPE
-    # sets lcwd to None if it bools to false as well
-    lcwd = fabric.state.env.get('lcwd', None) or None
-    logging.debug("run_local: {0} in {1}".format(command, lcwd or "."))
+    # TODO: We might want to rework how we manage the CWD. In Fabric, that was lpwd
+    run_in = "."
+    log_debug("run_local: {0} in {1}".format(command, run_in))
     process = subprocess.Popen(
-        command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=lcwd)
+        command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=run_in)
     # NOTE: This is not ideal, but works well.
     # See http://stackoverflow.com/questions/15654163/how-to-capture-streaming-output-in-python-from-subprocess-communicate
     # At some point, we should use a single thread.
@@ -446,13 +512,15 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 
     def stdout_reader():
         for line in process.stdout:
+            line = str(line or b"", terminal_encoding)
             if line:
-                logging.debug(line.rstrip("\n").rstrip("\r"))
+                log_debug(line.rstrip("\n").rstrip("\r"))
             out.append(line)
 
     def stderr_reader():
         for line in process.stderr:
-            logging.error(line.rstrip("\n").rstrip("\r"))
+            line = str(line or b"", terminal_encoding)
+            log_error(line.rstrip("\n").rstrip("\r"))
             err.append(line)
     t0 = threading.Thread(target=stdout_reader)
     t1 = threading.Thread(target=stderr_reader)
@@ -465,28 +533,13 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None):
     err = "".join(err)
     # Error handling
     status = process.returncode
-    out.failed = False
-    out.command = command
-    out.real_command = command
-    if status not in STATUS_SUCCESS:
-        out.failed = True
-        msg = f"run_local received nonzero return code {status} while executing"
-        if fabric.state.env.warn_only:
-            msg += f" '{command}'!"
-        else:
-            msg += f"!\nExecuted: {command}"
-        logging.debug(msg)
+    res = command_output(command, status, out, err)
+    if res.has_failed:
+        msg = f"run_local received nonzero return code {status} while executing: {command}"
+        log_debug(msg)
         for _ in err.split("\n"):
-            logging.error(_)
-        fabric.utils.error(message=msg, stdout=out, stderr=err)
-    # Attach return code to output string so users who have set things to
-    # warn only, can inspect the error code.
-    out.return_code = status
-    # Convenience mirror of .failed
-    out.succeeded = not out.failed
-    # Attach stderr for anyone interested in that.
-    out.stderr = err
-    return out
+            log_error(_)
+    return res
 
 
 def run_debug(command, sudo=False, shell=True, pty=True, combine_stderr=None):
@@ -495,12 +548,14 @@ def run_debug(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 
 def run_sudo(*args, **kwargs):
     """Runs the command as a super user"""
-    raise NotImplemented
+    kwargs["sudo"] = True
+    return run_local(*args, **kwargs)
 
 
 def run_user(*args, **kwargs):
     """Runs the command as a regular user"""
-    raise NotImplemented
+    kwargs["sudo"] = False
+    return run_local(*args, **kwargs)
 
 
 def run(*args, **kwargs):
@@ -525,9 +580,9 @@ def cd(*args, **kwargs):
     """A wrapper around Fabric's cd to change the local directory if
     mode is local"""
     if is_local():
-        raise NotImplemented
+        raise NotImplementedError
     else:
-        raise NotImplemented
+        raise NotImplementedError
 
 
 def pwd():
@@ -546,7 +601,7 @@ def sudo(*args, **kwargs):
 
 def disconnect(host=None):
     """Disconnects the current connction, if any."""
-    raise NotImplemented
+    raise NotImplementedError
     # host = host or env_.host_string
     # if host and host in fabric.state.connections:
     #    fabric.state.connections[host].get_transport().close()
@@ -557,17 +612,17 @@ def connect(host, user="root", password=NOTHING):
     """Sets Fabric's current host to the given host. This is useful when
     using Cuisine in standalone."""
     disconnect()
-    raise NotImplemented
+    raise NotImplementedError
 
 
 def host(name=NOTHING):
     """Returns or sets the host"""
-    raise NotImplemented
+    raise NotImplementedError
 
 
 def user(name=NOTHING):
     """Returns or sets the user"""
-    raise NotImplemented
+    raise NotImplementedError
 
 # =============================================================================
 #
@@ -804,19 +859,19 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
                 run('cp %s %s' % (shell_safe(local_path), shell_safe(location)))
         else:
             if scp:
-                raise NotImplemented
+                raise NotImplementedError
                 # hostname = env_.host_string if len(env_.host_string.split(
                 #     ':')) == 1 else env_.host_string.split(':')[0]
                 # scp_cmd = 'scp %s %s@%s:%s' % (shell_safe(local_path), shell_safe(
                 #     env_.user), shell_safe(hostname), shell_safe(location))
-                logging.debug('file_write:[localhost]] ' + scp_cmd)
+                log_debug('file_write:[localhost]] ' + scp_cmd)
                 run_local(scp_cmd)
             else:
                 # FIXME: Put is not working properly, I often get stuff like:
                 # Fatal error: sudo() encountered an error (return code 1) while executing 'mv "3dcf7213c3032c812769e7f355e657b2df06b687" "/etc/authbind/byport/80"'
                 # fabric.operations.put(local_path, location, use_sudo=use_sudo)
                 # Hides the output, which is especially important
-                raise NotImplemented
+                raise NotImplementedError
                 # with fabric.context_managers.settings(
                 #         fabric.api.hide('stdout'),
                 #         warn_only=True,
@@ -873,12 +928,12 @@ def file_upload(remote, local, sudo=None, scp=False):
                 run('cp "%s" "%s"' % (local, remote))
         else:
             if scp:
-                raise NotImplemented
+                raise NotImplementedError
                 # hostname = env_.host_string if len(env_.host_string.split(
                 #     ':')) == 1 else env_.host_string.split(':')[0]
                 # scp_cmd = 'scp %s %s@%s:%s' % (shell_safe(local), shell_safe(
                 #     env_.user), shell_safe(hostname), shell_safe(remote))
-                logging.debug('file_upload():[localhost] ' + scp_cmd)
+                log_debug('file_upload():[localhost] ' + scp_cmd)
                 run_local(scp_cmd)
             else:
                 fabric.operations.put(local, remote, use_sudo=use_sudo)
@@ -1104,6 +1159,18 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 
 @logged
 @dispatch
+def package_available(package: str) -> bool:
+    """Tells if the given package is available"""
+
+
+@logged
+@dispatch
+def package_installed(package, update=False) -> bool:
+    """Tells if the given package is installed or not."""
+
+
+@logged
+@dispatch
 def package_upgrade(distupgrade=False):
     """Updates every package present on the system."""
 
@@ -1163,6 +1230,15 @@ def apt_get(cmd):
     return result
 
 
+def apt_cache(cmd):
+    cmd = CMD_APT_CACHE + cmd
+    return run(cmd)
+
+
+def package_available_apt(package: str) -> bool:
+    return apt_cache(f" search '^{quote_safe(package)}$'").has_value
+
+
 def package_update_apt(package=None):
     if package == None:
         return apt_get("-q --yes update")
@@ -1185,6 +1261,17 @@ def package_install_apt(package, update=False):
     if type(package) in (list, tuple):
         package = " ".join(package)
     return apt_get("install " + package)
+
+
+def package_installed_apt(package, update=False) -> False:
+    pkg = package.strip()
+    if not pkg:
+        raise ValueError(f"Package argument is empty: {repr(package)}")
+    # The most reliable way to detect success is to use the command status
+    # and suffix it with OK. This won't break with other locales.
+    status = run(
+        f"dpkg-query -W -f='${{Status}} ' '{pkg}' && echo OK;true")
+    return status.last_line.endswith("OK")
 
 
 def package_ensure_apt(package, update=False):
@@ -1542,21 +1629,21 @@ def package_clean_pkgng(package=None):
 # =============================================================================
 
 
-@dispatch('python_package')
+@ dispatch('python_package')
 def python_package_upgrade(package):
     '''
     Upgrades the defined python package.
     '''
 
 
-@dispatch('python_package')
+@ dispatch('python_package')
 def python_package_install(package=None):
     '''
     Installs the given python package/list of python packages.
     '''
 
 
-@dispatch('python_package')
+@ dispatch('python_package')
 def python_package_ensure(package):
     '''
     Tests if the given python package is installed, and installes it in
@@ -1564,7 +1651,7 @@ def python_package_ensure(package):
     '''
 
 
-@dispatch('python_package')
+@ dispatch('python_package')
 def python_package_remove(package):
     '''
     Removes the given python package.
@@ -1692,19 +1779,19 @@ def command_ensure(command, package=None):
 # =============================================================================
 
 
-@dispatch('user')
+@ dispatch('user')
 def user_passwd(name, passwd, encrypted_passwd=True):
     """Sets the given user password. Password is expected to be encrypted by default."""
 
 
-@dispatch('user')
+@ dispatch('user')
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
                 uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
     """Creates the user with the given name, optionally giving a
     specific password/home/uid/gid/shell."""
 
 
-@dispatch('user')
+@ dispatch('user')
 def user_check(name=None, uid=None, need_passwd=True):
     """Checks if there is a user defined with the given name,
     returning its information as a
@@ -1715,13 +1802,13 @@ def user_check(name=None, uid=None, need_passwd=True):
     """
 
 
-@dispatch('user')
+@ dispatch('user')
 def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
     """Ensures that the given users exists, optionally updating their
     passwd/home/uid/gid/shell."""
 
 
-@dispatch('user')
+@ dispatch('user')
 def user_remove(name, rmhome=None):
     """Removes the user with the given name, optionally
     removing the home directory and mail spool."""
@@ -1774,6 +1861,7 @@ def user_create_linux(name, passwd=None, home=None, uid=None, gid=None, shell=No
                     encrypted_passwd=encrypted_passwd)
 
 
+@ requires(commands=("pw",))
 def user_create_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None,
                     uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
     """Creates the user with the given name, optionally giving a
@@ -1805,6 +1893,7 @@ def user_create_bsd(name, passwd=None, home=None, uid=None, gid=None, shell=None
                     encrypted_passwd=encrypted_passwd)
 
 
+@ requires(commands=("getent", "egrep", "true", "awk"))
 def user_check_linux(name=None, uid=None, need_passwd=True):
     """Checks if there is a user defined with the given name,
     returning its information as a
@@ -2025,12 +2114,12 @@ def user_remove_bsd(name, rmhome=None):
 # =============================================================================
 
 
-@dispatch('group')
+@ dispatch('group')
 def group_create(name, gid=None):
     """Creates a group with the given name, and optionally given gid."""
 
 
-@dispatch('group')
+@ dispatch('group')
 def group_check(name):
     """Checks if there is a group defined with the given name,
     returning its information as a
@@ -2038,34 +2127,34 @@ def group_check(name):
     the group does not exists."""
 
 
-@dispatch('group')
+@ dispatch('group')
 def group_ensure(name, gid=None):
     """Ensures that the group with the given name (and optional gid)
     exists."""
 
 
-@dispatch('group')
+@ dispatch('group')
 def group_user_check(group, user):
     """Checks if the given user is a member of the given group. It
     will return 'False' if the group does not exist."""
 
 
-@dispatch('group')
+@ dispatch('group')
 def group_user_add(group, user):
     """Adds the given user/list of users to the given group/groups."""
 
 
-@dispatch('group')
+@ dispatch('group')
 def group_user_ensure(group, user):
     """Ensure that a given user is a member of a given group."""
 
 
-@dispatch('group')
+@ dispatch('group')
 def group_user_del(group, user):
     """remove the given user from the given group."""
 
 
-@dispatch('group')
+@ dispatch('group')
 def group_remove(group=None, wipe=False):
     """ Removes the given group, this implies to take members out the group
     if there are any.  If wipe=True and the group is a primary one,
@@ -2349,56 +2438,6 @@ def ssh_unauthorize(user, key):
     else:
         return False
 
-# =============================================================================
-#
-# UPSTART
-#
-# =============================================================================
-
-
-def upstart_ensure(name):
-    """Ensures that the given upstart service is running, starting
-    it if necessary."""
-    with fabric.api.settings(warn_only=True):
-        status = sudo("service %s status|cat" % name)
-    if status.failed:
-        status = sudo("service %s start" % name)
-    return status
-
-
-def upstart_reload(name):
-    """Reloads the given service, or starts it if it is not running."""
-    with fabric.api.settings(warn_only=True):
-        status = sudo("service %s reload" % name)
-    if status.failed:
-        status = sudo("service %s start" % name)
-    return status
-
-
-def upstart_restart(name):
-    """Tries a `restart` command to the given service, if not successful
-    will stop it and start it. If the service is not started, will start it."""
-    with fabric.api.settings(warn_only=True):
-        status = sudo("service %s status|cat" % name)
-    if status.failed:
-        return sudo("service %s start" % name)
-    else:
-        status = sudo("service %s restart" % name)
-        if status.failed:
-            sudo("service %s stop" % name)
-            return sudo("service %s start" % name)
-        else:
-            return status
-
-
-def upstart_stop(name):
-    """Ensures that the given upstart service is stopped."""
-    with fabric.api.settings(warn_only=True):
-        status = sudo("service %s status|cat" % name)
-    if status.succeeded:
-        status = sudo("service %s stop" % name)
-    return status
-
 
 # =============================================================================
 #
@@ -2428,7 +2467,7 @@ def system_uuid():
 # =============================================================================
 
 
-def rsync(local_path, remote_path, compress=True, progress=False, verbose=True, owner=None, group=None):
+def rsync(local_path: str, remote_path: str, compress: bool = True, progress: bool = False, verbose: bool = True, owner: bool = None, group: bool = None):
     """Rsyncs local to remote, using the connection's host and user."""
     options = "-a"
     if compress:
@@ -2470,9 +2509,37 @@ def locale_ensure(locale):
 
 # Sets up the default options so that @dispatch'ed functions work
 
+# =============================================================================
+#
+# REQUIRE
+#
+# =============================================================================
+
+
+def require_package(package: str) -> bool:
+    """Ensures that the given package is available and installed"""
+    if not package_available(package):
+        fail(f"Package not available: {package}")
+    if not package_installed(package):
+        if not package_install(package):
+            fail(f"Unable to install package: {package}")
+    return True
+
+
+# =============================================================================
+#
+# STATUS
+#
+# =============================================================================
+
+
+def fail(message):
+    log_error(message)
+    # TODO: Should set the result of the session as failure
+    raise NotImplementedError
+
 
 def _init():
-    STATS = Stats()
     # NOTE: Removed from now as is seems to cause problems #188
     # # If we don't find a host, we setup the local mode
     # if not env_.host_string: mode_local()
