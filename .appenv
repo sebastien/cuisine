@@ -1,0 +1,2 @@
+appenv_declare cuisine
+appenv_prepend PYTHONPATH $APPENV_DIR/src

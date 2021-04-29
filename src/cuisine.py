@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Project   : Cuisine - Functions to write Fabric recipes
+# Project   : Cuisine - Server scripting API
 # -----------------------------------------------------------------------------
 # License   : Revised BSD License
 # -----------------------------------------------------------------------------
-# Authors   : Sebastien Pierre                            <sebastien@ffctn.com>
+# Authors   : Sébastien Pierre                     <sebastien.pierre@gmail.com>
 #             Thierry Stiegler   (gentoo port)     <thierry.stiegler@gmail.com>
 #             Jim McCoy (distro checks and rpm port)      <jim.mccoy@gmail.com>
 #             Warren Moore (zypper package)               <warren@wamonite.com>
 #             Lorenzo Bivens (pkgin package)          <lorenzobivens@gmail.com>
 # -----------------------------------------------------------------------------
 # Creation  : 26-Apr-2010
-# Last mod  : 20-Jul-2016
+# Last mod  : 30-Apr-2021
 # -----------------------------------------------------------------------------
 
 """
@@ -43,8 +43,7 @@ import threading
 import sys
 import tempfile
 import functools
-import platform
-from typing import Dict, Tuple, Iterable, Optional
+from typing import Dict, Tuple, Iterable, Optional, Any, Callable
 
 try:
     # NOTE: Reporter is a custom module that follows the logging interface
@@ -76,13 +75,14 @@ OPTION_OS_FLAVOUR = "CUISINE_OPTION_OS_FLAVOUR"
 OPTION_USER = "CUISINE_OPTION_USER"
 OPTION_GROUP = "CUISINE_OPTION_GROUP"
 OPTION_HASH = "CUISINE_OPTION_HASH"
+OPTION_TRANSPORT = "CUISINE_OPTION_TRANSPORT"
 OPTIONS = (OPTION_PACKAGE, OPTION_PYTHON_PACKAGE, OPTION_OS_FLAVOUR,
-           OPTION_USER, OPTION_GROUP, OPTION_HASH)
+           OPTION_USER, OPTION_GROUP, OPTION_HASH, OPTION_TRANSPORT)
 CMD_APT_GET = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
 CMD_APT_CACHE = 'DEBIAN_FRONTEND=noninteractive apt-cache '
 STATS = None
 STATUS_SUCCESS = (0,)
-RE_INT = re.compile("\s*\d+\s*")
+RE_INT = re.compile(r"\s*\d+\s*")
 
 AVAILABLE_OPTIONS = dict(
     package=["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
@@ -90,7 +90,8 @@ AVAILABLE_OPTIONS = dict(
     os_flavour=["linux",  "bsd"],
     user=["linux",  "bsd"],
     group=["linux",  "bsd"],
-    hash=["python", "openssl"]
+    hash=["python", "openssl"],
+    transport=["parallel-ssh"],
 )
 
 DEFAULT_OPTIONS = dict(
@@ -99,7 +100,8 @@ DEFAULT_OPTIONS = dict(
     os_flavour="linux",
     user="linux",
     group="linux",
-    hash="python"
+    hash="python",
+    transport="parallel-ssh",
 )
 
 
@@ -406,6 +408,11 @@ def quote_safe(line):
 # =============================================================================
 
 
+def option( name:str ) -> str:
+    """Returns the current value of the option with the given name."""
+    assert name in AVAILABLE_OPTIONS, f"Unrecognized option {name}, expected one of: {', '.join(AVAILABLE_OPTIONS.keys())}"
+    return env_get(name) or DEFAULT_OPTIONS.get(name)
+
 def options() -> Dict[str, str]:
     """Retrieves the list of options as a dictionary. Options can be set with
     the `options_*`  functions."""
@@ -419,60 +426,22 @@ def options() -> Dict[str, str]:
             OPTION_HASH)}
 
 
-def select_package(selection=None) -> Tuple[str, Iterable[str]]:
-    """Selects the type of package subsystem to use (ex:apt, yum, zypper, pacman, or emerge)."""
-    supported = AVAILABLE_OPTIONS["package"]
-    if not (selection is None):
-        assert selection in supported, "Option must be one of: %s" % (
-            supported)
-        env_set(OPTION_PACKAGE, selection)
-    return (env_get(OPTION_PACKAGE), supported)
+def __select_helper(name:str, envvar:str) -> Callable[[Optional[str]],Tuple[str,Iterable[str]]]:
+    def select(selection=None):
+        supported = AVAILABLE_OPTIONS[name]
+        if not (selection is None):
+            assert selection in supported, f"Option must be one of: {supported}"
+            env_set(envvar, selection)
+        return (env_get(envvar), supported)
+    return select
 
-
-def select_python_package(selection=None) -> Tuple[str, Iterable[str]]:
-    supported = AVAILABLE_OPTIONS["python_package"]
-    if not (selection is None):
-        assert selection in supported, f"Option must be one of: {supported}"
-        env_set(OPTION_PYTHON_PACKAGE, selection)
-    return (env_get(OPTION_PYTHON_PACKAGE), supported)
-
-
-def select_user(selection=None) -> Tuple[str, Iterable[str]]:
-    supported = AVAILABLE_OPTIONS["user"]
-    if not (selection is None):
-        assert selection in supported, f"Option must be one of: {supported}"
-        env_set(OPTION_USER, selection)
-    return (env_get(OPTION_USER), supported)
-
-
-def select_group(selection=None) -> Tuple[str, Iterable[str]]:
-    supported = AVAILABLE_OPTIONS["group"]
-    if not (selection is None):
-        assert selection in supported, f"Option must be one of: {supported}"
-        env_set(OPTION_GROUP, selection)
-    return (env_get(OPTION_GROUP), supported)
-
-
-def select_os_flavour(selection=None) -> Tuple[str, Iterable[str]]:
-    supported = AVAILABLE_OPTIONS["os_flavour"]
-    if not (selection is None):
-        assert selection in supported, f"Option must be one of: {supported}"
-        env_set(OPTION_OS_FLAVOUR, selection)
-        # select the correct implementation for user,group management
-        # either useradd,groupadd for linux, or pw user/pw group for BSD
-        select_user(selection)
-        select_group(selection)
-    return (env_get(OPTION_OS_FLAVOUR), supported)
-
-
-def select_hash(selection=None) -> Tuple[str, Iterable[str]]:
-    supported = AVAILABLE_OPTIONS["hash"]
-    if not (selection is None):
-        assert selection in supported, "Option must be one of: %s" % (
-            supported)
-        env_set(OPTION_HASH, selection)
-    return (env_get(OPTION_HASH), supported)
-
+select_package = __select_helper("package", OPTION_PACKAGE)
+select_python_package = __select_helper("python_package", OPTION_PYTHON_PACKAGE)
+select_user = __select_helper("user", OPTION_USER)
+select_group = __select_helper("group", OPTION_GROUP)
+select_os_flavour = __select_helper("os_flavour", OPTION_OS_FLAVOUR)
+select_hash = __select_helper("hash", OPTION_HASH)
+select_transport = __select_helper("transport", OPTION_TRANSPORT)
 
 def is_ok(text: str) -> bool:
     """Tells if the given text ends with "OK", swallowing trailing blanks."""
@@ -608,11 +577,29 @@ def disconnect(host=None):
 
 
 @logged
-def connect(host, user="root", password=NOTHING):
-    """Sets Fabric's current host to the given host. This is useful when
-    using Cuisine in standalone."""
-    disconnect()
-    raise NotImplementedError
+def connect(host, user="root", password=NOTHING, key=NOTHING) -> Tuple[str,Any]:
+    """Connects to the remote host. This is a synchronous process"""
+    transport = option("transport")
+    transport_options = AVAILABLE_OPTIONS['transport']
+    logging.info(f"Connecting to {host} using {transport}")
+    if transport == "parallel-ssh":
+        try:
+            from pssh.clients import SSHClient
+            from pssh.exceptions import AuthenticationError
+        except ImportError as e:
+            logging.error("parallel-ssh is required: run 'python -m pip install --user parallel-ssh' or pick another transport: {transport_options}")
+            raise e
+        try:
+            client = SSHClient(host)
+        except AuthenticationError as e:
+            logging.error(f"Cannot connect to f{host}: {e}")
+            raise e
+        def parallel_ssh(cmd, client=client):
+            out = client.run_command(cmd)
+            return (out.stdout, out.stderr, out.exit_code)
+        return (transport, parallel_ssh)
+    else:
+        raise ValueError(f"Unknown transport option {transport}, use one of: {transport_options}")
 
 
 def host(name=NOTHING):
@@ -1276,7 +1263,7 @@ def package_installed_apt(package, update=False) -> False:
 
 def package_ensure_apt(package, update=False):
     """Ensure apt packages are installed"""
-    if isinstance(package, basestring):
+    if isinstance(package, str):
         package = package.split()
     res = {}
     for p in package:
@@ -1294,7 +1281,7 @@ def package_ensure_apt(package, update=False):
                 package_update_apt(p)
             res[p] = True
     if len(res) == 1:
-        return res.values()[0]
+        return next(_ for _ in res.values())
     else:
         return res
 
@@ -1446,7 +1433,7 @@ def package_install_pacman(package, update=False):
 
 def package_ensure_pacman(package, update=False):
     """Ensure apt packages are installed"""
-    if not isinstance(package, basestring):
+    if not isinstance(package, str):
         package = " ".join(package)
     status = run("pacman -Q %s ; true" % package)
     if ('was not found' in status):
@@ -1501,7 +1488,7 @@ def package_install_emerge(package, update=False):
 
 
 def package_ensure_emerge(package, update=False):
-    if not isinstance(package, basestring):
+    if not isinstance(package, str):
         package = " ".join(package)
     if update:
         sudo("emerge -q --update --newuse %s" % package)
