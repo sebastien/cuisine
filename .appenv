@@ -1,2 +1,4 @@
+# See <git@github.com:sebastien/cuisine.git>
 appenv_declare cuisine
 appenv_prepend PYTHONPATH $APPENV_DIR/src
+# EOF

@@ -43,7 +43,7 @@ import threading
 import sys
 import tempfile
 import functools
-from typing import Dict, Tuple, List, Iterable, Optional, Any, Callable
+from typing import Dict, Tuple, List, Iterable, Optional, Any, Callable, NamedTuple
 
 try:
     # NOTE: Reporter is a custom module that follows the logging interface
@@ -105,22 +105,11 @@ DEFAULT_OPTIONS = dict(
 )
 
 
-def command_output(command, status, out, err, value=None):
-    res = CommandOutput(out if status in STATUS_SUCCESS else "")
-    res.out = out
-    res.status = status
-    res.err = err
-    res.value = out if value is None else value
-    return res
-
 # =============================================================================
 #
 # COMMAND OUTPUT
 #
 # =============================================================================
-
-# TODO: The out/err should be streams, with convenience functions to get
-# them as strings/bytes
 
 class CommandOutput(str):
     """Wraps the result of a command output, this is the standard object
@@ -135,14 +124,43 @@ class CommandOutput(str):
 
     # I'm not sure how that even works, as we're not initializing self with
     # `out`, but it still does work.
-    def __init__(self, out):
+    def __init__(self, res:Tuple[str,int,bytes, bytes]):
         str.__init__(self)
-        self.out = out
-        self.command = None
-        self.status = None
-        self.err = None
-        # NOTE: The value is intended for passing a normalized result, when
-        # the output format might vary.
+        command, status, out, err = res
+        self.command = command
+        self.status = status
+        self._out = out
+        self._err = err
+        self._outStr:Optional[str] = None
+        self._errStr:Optional[str] = None
+        self.encoding = "utf8"
+        self._value = NOTHING
+
+    @property
+    def out( self  ) -> str:
+        if self._outStr is None:
+            self._outStr = str(self._out, self.encoding)
+        return self._outStr
+
+    @property
+    def err( self  ) -> str:
+        if self._errStr is None:
+            self._errStr = str(self._err, self.encoding)
+        return self._errStr
+
+    @property
+    def out_bytes( self  ) -> bytes:
+        return self._out
+
+    @property
+    def err_bytes( self  ) -> bytes:
+        return self._err
+
+    @property
+    def value(self) -> Any:
+        if self._value is NOTHING:
+            self._value = self.last_line
+        return self._value
 
     @property
     def has_value(self) -> bool:
@@ -489,17 +507,23 @@ def run_remote(command, sudo=False, shell=True, pty=True, combine_stderr=None, c
     if not (connection or connections):
         raise ValueError(f"No connection given, call 'connect()' first: {connections}")
     c = connection or connections[-1]
-    # TODO: Take care of the sudo, shell, pty, combine_stderr options
+    # TODO: Take care of the sudo, shell, combine_stderr options
     return c.run(command)
 
+def run_local(command, sudo=False, shell=True, combine_stderr=None) -> CommandOutput:
+    """Liek `run_local_raw`, but returns a `CommandOutput`"""
+    raw_res = run_local_raw(command, sudo=sudo, shell=shell, combine_stderr=combine_stderr)
+    res = CommandOutput(raw_res)
+    if res.has_failed:
+        msg = f"run_local received a nonzero return code {res.status} while executing: {res.command}"
+        log_debug(msg)
+        for _ in res.err.split("\n"):
+            log_error(_)
+    return res
+
 # TODO: Remove the command output, it's going to be more easily serializable
-def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None) -> CommandOutput:
-    """
-    Note: pty option exists for function signature compatibility and is
-    ignored.
-    """
-    # TODO: We should retrieve the locale from the environment
-    terminal_encoding = "utf8"
+def run_local_raw(command:str, sudo=False, shell=True, combine_stderr=None, encoding="utf8") -> Tuple[str,int,bytes,bytes]:
+    """Low-level command running function."""
     # TODO: Pass the SUDO_PASSWORD variable to the command here
     if sudo:
         command = "sudo " + command
@@ -512,21 +536,21 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None) ->
     # NOTE: This is not ideal, but works well.
     # See http://stackoverflow.com/questions/15654163/how-to-capture-streaming-output-in-python-from-subprocess-communicate
     # At some point, we should use a single thread.
-    out = []
-    err = []
+    out:List[bytes] = []
+    err:List[bytes] = []
     # FIXME: This does not seem to stream
 
     def stdout_reader():
         for line in process.stdout:
-            line = str(line or b"", terminal_encoding)
+            line = line or b""
             if line:
-                log_debug(line.rstrip("\n").rstrip("\r"))
+                log_debug(str(line, encoding).rstrip("\n").rstrip("\r"))
             out.append(line)
 
     def stderr_reader():
         for line in process.stderr:
-            line = str(line or b"", terminal_encoding)
-            log_error(line.rstrip("\n").rstrip("\r"))
+            line = line or b""
+            log_error(str(line, encoding).rstrip("\n").rstrip("\r"))
             err.append(line)
     t0 = threading.Thread(target=stdout_reader)
     t1 = threading.Thread(target=stderr_reader)
@@ -535,18 +559,7 @@ def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None) ->
     process.wait()
     t0.join()
     t1.join()
-    out = "".join(out)
-    err = "".join(err)
-    # Error handling
-    status = process.returncode
-    res = command_output(command, status, out, err)
-    if res.has_failed:
-        msg = f"run_local received nonzero return code {status} while executing: {command}"
-        log_debug(msg)
-        for _ in err.split("\n"):
-            log_error(_)
-    return res
-
+    return (command, process.returncode, b"".join(out), b"".join(err))
 
 def run_debug(command, sudo=False, shell=True, pty=True, combine_stderr=None):
     sys.stdout.write("debug: {0}{1}".format("sudo " if sudo else "", command))
@@ -613,6 +626,8 @@ class Connection:
     the connections. Commands can be run as strings, and return
     a `CommandOutput` object."""
 
+    TYPE = "unknown"
+
     def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[str]=None ):
         self.key:Optional[str] = key
         self.password:Optional[str] = password
@@ -620,6 +635,7 @@ class Connection:
         self.host:Optional[str] = "localhost"
         self.port = 22
         self.isConnected = False
+        self.type = self.TYPE
         self.init()
 
     def init( self ):
@@ -650,6 +666,7 @@ class MitogenConnection(Connection):
      is the preferred way of doing connections as it is fast and versatile.
      See <https://mitogen.networkgenomics.com/>."""
 
+    TYPE = "mitogen"
 
     def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[str]=None ):
         super().__init__(user,password,key)
@@ -675,12 +692,11 @@ class MitogenConnection(Connection):
         return self
 
     def run( self, command ) -> CommandOutput:
-        print(f"Running command on {self.user}@{self.host}:{self.port}", command)
-        res = self.context.call(run_local, command)
-        print ("RES", res)
-
+        return CommandOutput(self.context.call(run_local_raw, command))
 
 class ParallelSSHConnection(Connection):
+
+    TYPE = "parallel-ssh"
 
     def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[str]=None ):
         super().__init__(user,password,key)
@@ -714,10 +730,13 @@ class ParallelSSHConnection(Connection):
 
 connections:List[Connection] = []
 
+def connection() -> Optional[Connection]:
+    return connections[-1] if connections else None
+
 @logged
-def connect(host, user="root", password=NOTHING, key=NOTHING) -> Connection:
+def connect(host, user="root", password=NOTHING, key=NOTHING, transport=None) -> Connection:
     """Connects to the remote host. This is a synchronous process"""
-    transport = option("transport")
+    transport = transport or option("transport")
     transport_options = AVAILABLE_OPTIONS['transport']
     logging.info(f"Connecting to {host} using {transport}")
     if transport == "parallel-ssh":
