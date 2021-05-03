@@ -43,7 +43,7 @@ import threading
 import sys
 import tempfile
 import functools
-from typing import Dict, Tuple, Iterable, Optional, Any, Callable
+from typing import Dict, Tuple, List, Iterable, Optional, Any, Callable
 
 try:
     # NOTE: Reporter is a custom module that follows the logging interface
@@ -91,7 +91,7 @@ AVAILABLE_OPTIONS = dict(
     user=["linux",  "bsd"],
     group=["linux",  "bsd"],
     hash=["python", "openssl"],
-    transport=["parallel-ssh"],
+    transport=["mitogen", "parallel-ssh"],
 )
 
 DEFAULT_OPTIONS = dict(
@@ -101,7 +101,7 @@ DEFAULT_OPTIONS = dict(
     user="linux",
     group="linux",
     hash="python",
-    transport="parallel-ssh",
+    transport="mitogen",
 )
 
 
@@ -113,9 +113,25 @@ def command_output(command, status, out, err, value=None):
     res.value = out if value is None else value
     return res
 
+# =============================================================================
+#
+# COMMAND OUTPUT
+#
+# =============================================================================
+
+# TODO: The out/err should be streams, with convenience functions to get
+# them as strings/bytes
 
 class CommandOutput(str):
-    """Wraps the result of a command output"""
+    """Wraps the result of a command output, this is the standard object
+    that you will be getting as a result of running commands. It has
+    the following fields:
+
+    - `out`, the output stream
+    - `err`, the output stream
+    - `status`, the command status
+    - `command`, the original command
+    """
 
     # I'm not sure how that even works, as we're not initializing self with
     # `out`, but it still does work.
@@ -150,10 +166,17 @@ class CommandOutput(str):
     def __repr__(self) -> str:
         return f"Command: {self.command}\nstatus: {self.status}\nout: {repr(log_stringify(self.out))}\nerr: {repr(log_stringify(self.err))}"
 
-# Environment functions
+
+# =============================================================================
+#
+# ENVIRONMENT FUNCTIONS
+#
+# =============================================================================
 
 
 def env_get(variable: str, default: Optional[str] = None) -> str:
+    """Returns the given `variable` from the *local* environment, returning
+    `default` if not found."""
     value = os.environ[variable] if variable in os.environ else default
     if isinstance(value, str):
         if match := RE_INT.match(value):
@@ -165,6 +188,8 @@ def env_get(variable: str, default: Optional[str] = None) -> str:
 
 
 def env_set(variable: str, value: str) -> str:
+    """Sets the given `variable` in the *local* environment, returning
+    `default` if not found."""
     if isinstance(value, str):
         env_value = value
     elif isinstance(value, bool):
@@ -176,6 +201,8 @@ def env_set(variable: str, value: str) -> str:
 
 
 def env_clear(variable: str) -> str:
+    """Clears the given `variable` from the *local* environment.
+    `default` if not found."""
     if variable in os.environ:
         value = os.environ[variable]
         del os.environ[variable]
@@ -456,6 +483,16 @@ def is_ok(text: str) -> bool:
 # =============================================================================
 
 
+def run_remote(command, sudo=False, shell=True, pty=True, combine_stderr=None, connection=None) -> CommandOutput:
+    """Runs the given command on the last remote connection, or the given
+    `connection` if provided. This requires calling `connect()` beforehand."""
+    if not (connection or connections):
+        raise ValueError(f"No connection given, call 'connect()' first: {connections}")
+    c = connection or connections[-1]
+    # TODO: Take care of the sudo, shell, pty, combine_stderr options
+    return c.run(command)
+
+# TODO: Remove the command output, it's going to be more easily serializable
 def run_local(command, sudo=False, shell=True, pty=True, combine_stderr=None) -> CommandOutput:
     """
     Note: pty option exists for function signature compatibility and is
@@ -518,31 +555,26 @@ def run_debug(command, sudo=False, shell=True, pty=True, combine_stderr=None):
 def run_sudo(*args, **kwargs):
     """Runs the command as a super user"""
     kwargs["sudo"] = True
-    return run_local(*args, **kwargs)
+    return (run_local if is_local() else run_remote)(*args, **kwargs)
 
 
 def run_user(*args, **kwargs):
     """Runs the command as a regular user"""
     kwargs["sudo"] = False
-    return run_local(*args, **kwargs)
+    return (run_local if is_local() else run_remote)(*args, **kwargs)
 
 
 def run(*args, **kwargs):
-    """A wrapper to Fabric's run/sudo commands that takes into account
+    """Runs the given command, taking into account
     the `MODE_LOCAL`, `MODE_SUDO` and `MODE_DEBUG` modes of Cuisine."""
+    if is_sudo():
+        kwargs.setdefault("sudo", True)
     if is_debug():
-        if is_sudo():
-            kwargs.setdefault("sudo", True)
         return run_debug(*args, **kwargs)
     elif is_local():
-        if is_sudo():
-            kwargs.setdefault("sudo", True)
         return run_local(*args, **kwargs)
     else:
-        if is_sudo():
-            return run_sudo(*args, **kwargs)
-        else:
-            return run_user(*args, **kwargs)
+        return run_remote(*args, **kwargs)
 
 
 def cd(*args, **kwargs):
@@ -568,48 +600,159 @@ def sudo(*args, **kwargs):
         return run(*args, **kwargs)
 
 
-def disconnect(host=None):
-    """Disconnects the current connction, if any."""
-    raise NotImplementedError
-    # host = host or env_.host_string
-    # if host and host in fabric.state.connections:
-    #    fabric.state.connections[host].get_transport().close()
+
+# =============================================================================
+#
+# CONNECTION
+#
+# =============================================================================
+
+class Connection:
+    """Abstract implementation of a remote SSH connection. Connections are
+    created with credentials, and then we can connect to and disconnect from
+    the connections. Commands can be run as strings, and return
+    a `CommandOutput` object."""
+
+    def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[str]=None ):
+        self.key:Optional[str] = key
+        self.password:Optional[str] = password
+        self.user:Optional[str] = user
+        self.host:Optional[str] = "localhost"
+        self.port = 22
+        self.isConnected = False
+        self.init()
+
+    def init( self ):
+        pass
+
+    def connect( self, host:str, port=None ) -> 'Connection':
+        assert not self.isConnected, "Connection already made, call 'disconnect' first"
+        self.host = host or self.host
+        self.port = port or self.port
+        return self
+
+    def reconnect( self, user:Optional[str], host:Optional[str], port:Optional[int] ) -> 'Connection':
+        self.disconnect()
+        self.user = user or self.user
+        host = host or self.host
+        port = port or self.port
+        return self.connect(host,port)
+
+    def run( self, command:str ) -> CommandOutput:
+        raise NotImplementedError
+
+    def disconnect( self ) -> bool:
+        if not self.isConnected:
+            return False
+
+class MitogenConnection(Connection):
+    """Manages a remote connection through Mitogen. Mitogen
+     is the preferred way of doing connections as it is fast and versatile.
+     See <https://mitogen.networkgenomics.com/>."""
 
 
-@logged
-def connect(host, user="root", password=NOTHING, key=NOTHING) -> Tuple[str,Any]:
-    """Connects to the remote host. This is a synchronous process"""
-    transport = option("transport")
-    transport_options = AVAILABLE_OPTIONS['transport']
-    logging.info(f"Connecting to {host} using {transport}")
-    if transport == "parallel-ssh":
+    def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[str]=None ):
+        super().__init__(user,password,key)
+
+    def init( self ):
+        try:
+            import mitogen
+            import mitogen.utils as mitogen_utils
+            import mitogen.master as mitogen_master
+        except ImportError as e:
+            logging.error("Mitogen <https://mitogen.networkgenomics.com/> is required: python -m pip install --user mitogen")
+            raise e
+        self.mitogen = mitogen
+        self.mitogen_utils = mitogen_utils
+        self.mitogen_master = mitogen_master
+
+    def connect( self, host:str, port=22 ) -> 'MitogenConnection':
+        # NOTE: Connect will update self.{host,port}
+        super().connect(host, port)
+        broker = self.mitogen_master.Broker()
+        router = self.mitogen_master.Router(broker)
+        self.context = router.ssh(hostname=self.host, port=self.port)
+        return self
+
+    def run( self, command ) -> CommandOutput:
+        print(f"Running command on {self.user}@{self.host}:{self.port}", command)
+        res = self.context.call(run_local, command)
+        print ("RES", res)
+
+
+class ParallelSSHConnection(Connection):
+
+    def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[str]=None ):
+        super().__init__(user,password,key)
+
+    def init( self ):
         try:
             from pssh.clients import SSHClient
             from pssh.exceptions import AuthenticationError
         except ImportError as e:
             logging.error("parallel-ssh is required: run 'python -m pip install --user parallel-ssh' or pick another transport: {transport_options}")
             raise e
+        self.SSHClient = SSHClient
+        self.AuthenticationError = AuthenticationError
+        self.context:Optional[SSHClient] = None
+
+    def connect( self, host:str, port=22 ) -> 'ParallelSSHConnection':
+        super().connect(host, port)
         try:
-            client = SSHClient(host)
-        except AuthenticationError as e:
+            client = self.SSHClient(host)
+        except self.AuthenticationError as e:
             logging.error(f"Cannot connect to f{host}: {e}")
             raise e
-        def parallel_ssh(cmd, client=client):
-            out = client.run_command(cmd)
-            return (out.stdout, out.stderr, out.exit_code)
-        return (transport, parallel_ssh)
+        self.context = client
+        return self
+
+    def run( self, command ) -> CommandOutput:
+        out = client.run_command(cmd)
+        return CommandOutput(out=out.stdout, err=out.stdeer, status=out.exist_code)
+
+
+
+connections:List[Connection] = []
+
+@logged
+def connect(host, user="root", password=NOTHING, key=NOTHING) -> Connection:
+    """Connects to the remote host. This is a synchronous process"""
+    transport = option("transport")
+    transport_options = AVAILABLE_OPTIONS['transport']
+    logging.info(f"Connecting to {host} using {transport}")
+    if transport == "parallel-ssh":
+        result = ParallelSSHConnection(user=user, password=password, key=key).connect(host)
+    elif transport == "mitogen":
+        result = MitogenConnection(user=user, password=password, key=key).connect(host)
     else:
         raise ValueError(f"Unknown transport option {transport}, use one of: {transport_options}")
+    connections.append(result)
+    return result
+
+def disconnect() -> Connection:
+    """Disconnects the current connction, if any."""
+    assert connections, "No current active connection"
+    return connections.pop().disconnect()
 
 
 def host(name=NOTHING):
     """Returns or sets the host"""
-    raise NotImplementedError
+    if self.connections:
+        c = self.connections[-1]
+        if name is NOTHING:
+            return c.host
+        else:
+            return c.reconnect(host=host)
 
 
 def user(name=NOTHING):
-    """Returns or sets the user"""
-    raise NotImplementedError
+    """Returns or sets the host"""
+    if self.connections:
+        c = self.connections[-1]
+        if name is NOTHING:
+            return c.user
+        else:
+            return c.reconnect(user=name)
 
 # =============================================================================
 #

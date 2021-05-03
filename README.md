@@ -7,8 +7,10 @@
 
 ```
 
-Cuisine is a task automation tool written in Python that provides a platform neutral abstraction over your operating system.
-It is designed as a simple flat API to r
+Cuisine is a task automation tool written in Python that provides a platform
+neutral abstraction over your operating system. It is designed as a simple
+flat API to interact with one or more servers, making it easy to do remote
+scripting piloted by Python.
 
 
 # FAQ
