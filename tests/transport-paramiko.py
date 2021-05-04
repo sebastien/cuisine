@@ -8,7 +8,7 @@ try:
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.WarningPolicy)
     # FIXME: Paramiko does not work out of the box there
-    client.connect("localhost", username="spierre", look_for_keys=True)
+    client.connect(hostname="127.0.0.1", username="spierre", look_for_keys=True, key_filename="/home/spierre/.ssh/id_rsa.pub")
     stdin, stdout, stderr = client.exec_command("echo 'Hello, World'")
     print (stdout.read())
 finally:

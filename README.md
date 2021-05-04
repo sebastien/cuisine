@@ -46,3 +46,6 @@ for the following systems:
 # References
 
 - [Mitogen](https://mitogen.networkgenomics.com/)
+- Paramiko
+- ParallelSSH
+- [SSHPipe](https://github.com/Acrisel/sshpipe)

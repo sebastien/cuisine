@@ -6,4 +6,4 @@ from cuisine import *
 connect(host="localhost", user=run_local("whoami").last_line, transport="mitogen")
 # This will now be run through the SSH connection
 print ("cuisine got:", run("echo 'Hello, World'!").value, f"through {connection().host} via {connection().type}")
-# EO
+# EOF
