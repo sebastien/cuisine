@@ -39,10 +39,12 @@ import string
 import tempfile
 import subprocess
 import types
+import getpass
 import threading
 import sys
 import tempfile
 import functools
+from pathlib import Path
 from typing import Dict, Tuple, List, Iterable, Optional, Any, Callable, NamedTuple
 
 try:
@@ -60,6 +62,7 @@ except ImportError:
 VERSION = "2.0.0"
 NOTHING = base64
 RE_SPACES = re.compile("[\s\t]+")
+RE_COMMAND = re.compile(r"\s*([A-Za-z0-9\-]+)(.*)")
 STRINGIFY_MAXSTRING = 80
 STRINGIFY_MAXLISTSTRING = 20
 MAC_EOL = "\n"
@@ -91,7 +94,7 @@ AVAILABLE_OPTIONS = dict(
     user=["linux",  "bsd"],
     group=["linux",  "bsd"],
     hash=["python", "openssl"],
-    transport=["mitogen", "parallel-ssh"],
+    transport=["paramiko", "mitogen", "parallel-ssh"],
 )
 
 DEFAULT_OPTIONS = dict(
@@ -101,9 +104,14 @@ DEFAULT_OPTIONS = dict(
     user="linux",
     group="linux",
     hash="python",
-    transport="mitogen",
+    transport="paramiko",
 )
 
+
+DEFAULT_COMMANDS = {
+    "python":"python3",
+    "pip":"python -m pip",
+}
 
 # =============================================================================
 #
@@ -135,6 +143,11 @@ class CommandOutput(str):
         self._errStr:Optional[str] = None
         self.encoding = "utf8"
         self._value = NOTHING
+        # Q: Should we log there?
+        if self.out:
+            logging.info(self.out)
+        if self.err:
+            logging.error(self.err)
 
     @property
     def out( self  ) -> str:
@@ -300,7 +313,7 @@ def logged(message=None):
         return logged_wrapper
 
 
-def dispatch(prefix=None):
+def dispatch(prefix=None, multiple=False):
     """Dispatches the current function to specific implementation. The `prefix`
     parameter indicates the common option prefix, and the `select_[option]()`
     function will determine the function suffix.
@@ -340,7 +353,11 @@ def dispatch(prefix=None):
             specific = eval(function_name)
             if specific:
                 if type(specific) == types.FunctionType:
-                    return specific(*args, **kwargs)
+                    if multiple and args and isinstance(args[0], list):
+                        rest = args[1:]
+                        return [specific(_, *rest, **kwargs) for _ in args[0]]
+                    else:
+                        return specific(*args, **kwargs)
                 else:
                     raise Exception(f"Function expected for: {function_name}")
             else:
@@ -514,11 +531,6 @@ def run_local(command, sudo=False, shell=True, combine_stderr=None) -> CommandOu
     """Liek `run_local_raw`, but returns a `CommandOutput`"""
     raw_res = run_local_raw(command, sudo=sudo, shell=shell, combine_stderr=combine_stderr)
     res = CommandOutput(raw_res)
-    if res.has_failed:
-        msg = f"run_local received a nonzero return code {res.status} while executing: {res.command}"
-        log_debug(msg)
-        for _ in res.err.split("\n"):
-            log_error(_)
     return res
 
 # TODO: Remove the command output, it's going to be more easily serializable
@@ -628,8 +640,8 @@ class Connection:
 
     TYPE = "unknown"
 
-    def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[str]=None ):
-        self.key:Optional[str] = key
+    def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[Path]=None ):
+        self.key =  Path(os.path.normpath(os.path.expanduser(os.path.expandvars(key)))) if key else None
         self.password:Optional[str] = password
         self.user:Optional[str] = user
         self.host:Optional[str] = "localhost"
@@ -654,21 +666,86 @@ class Connection:
         port = port or self.port
         return self.connect(host,port)
 
-    def run( self, command:str ) -> CommandOutput:
+    def run( self, command:str ) -> Optional[CommandOutput]:
+        logging.trace(command)
+        return None
+
+    def copy( self, local:str, remote:str ):
+        """Copies from the local file to the remote location"""
         raise NotImplementedError
 
-    def disconnect( self ) -> bool:
-        if not self.isConnected:
-            return False
+    def write( self, local:str, remote:str ):
+        """Writes the given content to the remote location"""
 
+    def disconnect( self ) -> bool:
+        return self.isConnected
+
+# SEE: https://gist.github.com/mlafeldt/841944
+class ParamikoConnection(Connection):
+    """Manages a remote connection through Paramiko.
+     See <https://docs.paramiko.org>"""
+
+    TYPE = "paramiko"
+
+    def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[Path]=None ):
+        super().__init__(user,password,key)
+
+    def init( self ):
+        # SEE: https://docs.paramiko.org/en/stable/api/client.html
+        try:
+            import paramiko
+            import paramiko.ssh_exception as paramiko_exceptions
+        except ImportError as e:
+            logging.error("Paramiko <https://docs.paramiko.org> is required: python -m pip install --user paramiko")
+            raise e
+        self.paramiko = paramiko
+        self.paramiko_exceptions = paramiko_exceptions
+
+    def connect( self, host:str, port=22 ) -> 'ParamikoConnection':
+        # NOTE: Connect will update self.{host,port}
+        super().connect(host, port)
+        # SEE: https://docs.paramiko.org/en/stable/api/client.html
+        self.context = client = self.paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(self.paramiko.WarningPolicy)
+        try:
+            client.connect(self.host, username=self.user, port=self.port, key_filename=self.key, look_for_keys=True)
+        except  self.paramiko_exceptions.AuthenticationException as e:
+            logging.fatal(f"Cannot connect to {self.user}@{self.host}:{self.port} using {self.type}: {e}")
+            self.context = None
+            self.isConnected = False
+            return self
+        print ("CONTEXT", self.context)
+        return self
+
+    def run( self, command ) -> CommandOutput:
+        if not self.context:
+            logging.error(f"Connection failed, cannot run: {command}")
+            return CommandOutput((command,127,b"",b""))
+        else:
+            super().run(command)
+            stdin, stdout, stderr = self.context.exec_command(command)
+            # FIXME: We might be deadlocking here, we might want to reuse the 
+            # threaded readers.
+            err = stderr.read()
+            out = stdout.read()
+            status = stdout.channel.recv_exit_status()
+            return CommandOutput((command, status, out, err))
+
+    def disconnect( self ) -> bool:
+        if super().disconnect():
+            self.context.close()
+            self.context = None
+            return True
+        else:
+            return False
 class MitogenConnection(Connection):
-    """Manages a remote connection through Mitogen. Mitogen
-     is the preferred way of doing connections as it is fast and versatile.
+    """Manages a remote connection through Mitogen. 
      See <https://mitogen.networkgenomics.com/>."""
 
     TYPE = "mitogen"
 
-    def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[str]=None ):
+    def __init__( self, user:Optional[str]=None, password:Optional[str]=None, key:Optional[Path]=None ):
         super().__init__(user,password,key)
 
     def init( self ):
@@ -676,23 +753,37 @@ class MitogenConnection(Connection):
             import mitogen
             import mitogen.utils as mitogen_utils
             import mitogen.master as mitogen_master
+            import mitogen.ssh as mitogen_ssh
         except ImportError as e:
             logging.error("Mitogen <https://mitogen.networkgenomics.com/> is required: python -m pip install --user mitogen")
             raise e
         self.mitogen = mitogen
         self.mitogen_utils = mitogen_utils
         self.mitogen_master = mitogen_master
+        self.mitogen_ssh = mitogen_ssh
 
     def connect( self, host:str, port=22 ) -> 'MitogenConnection':
         # NOTE: Connect will update self.{host,port}
         super().connect(host, port)
         broker = self.mitogen_master.Broker()
         router = self.mitogen_master.Router(broker)
-        self.context = router.ssh(hostname=self.host, port=self.port)
+        try:
+            # NOTE: See <https://github.com/mitogen-hq/mitogen/blob/master/mitogen/ssh.py>
+            self.context = router.ssh(hostname=self.host, username=self.user, port=self.port, identity_file=self.key)
+        except self.mitogen_ssh.PasswordError as e:
+            logging.fatal(f"Cannot connect to {self.user}@{self.host}:{self.port} using {self.type}: {e}")
+            self.context = None
+            self.isConnected = False
+            return self
         return self
 
     def run( self, command ) -> CommandOutput:
-        return CommandOutput(self.context.call(run_local_raw, command))
+        if not self.context:
+            logging.error(f"Connection failed, cannot run: {command}")
+            return CommandOutput((command,127,b"",b""))
+        else:
+            super().run(command)
+            return CommandOutput(self.context.call(run_local_raw, command))
 
 class ParallelSSHConnection(Connection):
 
@@ -706,7 +797,7 @@ class ParallelSSHConnection(Connection):
             from pssh.clients import SSHClient
             from pssh.exceptions import AuthenticationError
         except ImportError as e:
-            logging.error("parallel-ssh is required: run 'python -m pip install --user parallel-ssh' or pick another transport: {transport_options}")
+            logging.error("parallel-ssh is required: run 'ppython -m pip install --user parallel-ssh' or pick another transport: {transport_options}")
             raise e
         self.SSHClient = SSHClient
         self.AuthenticationError = AuthenticationError
@@ -723,9 +814,9 @@ class ParallelSSHConnection(Connection):
         return self
 
     def run( self, command ) -> CommandOutput:
-        out = client.run_command(cmd)
+        super().run(command)
+        out = client.run_command(command)
         return CommandOutput(out=out.stdout, err=out.stdeer, status=out.exist_code)
-
 
 
 connections:List[Connection] = []
@@ -734,17 +825,23 @@ def connection() -> Optional[Connection]:
     return connections[-1] if connections else None
 
 @logged
-def connect(host, user="root", password=NOTHING, key=NOTHING, transport=None) -> Connection:
+def connect(host:str, user:str=NOTHING, password=NOTHING, key=None, transport=None) -> Connection:
     """Connects to the remote host. This is a synchronous process"""
     transport = transport or option("transport")
     transport_options = AVAILABLE_OPTIONS['transport']
-    logging.info(f"Connecting to {host} using {transport}")
-    if transport == "parallel-ssh":
-        result = ParallelSSHConnection(user=user, password=password, key=key).connect(host)
+    user = getpass.getuser() if user is NOTHING else user
+    logging.info(f"Connecting to {user}@{host} using {transport}")
+    key_path = Path(os.path.normpath(os.path.expanduser(os.path.expandvars(key)))) if key else None
+    if key_path and not key_path.exists():
+        raise ValueError(f"Could not find path at: {key_path}")
+    if transport == "paramiko":
+        result = ParamikoConnection(user=user, password=password, key=key_path).connect(host)
     elif transport == "mitogen":
-        result = MitogenConnection(user=user, password=password, key=key).connect(host)
+        result = MitogenConnection(user=user, password=password, key=key_path).connect(host)
+    elif transport == "parallel-ssh":
+        result = ParallelSSHConnection(user=user, password=password, key=key_path).connect(host)
     else:
-        raise ValueError(f"Unknown transport option {transport}, use one of: {transport_options}")
+        raise ValueError(f"Unknown transport option '{transport}', use one of: {transport_options}")
     connections.append(result)
     return result
 
@@ -992,7 +1089,7 @@ def file_attribs_get(location):
 
 
 @logged
-def file_write(location, content, mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
+def file_write(location:str, content:bytes, mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
     """Writes the given content to the file at the given remote
     location, optionally setting mode/owner/group."""
     # FIXME: Big files are never transferred properly!
@@ -1005,7 +1102,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
     if sig != file_md5(location):
         if is_local():
             with mode_sudo(use_sudo):
-                run('cp %s %s' % (shell_safe(local_path), shell_safe(location)))
+                run("cp '%s' '%s'" % (shell_safe(local_path), shell_safe(location)))
         else:
             if scp:
                 raise NotImplementedError
@@ -1016,23 +1113,7 @@ def file_write(location, content, mode=None, owner=None, group=None, sudo=None, 
                 log_debug('file_write:[localhost]] ' + scp_cmd)
                 run_local(scp_cmd)
             else:
-                # FIXME: Put is not working properly, I often get stuff like:
-                # Fatal error: sudo() encountered an error (return code 1) while executing 'mv "3dcf7213c3032c812769e7f355e657b2df06b687" "/etc/authbind/byport/80"'
-                # fabric.operations.put(local_path, location, use_sudo=use_sudo)
-                # Hides the output, which is especially important
                 raise NotImplementedError
-                # with fabric.context_managers.settings(
-                #         fabric.api.hide('stdout'),
-                #         warn_only=True,
-                #         **{MODE_SUDO: use_sudo}
-                # ):
-                #     # SEE: http://unix.stackexchange.com/questions/22834/how-to-uncompress-zlib-data-in-unix
-                #     # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
-                #     result = run("echo '%s' | openssl base64 -A -d -out %s" %
-                #                  (base64.b64encode(content), shell_safe(location)))
-                #     if "openssl:Error" in result:
-                #         fabric.api.abort(
-                #             'cuisine.file_write("%s",...) failed because openssl does not support base64 command.' % (location))
     # Remove the local temp file
     os.fsync(fd)
     os.close(fd)
@@ -1058,33 +1139,33 @@ def file_ensure(location, mode=None, owner=None, group=None, scp=False):
 
 
 @logged
-def file_upload(remote, local, sudo=None, scp=False):
+def file_upload(local, remote, sudo=None, scp=False):
     """Uploads the local file to the remote location only if the remote location does not
     exists or the content are different."""
     # FIXME: Big files are never transferred properly!
     # XXX: this 'sudo' kw arg shadows the function named 'sudo'
     use_sudo = is_sudo() or sudo
-    f = file(local, 'rb')
-    content = f.read()
-    f.close()
+    with open(local, "rb") as f:
+        content = f.read()
     sig = hashlib.md5(content).hexdigest()
     if not file_exists(remote) or sig != file_md5(remote):
         if is_local():
             if use_sudo:
-                globals()['sudo']('cp %s %s' %
+                globals()['sudo']("cp '%s' '%s'" %
                                   (shell_safe(local), shell_safe(remote)))
             else:
-                run('cp "%s" "%s"' % (local, remote))
+                run("cp '%s' '%s'" % (local, remote))
         else:
             if scp:
+                # TODO: We should be able to run a local command there
                 raise NotImplementedError
-                # hostname = env_.host_string if len(env_.host_string.split(
-                #     ':')) == 1 else env_.host_string.split(':')[0]
-                # scp_cmd = 'scp %s %s@%s:%s' % (shell_safe(local), shell_safe(
+                # scp_cmd = @scp %s %s@%s:%s' % (shell_safe(local), shell_safe(
                 #     env_.user), shell_safe(hostname), shell_safe(remote))
-                log_debug('file_upload():[localhost] ' + scp_cmd)
-                run_local(scp_cmd)
+                # log_debug('file_upload():[localhost] ' + scp_cmd)
+                # run_local(scp_cmd)
             else:
+                with open(local, "rb") as f:
+                    file_read(remote, f.read())
                 fabric.operations.put(local, remote, use_sudo=use_sudo)
 
 
@@ -1307,25 +1388,25 @@ def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
 
 
 @logged
-@dispatch
+@dispatch(multiple=True)
 def package_available(package: str) -> bool:
     """Tells if the given package is available"""
 
 
 @logged
-@dispatch
+@dispatch(multiple=True)
 def package_installed(package, update=False) -> bool:
     """Tells if the given package is installed or not."""
 
 
 @logged
-@dispatch
+@dispatch(multiple=True)
 def package_upgrade(distupgrade=False):
     """Updates every package present on the system."""
 
 
 @logged
-@dispatch
+@dispatch(multiple=True)
 def package_update(package=None):
     """Updates the package database (when no argument) or update the package
     or list of packages given as argument."""
@@ -1339,7 +1420,7 @@ def package_install(package, update=False):
 
 
 @logged
-@dispatch
+@dispatch(multiple=True)
 def package_ensure(package, update=False):
     """Tests if the given package is installed, and installs it in
     case it's not already there. If `update` is true, then the
@@ -1353,7 +1434,7 @@ def package_clean(package=None):
 
 
 @logged
-@dispatch
+@dispatch(multiple=True)
 def package_remove(package, autoclean=False):
     """Remove package and optionally clean unused packages"""
 
@@ -1778,21 +1859,21 @@ def package_clean_pkgng(package=None):
 # =============================================================================
 
 
-@ dispatch('python_package')
+@dispatch('python_package', multiple=True)
 def python_package_upgrade(package):
     '''
     Upgrades the defined python package.
     '''
 
 
-@ dispatch('python_package')
+@dispatch('python_package', multiple=True)
 def python_package_install(package=None):
     '''
     Installs the given python package/list of python packages.
     '''
 
 
-@ dispatch('python_package')
+@dispatch('python_package', multiple=True)
 def python_package_ensure(package):
     '''
     Tests if the given python package is installed, and installes it in
@@ -1800,7 +1881,7 @@ def python_package_ensure(package):
     '''
 
 
-@ dispatch('python_package')
+@dispatch('python_package', multiple=True)
 def python_package_remove(package):
     '''
     Removes the given python package.
@@ -1815,7 +1896,7 @@ def python_package_upgrade_pip(package, pip=None):
     '''
     The "package" argument, defines the name of the package that will be upgraded.
     '''
-    pip = pip or env_get('pip', 'pip')
+    pip = command("pip")
     run('%s install --upgrade %s' % (pip, package))
 
 
@@ -1828,7 +1909,7 @@ def python_package_install_pip(package=None, r=None, pip=None):
     The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
     path to a virtualenv. If provided, it will be added to the pip call.
     '''
-    pip = pip or env_get('pip', 'pip')
+    pip = command("pip")
     if package:
         run('%s install %s' % (pip, package))
     elif r:
@@ -1848,7 +1929,7 @@ def python_package_ensure_pip(package=None, r=None, pip=None):
     # FIXME: At the moment, I do not know how to check for the existence of a pip package and
     # I am not sure if this really makes sense, based on the pip built in functionality.
     # So I just call the install functions
-    pip = pip or env_get('pip', 'pip')
+    pip = command("pip")
     python_package_install_pip(package, r, pip)
 
 
@@ -1859,7 +1940,7 @@ def python_package_remove_pip(package, pip=None):
     is equivalent to the "-r" parameter of pip.
     Either "package" or "r" needs to be provided
     '''
-    pip = pip or env_get('pip', 'pip')
+    pip = command("pip")
     return run('%s uninstall %s' % (pip, package))
 
 # -----------------------------------------------------------------------------
@@ -1871,14 +1952,14 @@ def python_package_upgrade_easy_install(package):
     '''
     The "package" argument, defines the name of the package that will be upgraded.
     '''
-    run('easy_install --upgrade %s' % package)
+    run(f"{command('easy_install')} --upgrade '{package}")
 
 
 def python_package_install_easy_install(package):
     '''
     The "package" argument, defines the name of the package that will be installed.
     '''
-    sudo('easy_install %s' % package)
+    run(f"{command('easy_install')} '{package}")
 
 
 def python_package_ensure_easy_install(package):
@@ -1896,7 +1977,7 @@ def python_package_remove_easy_install(package):
     The "package" argument, defines the name of the package that will be removed.
     '''
     # FIXME: this will not remove egg file etc.
-    run('easy_install -m %s' % package)
+    run(f"{command('easy_install')} -m '{package}")
 
 # =============================================================================
 #
@@ -1905,9 +1986,23 @@ def python_package_remove_easy_install(package):
 # =============================================================================
 
 
+def command( name:str ) -> str:
+    """Returns the normalized command name. This first tries to find a match 
+    in `DEFAULT_COMMANDS` and extract it, and then look for a `COMMAND_{name}`
+    in the environment."""
+    if match := RE_COMMAND.match(name):
+        cmd = match.group(1)
+        params = match.group(2) or ""
+        if cmd in DEFAULT_COMMANDS:
+            cmd = command(DEFAULT_COMMANDS[cmd])
+        cmd_env = cmd.replace("-", "_").upper()
+        return env_get(f"COMMAND_{cmd_env}", cmd) + params
+    else:
+        return name
+
 def command_check(command):
     """Tests if the given command is available on the system."""
-    return run("which '%s' >& /dev/null && echo OK ; true" % command).endswith("OK")
+    return run(f"which '{command}' >& /dev/null && echo OK ; true").endswith("OK")
 
 
 def command_ensure(command, package=None):
@@ -1928,19 +2023,19 @@ def command_ensure(command, package=None):
 # =============================================================================
 
 
-@ dispatch('user')
+@dispatch('user')
 def user_passwd(name, passwd, encrypted_passwd=True):
     """Sets the given user password. Password is expected to be encrypted by default."""
 
 
-@ dispatch('user')
+@dispatch('user')
 def user_create(name, passwd=None, home=None, uid=None, gid=None, shell=None,
                 uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
     """Creates the user with the given name, optionally giving a
     specific password/home/uid/gid/shell."""
 
 
-@ dispatch('user')
+@dispatch('user')
 def user_check(name=None, uid=None, need_passwd=True):
     """Checks if there is a user defined with the given name,
     returning its information as a
@@ -1951,13 +2046,13 @@ def user_check(name=None, uid=None, need_passwd=True):
     """
 
 
-@ dispatch('user')
+@dispatch('user')
 def user_ensure(name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
     """Ensures that the given users exists, optionally updating their
     passwd/home/uid/gid/shell."""
 
 
-@ dispatch('user')
+@dispatch('user')
 def user_remove(name, rmhome=None):
     """Removes the user with the given name, optionally
     removing the home directory and mail spool."""
@@ -2263,12 +2358,12 @@ def user_remove_bsd(name, rmhome=None):
 # =============================================================================
 
 
-@ dispatch('group')
+@dispatch('group')
 def group_create(name, gid=None):
     """Creates a group with the given name, and optionally given gid."""
 
 
-@ dispatch('group')
+@dispatch('group')
 def group_check(name):
     """Checks if there is a group defined with the given name,
     returning its information as a
@@ -2276,34 +2371,34 @@ def group_check(name):
     the group does not exists."""
 
 
-@ dispatch('group')
+@dispatch('group')
 def group_ensure(name, gid=None):
     """Ensures that the group with the given name (and optional gid)
     exists."""
 
 
-@ dispatch('group')
+@dispatch('group')
 def group_user_check(group, user):
     """Checks if the given user is a member of the given group. It
     will return 'False' if the group does not exist."""
 
 
-@ dispatch('group')
+@dispatch('group')
 def group_user_add(group, user):
     """Adds the given user/list of users to the given group/groups."""
 
 
-@ dispatch('group')
+@dispatch('group')
 def group_user_ensure(group, user):
     """Ensure that a given user is a member of a given group."""
 
 
-@ dispatch('group')
+@dispatch('group')
 def group_user_del(group, user):
     """remove the given user from the given group."""
 
 
-@ dispatch('group')
+@dispatch('group')
 def group_remove(group=None, wipe=False):
     """ Removes the given group, this implies to take members out the group
     if there are any.  If wipe=True and the group is a primary one,
