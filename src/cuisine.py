@@ -1079,6 +1079,10 @@ def path_local_normalize( path:str ) -> Path:
     """Normalizes the given path, expanding variables and user home."""
     return Path(os.path.normpath(os.path.expanduser(os.path.expandvars(path))))
 
+def file_name(path:str) -> str:
+    """Returns the file name for the given path."""
+    return os.path.basename(path)
+
 @logged
 def file_local_read(path):
     """Reads a *local* file from the given path, expanding '~' and
