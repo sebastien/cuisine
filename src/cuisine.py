@@ -389,7 +389,7 @@ def sudo_password(password=None):
             env_set(SUDO_PASSWORD, password)
 
 
-class __mode_switcher(object):
+class __mode_switcher:
     """A class that can be used to switch Cuisine's run modes by
     instanciating the class or using it as a context manager"""
     MODE_VALUE = True
@@ -602,19 +602,38 @@ def run(*args, **kwargs):
         return run_remote(*args, **kwargs)
 
 
-def cd(*args, **kwargs):
-    """A wrapper around Fabric's cd to change the local directory if
-    mode is local"""
+class __cd_context:
+    """A helper object returned by `cd`."""
+
+    def __init__(self, path:str):
+        self.path = path
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        cd(self.path, context=False)
+
+
+def cd(path:str, context=True) -> Optional[__cd_context]:
+    """Changes the current directory. Can be used in a `with`
+    statement, and will change back to the current directory."""
+    # FIXME: This will not work with multiple connections
+    if not isinstance(path,str): raise ValueError(f"Expected string, got: '{path}'")
+    current = pwd()
     if is_local():
-        raise NotImplementedError
+        norm_path = path_local_normalize(path)
+        if not norm_path.exists():
+            raise ValueError(f"Local path does not exists: {path}")
+        os.chdir(norm_path)
     else:
-        raise NotImplementedError
+        connection().cd(path)
+    return __cd_context(current) if context else None
 
 
-def pwd():
+def pwd() -> str:
     """Returns the current directory."""
-    return run("pwd")
-
+    return run("pwd").value
 
 @logged
 def sudo(*args, **kwargs):
@@ -648,7 +667,20 @@ class Connection:
         self.port = 22
         self.isConnected = False
         self.type = self.TYPE
+        self._path:Optional[str] = None
+        self.cd_prefix:str = ""
         self.init()
+
+    @property
+    def path( self ) -> Optional[str]:
+        return self._path 
+
+    @path.setter
+    def path( self, value:str ):
+        self._path = value
+        # We store the cd_prefix as we need to prefix commands with
+        # a directory.
+        self.cd_prefix = f"cd '{shell_safe(value)}';"if value else ""
 
     def init( self ):
         pass
@@ -664,18 +696,25 @@ class Connection:
         self.user = user or self.user
         host = host or self.host
         port = port or self.port
-        return self.connect(host,port)
+        return self.connect(host, port)
 
     def run( self, command:str ) -> Optional[CommandOutput]:
-        logging.trace(command)
+        logging.info(command)
         return None
 
-    def copy( self, local:str, remote:str ):
-        """Copies from the local file to the remote location"""
+    def cd( self, path:str ) -> bool:
         raise NotImplementedError
 
-    def write( self, local:str, remote:str ):
-        """Writes the given content to the remote location"""
+    def upload( self, remote:str, local:str ) -> bool:
+        """Copies from the local file to the remote path"""
+        local_path = Path(os.path.normpath(os.path.expanduser(os.path.expandvars(local))))
+        if not local_path.exists():
+            raise ValueError(f"Local path does not exists: '{local}'")
+        return True
+
+    def write( self, remote:str, content:bytes ) -> bool:
+        """Writes the given content to the remote path"""
+        return True
 
     def disconnect( self ) -> bool:
         return self.isConnected
@@ -699,7 +738,14 @@ class ParamikoConnection(Connection):
             logging.error("Paramiko <https://docs.paramiko.org> is required: python -m pip install --user paramiko")
             raise e
         self.paramiko = paramiko
+        self._sftp = None
         self.paramiko_exceptions = paramiko_exceptions
+
+    @property
+    def sftp( self ):
+        if not self._sftp:
+            self._sftp = self.context.open_sftp()
+        return self._sftp
 
     def connect( self, host:str, port=22 ) -> 'ParamikoConnection':
         # NOTE: Connect will update self.{host,port}
@@ -715,7 +761,6 @@ class ParamikoConnection(Connection):
             self.context = None
             self.isConnected = False
             return self
-        print ("CONTEXT", self.context)
         return self
 
     def run( self, command ) -> CommandOutput:
@@ -724,7 +769,8 @@ class ParamikoConnection(Connection):
             return CommandOutput((command,127,b"",b""))
         else:
             super().run(command)
-            stdin, stdout, stderr = self.context.exec_command(command)
+            cmd = self.cd_prefix + command
+            _, stdout, stderr = self.context.exec_command(cmd)
             # FIXME: We might be deadlocking here, we might want to reuse the 
             # threaded readers.
             err = stderr.read()
@@ -732,13 +778,37 @@ class ParamikoConnection(Connection):
             status = stdout.channel.recv_exit_status()
             return CommandOutput((command, status, out, err))
 
+    def upload( self, remote:str, local:str ) -> bool:
+        if not super().upload(remote, local):
+            raise ValueError("Could not upload", remote, local)
+            return False
+        self.sftp.put(local, remote)
+        return True
+
+    def write( self, remote:str, content:bytes ) -> bool:
+        if not super().write(remote, content):
+            return False
+        else:
+            with self.sftp.open(remote, "wb") as f:
+                f.write(content)
+            return True
+
+    def cd( self, path:str ) -> bool:
+        self.sftp.chdir(path)
+        self.path = path
+        return True
+
     def disconnect( self ) -> bool:
         if super().disconnect():
+            if self._sftp:
+                self._sftp.close()
+                self._sftp = None
             self.context.close()
             self.context = None
             return True
         else:
             return False
+
 class MitogenConnection(Connection):
     """Manages a remote connection through Mitogen. 
      See <https://mitogen.networkgenomics.com/>."""
@@ -1005,12 +1075,15 @@ def text_template(text, variables):
 #
 # =============================================================================
 
+def path_local_normalize( path:str ) -> Path:
+    """Normalizes the given path, expanding variables and user home."""
+    return Path(os.path.normpath(os.path.expanduser(os.path.expandvars(path))))
 
 @logged
-def file_local_read(location):
-    """Reads a *local* file from the given location, expanding '~' and
+def file_local_read(path):
+    """Reads a *local* file from the given path, expanding '~' and
     shell variables."""
-    p = os.path.expandvars(os.path.expanduser(location))
+    p = os.path.expandvars(os.path.expanduser(path))
     f = file(p, 'rb')
     t = f.read()
     f.close()
@@ -1018,70 +1091,70 @@ def file_local_read(location):
 
 
 @logged
-def file_backup(location, suffix=".orig", once=False):
-    """Backups the file at the given location in the same directory, appending
+def file_backup(path, suffix=".orig", once=False):
+    """Backups the file at the given path in the same directory, appending
     the given suffix. If `once` is True, then the backup will be skipped if
     there is already a backup file."""
-    backup_location = location + suffix
-    if once and file_exists(backup_location):
+    backup_path = path + suffix
+    if once and file_exists(backup_path):
         return False
     else:
         return run("cp -a {0} {1}".format(
-            shell_safe(location),
-            shell_safe(backup_location)
+            shell_safe(path),
+            shell_safe(backup_path)
         ))
 
 
 @logged
-def file_read(location, default=None):
-    """Reads the *remote* file at the given location, if default is not `None`,
+def file_read(path, default=None):
+    """Reads the *remote* file at the given path, if default is not `None`,
     default will be returned if the file does not exist."""
     # NOTE: We use base64 here to be sure to preserve the encoding (UNIX/DOC/MAC) of EOLs
     if default is None:
         assert file_exists(
-            location), "cuisine.file_read: file does not exists {0}".format(location)
-    elif not file_exists(location):
+            path), "cuisine.file_read: file does not exists {0}".format(path)
+    elif not file_exists(path):
         return default
     with fabric.context_managers.settings(
             fabric.api.hide('stdout')
     ):
-        frame = file_base64(location)
+        frame = file_base64(path)
         return base64.b64decode(frame)
 
 
-def file_exists(location):
-    """Tests if there is a *remote* file at the given location."""
-    return is_ok(run('test -e %s && echo OK ; true' % (shell_safe(location))))
+def file_exists(path):
+    """Tests if there is a *remote* file at the given path."""
+    return is_ok(run('test -e %s && echo OK ; true' % (shell_safe(path))))
 
 
-def file_is_file(location):
-    return is_ok(run("test -f %s && echo OK ; true" % (shell_safe(location))))
+def file_is_file(path):
+    return is_ok(run("test -f %s && echo OK ; true" % (shell_safe(path))))
 
 
-def file_is_dir(location):
-    return is_ok(run("test -d %s && echo OK ; true" % (shell_safe(location))))
+def file_is_dir(path):
+    return is_ok(run("test -d %s && echo OK ; true" % (shell_safe(path))))
 
 
-def file_is_link(location):
-    return is_ok(run("test -L %s && echo OK ; true" % (shell_safe(location))))
+def file_is_link(path):
+    return is_ok(run("test -L %s && echo OK ; true" % (shell_safe(path))))
 
 
 @logged
-def file_attribs(location, mode=None, owner=None, group=None):
+def file_attribs(path, mode=None, owner=None, group=None):
     """Updates the mode/owner/group for the remote file at the given
-    location."""
-    return dir_attribs(location, mode, owner, group, False)
+    path."""
+    return dir_attribs(path, mode, owner, group, False)
 
 
 @logged
-def file_attribs_get(location):
+def file_attribs_get(path):
     """Return mode, owner, and group for remote path.
     Return mode, owner, and group if remote path exists, 'None'
     otherwise.
     """
-    if file_exists(location):
+    if file_exists(path):
         fs_check = run('stat %s %s' %
-                       (shell_safe(location), '--format="%a %U %G"'))
+                       (shell_safe(path), '--format="%a %U %G"'))
         (mode, owner, group) = fs_check.split(' ')
         return {'mode': mode, 'owner': owner, 'group': group}
     else:
@@ -1089,9 +1162,9 @@ def file_attribs_get(location):
 
 
 @logged
-def file_write(location:str, content:bytes, mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
+def file_write(path:str, content:bytes, mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
     """Writes the given content to the file at the given remote
-    location, optionally setting mode/owner/group."""
+    path, optionally setting mode/owner/group."""
     # FIXME: Big files are never transferred properly!
     # Gets the content signature and write it to a secure tempfile
     use_sudo = sudo if sudo is not None else is_sudo()
@@ -1099,17 +1172,17 @@ def file_write(location:str, content:bytes, mode=None, owner=None, group=None, s
     fd, local_path = tempfile.mkstemp()
     os.write(fd, content)
     # Upload the content if necessary
-    if sig != file_md5(location):
+    if sig != file_md5(path):
         if is_local():
             with mode_sudo(use_sudo):
-                run("cp '%s' '%s'" % (shell_safe(local_path), shell_safe(location)))
+                run("cp '%s' '%s'" % (shell_safe(local_path), shell_safe(path)))
         else:
             if scp:
                 raise NotImplementedError
                 # hostname = env_.host_string if len(env_.host_string.split(
                 #     ':')) == 1 else env_.host_string.split(':')[0]
                 # scp_cmd = 'scp %s %s@%s:%s' % (shell_safe(local_path), shell_safe(
-                #     env_.user), shell_safe(hostname), shell_safe(location))
+                #     env_.user), shell_safe(hostname), shell_safe(path))
                 log_debug('file_write:[localhost]] ' + scp_cmd)
                 run_local(scp_cmd)
             else:
@@ -1121,26 +1194,26 @@ def file_write(location:str, content:bytes, mode=None, owner=None, group=None, s
     # Ensures that the signature matches
     if check:
         with mode_sudo(use_sudo):
-            file_sig = file_md5(location)
+            file_sig = file_md5(path)
         assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
-            location, repr(file_sig), repr(sig))
+            path, repr(file_sig), repr(sig))
     with mode_sudo(use_sudo):
-        file_attribs(location, mode=mode, owner=owner, group=group)
+        file_attribs(path, mode=mode, owner=owner, group=group)
 
 
 @logged
-def file_ensure(location, mode=None, owner=None, group=None, scp=False):
+def file_ensure(path, mode=None, owner=None, group=None, scp=False):
     """Updates the mode/owner/group for the remote file at the given
-    location."""
-    if file_exists(location):
-        file_attribs(location, mode=mode, owner=owner, group=group)
+    path."""
+    if file_exists(path):
+        file_attribs(path, mode=mode, owner=owner, group=group)
     else:
-        file_write(location, "", mode=mode, owner=owner, group=group, scp=scp)
+        file_write(path, "", mode=mode, owner=owner, group=group, scp=scp)
 
 
 @logged
 def file_upload(local, remote, sudo=None, scp=False):
-    """Uploads the local file to the remote location only if the remote location does not
+    """Uploads the local file to the remote path only if the remote path does not
     exists or the content are different."""
     # FIXME: Big files are never transferred properly!
     # XXX: this 'sudo' kw arg shadows the function named 'sudo'
@@ -1164,15 +1237,12 @@ def file_upload(local, remote, sudo=None, scp=False):
                 # log_debug('file_upload():[localhost] ' + scp_cmd)
                 # run_local(scp_cmd)
             else:
-                with open(local, "rb") as f:
-                    file_read(remote, f.read())
-                fabric.operations.put(local, remote, use_sudo=use_sudo)
-
+                connection().upload(remote, local)
 
 @logged
-def file_update(location, updater=lambda x: x):
+def file_update(path, updater=lambda x: x):
     """Updates the content of the given by passing the existing
-    content of the remote file at the given location to the 'updater'
+    content of the remote file at the given path to the 'updater'
     function. Return true if file content was changed.
 
     For instance, if you'd like to convert an existing file to all
@@ -1184,24 +1254,24 @@ def file_update(location, updater=lambda x: x):
 
     >   if file_update("/etc/myfile.cfg", lambda _: text_ensure_line(_, line)): run("service restart")
     """
-    assert file_exists(location), "File does not exists: " + location
-    old_content = file_read(location)
+    assert file_exists(path), "File does not exists: " + path
+    old_content = file_read(path)
     new_content = updater(old_content)
     if (old_content == new_content):
         return False
     # assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
-    file_write(location, new_content)
+    file_write(path, new_content)
     return True
 
 
 @logged
-def file_append(location, content, mode=None, owner=None, group=None):
+def file_append(path, content, mode=None, owner=None, group=None):
     """Appends the given content to the remote file at the given
-    location, optionally updating its mode/owner/group."""
+    path, optionally updating its mode/owner/group."""
     # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
     run('echo "%s" | openssl base64 -A -d >> %s' %
-        (base64.b64encode(content), shell_safe(location)))
-    file_attribs(location, mode, owner, group)
+        (base64.b64encode(content), shell_safe(path)))
+    file_attribs(path, mode, owner, group)
 
 
 @logged
@@ -1232,17 +1302,17 @@ def file_link(source, destination, symbolic=True, mode=None, owner=None, group=N
 
 
 @logged
-def file_base64(location):
-    """Returns the base64-encoded content of the file at the given location."""
+def file_base64(path):
+    """Returns the base64-encoded content of the file at the given path."""
     if env_get(OPTION_HASH) == "python":
-        return run("cat {0} | python -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read()))'".format(shell_safe((location))))
+        return run("cat {0} | python -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read()))'".format(shell_safe((path))))
     else:
-        return run("cat {0} | openssl base64".format(shell_safe((location))))
+        return run("cat {0} | openssl base64".format(shell_safe((path))))
 
 
 @logged
-def file_sha256(location):
-    """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
+def file_sha256(path):
+    """Returns the SHA-256 sum (as a hex string) for the remote file at the given path."""
     # NOTE: In some cases, sudo can output errors in here -- but the errors will
     # appear before the result, so we simply split and get the last line to
     # be on the safe side.
@@ -1250,20 +1320,20 @@ def file_sha256(location):
         if not _hashlib_supported():
             raise EnvironmentError(
                 "Remote host has not hashlib support. Please, use select_hash('openssl')")
-        if file_exists(location):
-            return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
+        if file_exists(path):
+            return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((path))))
         else:
             return None
     else:
-        if file_exists(location):
-            return run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ", 1)[-1].strip()
+        if file_exists(path):
+            return run('openssl dgst -sha256 %s' % (shell_safe(path))).split("\n")[-1].split(")= ", 1)[-1].strip()
         else:
             return None
 
 
 @logged
-def file_md5(location):
-    """Returns the MD5 sum (as a hex string) for the remote file at the given location."""
+def file_md5(path):
+    """Returns the MD5 sum (as a hex string) for the remote file at the given path."""
     # NOTE: In some cases, sudo can output errors in here -- but the errors will
     # appear before the result, so we simply split and get the last line to
     # be on the safe side.
@@ -1271,13 +1341,13 @@ def file_md5(location):
         if not _hashlib_supported():
             raise EnvironmentError(
                 "Remote host has not hashlib support. Please, use select_hash('openssl')")
-        if file_exists(location):
-            return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((location))))
+        if file_exists(path):
+            return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((path))))
         else:
             return None
     else:
-        if file_exists(location):
-            return run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ", 1)[-1].strip()
+        if file_exists(path):
+            return run('openssl dgst -md5 %s' % (shell_safe(path))).split("\n")[-1].split(")= ", 1)[-1].strip()
         else:
             return None
 
@@ -1342,43 +1412,49 @@ def process_kill(name, signal=9, exact=False):
 
 
 @logged
-def dir_attribs(location, mode=None, owner=None, group=None, recursive=False):
+def dir_attribs(path, mode=None, owner=None, group=None, recursive=False):
     """Updates the mode/owner/group for the given remote directory."""
     recursive = recursive and "-R " or ""
     if mode:
-        run('chmod %s %s %s' % (recursive, mode,  shell_safe(location)))
+        run('chmod %s %s %s' % (recursive, mode,  shell_safe(path)))
     if owner:
-        run('chown %s %s %s' % (recursive, owner, shell_safe(location)))
+        run('chown %s %s %s' % (recursive, owner, shell_safe(path)))
     if group:
-        run('chgrp %s %s %s' % (recursive, group, shell_safe(location)))
+        run('chgrp %s %s %s' % (recursive, group, shell_safe(path)))
 
 
-def dir_exists(location):
-    """Tells if there is a remote directory at the given location."""
-    return run('test -d %s && echo OK ; true' % (shell_safe(location))).endswith("OK")
+def dir_exists(path):
+    """Tells if there is a remote directory at the given path."""
+    return run('test -d %s && echo OK ; true' % (shell_safe(path))).endswith("OK")
 
 
 @logged
-def dir_remove(location, recursive=True):
+def dir_remove(path, recursive=True):
     """ Removes a directory """
     flag = ''
     if recursive:
         flag = 'r'
-    if dir_exists(location):
-        return run('rm -%sf %s && echo OK ; true' % (flag, shell_safe(location)))
+    if dir_exists(path):
+        return run('rm -%sf %s && echo OK ; true' % (flag, shell_safe(path)))
 
 
-def dir_ensure(location, recursive=False, mode=None, owner=None, group=None):
-    """Ensures that there is a remote directory at the given location,
+def dir_ensure_parent( path:str ):
+    """Ensures that the parent directory of the given path exists"""
+    dir_ensure(os.path.dirname(path))
+    return path
+
+def dir_ensure(path:str, recursive=True, mode=None, owner=None, group=None) -> str:
+    """Ensures that there is a remote directory at the given path,
     optionally updating its mode/owner/group.
 
     If we are not updating the owner/group then this can be done as a single
     ssh call, so use that method, otherwise set owner/group after creation."""
-    if not dir_exists(location):
-        run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(location)))
+    if not dir_exists(path):
+        run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(path)))
     if owner or group or mode:
-        dir_attribs(location, owner=owner, group=group,
+        dir_attribs(path, owner=owner, group=group,
                     mode=mode, recursive=recursive)
+    return path
 
 # =============================================================================
 #
