@@ -133,7 +133,7 @@ class Connection:
     def init(self):
         pass
 
-    def connect(self, host: str, port=None) -> 'Connection':
+    def connect(self, host: str = "localhost", port=None) -> 'Connection':
         assert not self.isConnected, "Connection already made, call 'disconnect' first"
         self.host = host or self.host
         self.port = port or self.port

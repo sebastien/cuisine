@@ -3,7 +3,7 @@ import base64
 import tempfile
 from ..api import APIModule as API
 from ..decorators import logged, expose, requires
-from ..utils import normalize_path, shell_safe
+from ..utils import shell_safe
 
 
 class FileAPI(API):
@@ -15,24 +15,16 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_read(self, path) -> bytes:
-        """Reads a *local* file from the given path, expanding '~' and
-        shell variables."""
-        with open(normalize_path(path), 'rb') as f:
-            return f.read()
-
-    @expose
-    @logged
     @requires("cp")
     def file_backup(self, path: str, suffix=".orig", once=False):
         """Backups the file at the given path in the same directory, appending
         the given suffix. If `once` is True, then the backup will be skipped if
         there is already a backup file."""
         backup_path = path + suffix
-        if once and self.exists(backup_path):
+        if once and self.file_exists(backup_path):
             return False
         else:
-            return run("cp -a {0} {1}".format(
+            return self.api.run("cp -a {0} {1}".format(
                 shell_safe(path),
                 shell_safe(backup_path)
             ))
@@ -44,35 +36,35 @@ class FileAPI(API):
         default will be returned if the file does not exist."""
         # NOTE: We use base64 here to be sure to preserve the encoding (UNIX/DOC/MAC) of EOLs
         if default is None:
-            assert self.exists(
+            assert self.file_exists(
                 path), "cuisine.file_read: file does not exists {0}".format(path)
-        elif not self.exists(path):
+        elif not self.file_exists(path):
             return default
-        frame = self.base64(path)
+        frame = self.file_base64(path)
         return base64.b64decode(frame)
 
     @expose
-    def file_exists(self, path):
+    def file_exists(self, path: str) -> bool:
         """Tests if there is a *remote* file at the given path."""
-        return is_ok(self.run('test -e %s && echo OK ; true' % (shell_safe(path))))
+        return self.api.run(f"test -e '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
 
     @expose
     def file_is_file(self, path):
-        return is_ok(self.run("test -f %s && echo OK ; true" % (shell_safe(path))))
+        return self.api.run("test -f %s && echo OK ; true" % (shell_safe(path))).value.endswith("OK")
 
     @expose
     def file_is_dir(self, path: str) -> bool:
-        return is_ok(self.run("test -d %s && echo OK ; true" % (shell_safe(path))))
+        return self.api.run("test -d %s && echo OK ; true" % (shell_safe(path))).value.endswith("OK")
 
     @expose
     def file_is_link(self, path: str) -> bool:
-        return is_ok(self.run("test -L %s && echo OK ; true" % (shell_safe(path))))
+        return self.api.run("test -L %s && echo OK ; true" % (shell_safe(path))).value.endswith("OK")
 
     @logged
     def file_attribs(self, path, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         path."""
-        return dir_attribs(path, mode, owner, group, False)
+        return self.api.dir_attribs(path, mode, owner, group, False)
 
     @expose
     @logged
@@ -265,24 +257,24 @@ class FileAPI(API):
 
     @expose
     @logged
-    @requires(("cat", "python", "openssl"))
+    @requires("cat", "python", "openssl")
     def file_md5(self, path: str):
         """Returns the MD5 sum (as a hex string) for the remote file at the given path."""
         # NOTE: In some cases, sudo can output errors in here -- but the errors will
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
         # FIXME: This should go through the options
-        if self.env_get(OPTION_HASH) == "python":
+        if self.api.env_get(OPTION_HASH) == "python":
             if not _hashlib_supported():
                 raise EnvironmentError(
                     "Remote host has not hashlib support. Please, use select_hash('openssl')")
             if self.file_exists(path):
-                return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((path))))
+                return self.api.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((path))))
             else:
                 return None
         else:
             if self.file_exists(path):
-                return self.run('openssl dgst -md5 %s' % (shell_safe(path))).split("\n")[-1].split(")= ", 1)[-1].strip()
+                return self.api.run('openssl dgst -md5 %s' % (shell_safe(path))).split("\n")[-1].split(")= ", 1)[-1].strip()
             else:
                 return None
 # EOF
