@@ -1,4 +1,4 @@
-from ..api import API
+from ..api import APIModule
 from ..decorators import logged
 
 # =============================================================================
@@ -6,6 +6,7 @@ from ..decorators import logged
 # PROCESS OPERATIONS
 #
 # =============================================================================
+
 
 @logged
 def process_find(name, exact=False):
@@ -47,4 +48,3 @@ def process_kill(name, signal=9, exact=False):
     `name`."""
     for pid in process_find(name, exact):
         run("kill -s {0} {1} ; true".format(signal, pid))
-

@@ -1,4 +1,4 @@
-from ..api import API
+from ..api import APIModule
 from ..decorators import logged, dispatch
 
 # =============================================================================
@@ -7,39 +7,35 @@ from ..decorators import logged, dispatch
 #
 # =============================================================================
 
-class PackageAPI(API):
+
+class PackageAPI(APIModule):
 
     @logged
     @dispatch(multiple=True)
     def package_available(self, package: str) -> bool:
         """Tells if the given package is available"""
 
-
     @logged
     @dispatch(multiple=True)
     def package_installed(self, package, update=False) -> bool:
         """Tells if the given package is installed or not."""
-
 
     @logged
     @dispatch(multiple=True)
     def package_upgrade(self, distupgrade=False):
         """Updates every package present on the system."""
 
-
     @logged
     @dispatch(multiple=True)
-    def package_update(self,package=None):
+    def package_update(self, package=None):
         """Updates the package database (when no argument) or update the package
         or list of packages given as argument."""
 
-
     @logged
     @dispatch
-    def package_install(self,package, update=False):
+    def package_install(self, package, update=False):
         """Installs the given package/list of package, optionally updating
         the package database."""
-
 
     @logged
     @dispatch(multiple=True)
@@ -48,12 +44,10 @@ class PackageAPI(API):
         case it's not already there. If `update` is true, then the
         package will be updated if it already exists."""
 
-
     @logged
     @dispatch
     def package_clean(self, package=None):
         """Clean the repository for un-needed files."""
-
 
     @logged
     @dispatch(multiple=True)
@@ -473,6 +467,3 @@ def package_ensure_pkgng(package, update=False):
 
 def package_clean_pkgng(package=None):
     sudo("pkg delete %s" % (package))
-
-
-

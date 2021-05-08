@@ -1,7 +1,7 @@
 import os.path
 import base64
 import tempfile
-from ..api import API
+from ..api import APIModule as API
 from ..decorators import logged, expose, requires
 from ..utils import normalize_path, shell_safe
 
