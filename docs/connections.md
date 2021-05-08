@@ -1,9 +1,10 @@
 # Connections
 
-Cuisine is designed to have relatively dumb connections, where the primary
-communication channel is through shell commands. Ideally, a connection supports
-uploading files, but in case it does not, the uploading/downloading of files
-is done by chunking the content and transferring it as text content.
+Cuisine uses shell commands as the main communication channel to interact
+with (remote) systems. It does support different types of underlying transport,
+primarily through SSH. While the basic requirement is to execute shell
+commands, a connection should ideally support
+uploading files to speed things up.
 
 The basic contract of a channel is like so:
 

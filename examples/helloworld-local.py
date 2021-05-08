@@ -1,2 +1,2 @@
 from cuisine import *
-print (run("echo 'Hello, World!'"))
+print(run("echo 'Hello, World!'"))
