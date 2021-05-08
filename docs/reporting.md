@@ -1,7 +1,10 @@
+# Reporting
 
+Cuisine's reporting is designed for full observability of the process, supporting
+the following:
 
-- Each session should be able to report the actions
-- Each operation in the session should fail, and failure should either
+- Each session should be able to report the actions (command run, output, errors)
+- Each operation in the session should detect failures, and failure should either
   halt the session, or issue a warning. By default, it should halt on failure.
 - In tracing mode, the session output is communicated back
 - By default, only the errors are communicated back up

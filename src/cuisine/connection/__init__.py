@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from typing import Optional, Tuple, Any
+from typing import Optional, Tuple, Any, List
 from ..utils import shell_safe
 from .. import logging
 
@@ -37,11 +37,6 @@ class CommandOutput(str):
         self._errStr: Optional[str] = None
         self.encoding = "utf8"
         self._value: Any = None
-        # Q: Should we log there?
-        if self.out:
-            logging.info(self.out)
-        if self.err:
-            logging.error(self.err)
 
     @property
     def out(self) -> str:
@@ -88,6 +83,10 @@ class CommandOutput(str):
     def has_failed(self) -> bool:
         return not self.is_success
 
+    def __str__(self) -> str:
+        # FIXME: This might not be OK for all commands
+        return str(self.last_line)
+
     def __repr__(self) -> str:
         return f"Command: {self.command}\nstatus: {self.status}\nout: {repr(logging.stringify(self.out))}\nerr: {repr(logging.stringify(self.err))}"
 
@@ -112,12 +111,27 @@ class Connection:
         self.password: Optional[str] = password
         self.user: Optional[str] = user
         self.host: Optional[str] = "localhost"
-        self.port = 22
+        self.port: Optional[int] = None
         self.isConnected = False
         self.type = self.TYPE
         self._path: Optional[str] = None
         self.cd_prefix: str = ""
+        self.log = logging.Context()
+        self.log.prompt = self.prompt
         self.init()
+
+    def prompt(self):
+        res: List[str] = []
+        if self.type:
+            res.append(f"{self.type}://")
+        if self.user:
+            res.append(f"{self.user}@")
+        res.append(self.host)
+        if self.port:
+            res.append(f":{self.port}")
+        if self.path:
+            res.append(f":{self.path}")
+        return "".join(res)
 
     @property
     def path(self) -> Optional[str]:
@@ -137,6 +151,7 @@ class Connection:
         assert not self.isConnected, "Connection already made, call 'disconnect' first"
         self.host = host or self.host
         self.port = port or self.port
+        self.log.action("connect")
         return self
 
     def reconnect(self, user: Optional[str], host: Optional[str], port: Optional[int]) -> 'Connection':
@@ -144,17 +159,24 @@ class Connection:
         self.user = user or self.user
         host = host or self.host or "localhost"
         port = port or self.port or 22
+        self.log.action("reconnect")
         return self.connect(host, port)
 
     def run(self, command: str) -> Optional[CommandOutput]:
-        logging.info(command)
-        return None
+        self.log.action("command", command)
+        res = self._run(command)
+        self.log.result(res.value if res else None)
+        return res
+
+    def _run(self, path: str) -> Optional[CommandOutput]:
+        raise NotImplementedError
 
     def cd(self, path: str) -> bool:
         raise NotImplementedError
 
     def upload(self, remote: str, local: str) -> bool:
         """Copies from the local file to the remote path"""
+        self.log.action("upload", remote, local)
         local_path = Path(os.path.normpath(
             os.path.expanduser(os.path.expandvars(local))))
         if not local_path.exists():
@@ -162,10 +184,12 @@ class Connection:
         return True
 
     def write(self, remote: str, content: bytes) -> bool:
+        self.log.action("write", remote)
         """Writes the given content to the remote path"""
         return True
 
     def disconnect(self) -> bool:
+        self.log.action("disconnect")
         return self.isConnected
 
 # EOF

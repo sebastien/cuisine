@@ -1,23 +1,11 @@
+from typing import Optional, Union, Callable, List, Any, Iterable
+from colorama import Fore, Back, Style
+import sys
+import json
+
 LOGGING_BYTES = False
 STRINGIFY_MAXSTRING = 80
 STRINGIFY_MAXLISTSTRING = 20
-
-
-def info(*args, **kwargs):
-    print("INFO", args, kwargs)
-
-
-def error(*args, **kwargs):
-    print("ERROR", args, kwargs)
-
-
-def debug(message: str):
-    print("DEBUG", message)
-
-
-def log_string(message: str):
-    """Ensures that the string is safe for logging"""
-    return bytes(message, "UTF8") if LOGGING_BYTES else message
 
 
 def stringify(value):
@@ -30,11 +18,92 @@ def stringify(value):
         return str(value)
 
 
+# TODO: We need to define how that works
 def log_call(function, args, kwargs):
     """Logs the given function call"""
     function_name = function.__name__
     a = ", ".join([stringify(_) for _ in args] + [str(k) +
                                                   "=" + stringify(v) for k, v in kwargs.items()])
     log_debug("{0}({1})".format(function_name, a))
+
+
+# TODO: The context should be tweakable, we should be able to apply a filter
+class Context:
+
+    def __init__(self):
+        self.prompt: Callable[[], str] = lambda: ""
+        self.formatter = Formatter.Get()
+
+    def dispatch(self, type: str, args: List[Any]):
+        self.formatter.receive(self, type, args)
+
+    def action(self, name: str,  command: str):
+        self.dispatch("action", [name, command])
+
+    def result(self, value: Any):
+        self.dispatch("result", [value])
+
+    def out(self, data: Union[str, bytes]):
+        self.dispatch("out", [data])
+
+    def err(self, data: Union[str, bytes]):
+        self.dispatch("err", [data])
+
+
+# TODO: The formatting API is quite basic and ad-hoc for now,
+# should be reworked.
+class Formatter:
+
+    SINGLETON: Optional['Formatter'] = None
+
+    @classmethod
+    def Get(cls) -> 'Formatter':
+        if not cls.SINGLETON:
+            cls.SINGLETON = Formatter()
+        return cls.SINGLETON
+
+    def __init__(self):
+        self.active: Optional[Context] = None
+
+    def write(self, line: str):
+        sys.stdout.write(line)
+
+    def receive(self, origin: Context, action: str, args: List[Any]):
+        if origin != self.active:
+            self.write(
+                f"{Fore.BLUE}{Style.DIM}═══{Style.RESET_ALL}\t{Fore.BLUE}{origin.prompt()}{Style.RESET_ALL}\n")
+            self.active = origin
+        if action == "out":
+            self.write(Style.DIM)
+            self.block(args, "┆")
+            self.write(Style.RESET_ALL)
+        elif action == "err":
+            self.write(Fore.RED)
+            self.block(args, "┊")
+            self.write(Style.RESET_ALL)
+        elif action == "action" and args[0] == "command":
+            self.write(
+                f"{Style.DIM}┌─●\t{Style.BRIGHT}{' '.join(args[1:])}{Style.RESET_ALL}\n")
+        elif action == "result":
+            self.write(
+                f"{Fore.GREEN}{Style.DIM}└─►\t{Style.RESET_ALL}{Fore.GREEN}{json.dumps(args[0])}{Style.RESET_ALL}\n")
+        else:
+            self.write(f"@{action}\t{stringify(args)}\n")
+
+    def block(self, data: Iterable[Any], char="|"):
+        for item in data:
+            if isinstance(item, str):
+                self.lines(item.split("\n"), f"{char}\t")
+            elif isinstance(item, bytes):
+                self.lines(str(item, "utf8").split("\n"), f"{char}\t")
+            else:
+                self.write(f"{char}\t{repr(item)}\n")
+
+    def lines(self, lines: List[str], prefix=""):
+        last = len(lines) - 1
+        for i, line in enumerate(lines):
+            if i == last and not line.strip():
+                continue
+            print(f"{prefix}{line}")
 
 # EOF

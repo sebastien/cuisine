@@ -8,8 +8,9 @@ class LocalConnection(Connection):
 
     TYPE = "local"
 
-    def run(self, command: str) -> Optional[CommandOutput]:
-        return CommandOutput(run_local_raw(command))
+    def _run(self, command: str) -> Optional[CommandOutput]:
+        return CommandOutput(run_local_raw(
+            command, on_out=self.log.out, on_err=self.log.err))
 
 
 def run_local_raw(command: str, cwd=".", encoding="utf8", shell=True, on_out: Optional[Callable[[bytes], None]] = None, on_err: Optional[Callable[[bytes], None]] = None) -> Tuple[str, int, bytes, bytes]:
