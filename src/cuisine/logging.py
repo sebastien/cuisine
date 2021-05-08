@@ -1,5 +1,21 @@
 from typing import Optional, Union, Callable, List, Any, Iterable
-from colorama import Fore, Back, Style
+
+try:
+    from colorama import Fore, Style
+    RED = Fore.RED
+    GREEN = Fore.GREEN
+    BLUE = Fore.BLUE
+    DIM = Style.DIM
+    BRIGHT = Style.BRIGHT
+    RESET = Style.RESET_ALL
+except ImportError as e:
+    RED = ""
+    GREEN = ""
+    BLUE = ""
+    DIM = ""
+    BRIGHT = ""
+    RESET = ""
+
 import sys
 import json
 
@@ -71,22 +87,22 @@ class Formatter:
     def receive(self, origin: Context, action: str, args: List[Any]):
         if origin != self.active:
             self.write(
-                f"{Fore.BLUE}{Style.DIM}═══{Style.RESET_ALL}\t{Fore.BLUE}{origin.prompt()}{Style.RESET_ALL}\n")
+                f"{BLUE}{DIM}═══{RESET}\t{BLUE}{origin.prompt()}{RESET}\n")
             self.active = origin
         if action == "out":
-            self.write(Style.DIM)
+            self.write(DIM)
             self.block(args, "┆")
-            self.write(Style.RESET_ALL)
+            self.write(RESET)
         elif action == "err":
-            self.write(Fore.RED)
+            self.write(RED)
             self.block(args, "┊")
-            self.write(Style.RESET_ALL)
+            self.write(RESET)
         elif action == "action" and args[0] == "command":
             self.write(
-                f"{Style.DIM}┌─●\t{Style.BRIGHT}{' '.join(args[1:])}{Style.RESET_ALL}\n")
+                f"{DIM}┌─●\t{BRIGHT}{' '.join(args[1:])}{RESET}\n")
         elif action == "result":
             self.write(
-                f"{Fore.GREEN}{Style.DIM}└─►\t{Style.RESET_ALL}{Fore.GREEN}{json.dumps(args[0])}{Style.RESET_ALL}\n")
+                f"{GREEN}{DIM}└─►\t{RESET}{GREEN}{json.dumps(args[0])}{RESET}\n")
         else:
             self.write(f"@{action}\t{stringify(args)}\n")
 

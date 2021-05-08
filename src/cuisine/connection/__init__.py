@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from typing import Optional, Tuple, Any, List
+from typing import Optional, Tuple, Any, List, Iterable
 from ..utils import shell_safe
 from .. import logging
 
@@ -63,6 +63,10 @@ class CommandOutput(str):
         if self._value is None:
             self._value = self.last_line
         return self._value
+
+    @property
+    def lines(self) -> Iterable[str]:
+        return self.out.split("\n")
 
     @property
     def has_value(self) -> bool:

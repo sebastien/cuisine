@@ -37,7 +37,10 @@ def run_local_raw(command: str, cwd=".", encoding="utf8", shell=True, on_out: Op
     t1 = threading.Thread(target=lambda: reader(process.stderr, err, on_err))
     t0.start()
     t1.start()
-    process.wait()
+    try:
+        process.wait()
+    except KeyboardInterrupt as e:
+        pass
     t0.join()
     t1.join()
     # We return the result
