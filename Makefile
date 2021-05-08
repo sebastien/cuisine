@@ -1,9 +1,12 @@
-SOURCES     = $(wildcard src/*.py)
-DOC_SOURCES = $(wildcard docs/* docs/*/*)
-MANIFEST    = $(SOURCES) $(wildcard *.py api/*.* AUTHORS* README* LICENSE*)
-VERSION     = `grep VERSION src/cuisine.py | cut -d '=' -f2  | xargs echo`
-PRODUCT     = MANIFEST doc
-OS          = `uname -s | tr A-Z a-z`
+SOURCES_PY  =$(filter-out $(BUILD_PY),$(wildcard *.py src/*.py src/cuisine/*.py src/cuisine/*/*.py)
+SOURCES     =$(SOURCES_PY) $(BUILD_PY)
+BUILD       =$(BUILD_PY)
+BUILD_PY   :=src/cuisine/api/_impl.py src/cuisine/api/_stub.py
+MANIFEST    =$(SOURCES)
+VERSION    :=$(shell grep VERSION src/cuisine.py | cut -d '=' -f2  | xargs echo)
+PRODUCT    :=MANIFEST doc $(BUILD)
+PYTHON     :=python3
+OS         :=$(shell )uname -s | tr A-Z a-z)
 
 .PHONY: all doc clean check tests
 
@@ -29,5 +32,13 @@ test:
 
 MANIFEST: $(MANIFEST)
 	echo $(MANIFEST) | xargs -n1 | sort | uniq > $@
+
+# # Specific
+
+src/cuisine/api/_stub.py:
+	PYTHONPATH=src $(PYTHON) -m cuisine.api -m stub -o "$@"
+
+src/cuisine/api/_impl.py:
+	PYTHONPATH=src $(PYTHON) -m cuisine.api -m impl -o "$@"
 
 #EOF
