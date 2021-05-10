@@ -1,10 +1,12 @@
 import types
 import functools
+import inspect
 
 IS_EXPOSED = "cuisine_is_exposed"
+IS_VARIANT = "cuisine_is_variant"
 
 
-def dispatch(prefix=None, multiple=False):
+def dispatch(name: str, multiple=False):
     """Dispatches the current function to specific implementation. The `prefix`
     parameter indicates the common option prefix, and the `select_[option]()`
     function will determine the function suffix.
@@ -34,16 +36,18 @@ def dispatch(prefix=None, multiple=False):
     If your prefix is the first word of the function name before the
     first `_` then you can simply use `@dispatch` without parameters.
     """
-    def dispatch_wrapper(function, prefix=prefix):
-        def wrapper(*args, **kwargs):
+    def dispatch_wrapper(function):
+        def wrapper(context: 'cuisine.api.APIModule', *args, **kwargs):
             function_name = function.__name__
-            _prefix = prefix or function_name.split("_")[0].replace(".", "_")
-            select = env_get(f"CUISINE_OPTION_{_prefix.upper()}")
-            assert select, f"No option defined for: {_prefix.upper()}, call select_{prefix.lower().replace('.','_')} (<YOUR OPTION>) to set it"
-            function_name = function.__name__ + "_" + select
-            specific = eval(function_name)
+            variant = context.api.config_get_variant(name)
+            assert variant, f"No variant defined for: {name.upper()}, call select_{name.lower().replace('.','_')}(\"<YOUR OPTION>\") to set it"
+            function_name = function.__name__ + "_" + variant
+            if not hasattr(context.api, function_name):
+                raise ValueError(
+                    f"API implementation does not define method: {function_name}")
+            specific = getattr(context.api, function_name)
             if specific:
-                if type(specific) == types.FunctionType:
+                if inspect.isfunction(specific) or inspect.ismethod(specific):
                     if multiple and args and isinstance(args[0], list):
                         rest = args[1:]
                         return [specific(_, *rest, **kwargs) for _ in args[0]]
@@ -57,10 +61,7 @@ def dispatch(prefix=None, multiple=False):
         # We copy name and docstring
         functools.update_wrapper(wrapper, function)
         return wrapper
-    if type(prefix) == types.FunctionType:
-        return dispatch_wrapper(prefix, None)
-    else:
-        return dispatch_wrapper
+    return dispatch_wrapper
 
 
 def logged(message=None):
@@ -72,7 +73,8 @@ def logged(message=None):
     # [2013-10-28T10:18:32] user@host [sudo|user] [!] Exception
     def logged_wrapper(function, message=message):
         def wrapper(*args, **kwargs):
-            log_call(function, args, kwargs)
+            print("TODO: Logging", (function, args, kwargs))
+            # log_call(function, args, kwargs)
             return function(*args, **kwargs)
         # We copy name and docstring
         functools.update_wrapper(wrapper, function)
@@ -94,5 +96,12 @@ def requires(*commands: str):
 def expose(f):
     setattr(f, IS_EXPOSED, True)
     return f
+
+
+def variant(name):
+    def decorator(f):
+        setattr(f, IS_VARIANT, name)
+        return f
+    return decorator
 
 # EOF

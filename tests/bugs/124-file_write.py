@@ -1,8 +1,10 @@
-import cuisine, os
+import cuisine
+import os
 
 TEXT = "file_write is broken"
 PATH = "/tmp/cuisine-bug-124.txt"
-if os.path.exists(PATH): os.unlink(PATH)
+if os.path.exists(PATH):
+    os.unlink(PATH)
 
 cuisine.connect("localhost")
 cuisine.file_write(PATH, TEXT)

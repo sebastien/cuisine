@@ -24,8 +24,11 @@ release: $(PRODUCT)
 tests:
 	PYTHONPATH=src:$(PYTHONPATH) python tests/$(OS)/all.py
 
+build-live:
+	echo $(SOURCES_PY) | xargs -n1 echo | entr make
+
 clean:
-	@rm -rf api/ build dist MANIFEST ; true
+	@for FILE in $(PRODUCT); do if [ -f "$$FILE" ]; then unlink "$$FILE"; fi; done
 
 check:
 	pychecker -100 $(SOURCES)

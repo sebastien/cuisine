@@ -76,7 +76,7 @@ class CommandOutput(str):
     def last_line(self) -> str:
         """Returns the last line, stripping the trailing EOL"""
         i = self.out.rfind("\n", 0, -2)
-        return (self.out if i == -1 else self.out[i:]).rstrip("\n")
+        return (self.out if i == -1 else self.out[i+1:]).rstrip("\n")
 
     @property
     def is_success(self) -> bool:
@@ -109,13 +109,13 @@ class Connection:
 
     TYPE = "unknown"
 
-    def __init__(self, user: Optional[str] = None, password: Optional[str] = None, key: Optional[Path] = None):
+    def __init__(self, host: Optional[str] = None, port: Optional[int] = None, user: Optional[str] = None, password: Optional[str] = None, key: Optional[Path] = None):
         self.key = Path(os.path.normpath(os.path.expanduser(
             os.path.expandvars(key)))) if key else None
         self.password: Optional[str] = password
         self.user: Optional[str] = user
-        self.host: Optional[str] = "localhost"
-        self.port: Optional[int] = None
+        self.host: Optional[str] = host
+        self.port: Optional[int] = port
         self.isConnected = False
         self.type = self.TYPE
         self._path: Optional[str] = None
@@ -130,7 +130,8 @@ class Connection:
             res.append(f"{self.type}://")
         if self.user:
             res.append(f"{self.user}@")
-        res.append(self.host)
+        if self.host:
+            res.append(self.host)
         if self.port:
             res.append(f":{self.port}")
         if self.path:

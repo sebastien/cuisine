@@ -1,5 +1,6 @@
 from ..api import APIModule
-from ..decorators import logged, dispatch
+from ..decorators import logged, dispatch, variant, expose
+from ..utils import quote_safe
 
 # =============================================================================
 #
@@ -10,47 +11,64 @@ from ..decorators import logged, dispatch
 
 class PackageAPI(APIModule):
 
+    @expose
+    def select_package( self, type:str ) -> bool:
+        return True
+
+    @expose
+    def detect_package( self ) -> str:
+        """Automatically detects the type of package"""
+        return "yum"
+
     @logged
-    @dispatch(multiple=True)
+    @expose
+    @dispatch("package", multiple=True)
     def package_available(self, package: str) -> bool:
         """Tells if the given package is available"""
 
     @logged
-    @dispatch(multiple=True)
+    @expose
+    @dispatch("package", multiple=True)
     def package_installed(self, package, update=False) -> bool:
         """Tells if the given package is installed or not."""
 
     @logged
-    @dispatch(multiple=True)
+    @expose
+    @dispatch("package",multiple=True)
     def package_upgrade(self, distupgrade=False):
         """Updates every package present on the system."""
 
     @logged
-    @dispatch(multiple=True)
+    @expose
+    @dispatch("package",multiple=True)
     def package_update(self, package=None):
         """Updates the package database (when no argument) or update the package
         or list of packages given as argument."""
 
     @logged
-    @dispatch
+    @expose
+    @dispatch("package")
     def package_install(self, package, update=False):
         """Installs the given package/list of package, optionally updating
         the package database."""
 
     @logged
-    @dispatch(multiple=True)
+    @expose
+    @dispatch("package",multiple=True)
     def package_ensure(self, package, update=False):
         """Tests if the given package is installed, and installs it in
         case it's not already there. If `update` is true, then the
         package will be updated if it already exists."""
 
     @logged
-    @dispatch
+    @expose
+    @dispatch("package")
     def package_clean(self, package=None):
         """Clean the repository for un-needed files."""
 
     @logged
-    @dispatch(multiple=True)
+    @expose
+    @dispatch("package", multiple=True)
     def package_remove(self, package, autoclean=False):
         """Remove package and optionally clean unused packages"""
 
@@ -59,151 +77,175 @@ class PackageAPI(APIModule):
 # -----------------------------------------------------------------------------
 
 
-# @logged
-# def repository_ensure_apt(repository):
-#     package_ensure_apt('python-software-properties')
-#     sudo("add-apt-repository --yes " + repository)
-#
-#
-# def apt_get(cmd):
-#     cmd = CMD_APT_GET + cmd
-#     result = sudo(cmd)
-#     # If the installation process was interrupted, we might get the following message
-#     # E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem.
-#     if "sudo dpkg --configure -a" in result:
-#         sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
-#         result = sudo(cmd)
-#     return result
-#
-#
-# def apt_cache(cmd):
-#     cmd = CMD_APT_CACHE + cmd
-#     return run(cmd)
-#
-#
-# def package_available_apt(package: str) -> bool:
-#     return apt_cache(f" search '^{quote_safe(package)}$'").has_value
-#
-#
-# def package_update_apt(package=None):
-#     if package == None:
-#         return apt_get("-q --yes update")
-#     else:
-#         if type(package) in (list, tuple):
-#             package = " ".join(package)
-#         return apt_get(' install --only-upgrade ' + package)
-#
-#
-# def package_upgrade_apt(distupgrade=False):
-#     if distupgrade:
-#         return apt_get("dist-upgrade")
-#     else:
-#         return apt_get("install --only-upgrade")
-#
-#
-# def package_install_apt(package, update=False):
-#     if update:
-#         apt_get("update")
-#     if type(package) in (list, tuple):
-#         package = " ".join(package)
-#     return apt_get("install " + package)
-#
-#
-# def package_installed_apt(package, update=False) -> False:
-#     pkg = package.strip()
-#     if not pkg:
-#         raise ValueError(f"Package argument is empty: {repr(package)}")
-#     # The most reliable way to detect success is to use the command status
-#     # and suffix it with OK. This won't break with other locales.
-#     status = run(
-#         f"dpkg-query -W -f='${{Status}} ' '{pkg}' && echo OK;true")
-#     return status.last_line.endswith("OK")
-#
-#
-# def package_ensure_apt(package, update=False):
-#     """Ensure apt packages are installed"""
-#     if isinstance(package, str):
-#         package = package.split()
-#     res = {}
-#     for p in package:
-#         p = p.strip()
-#         if not p:
-#             continue
-#         # The most reliable way to detect success is to use the command status
-#         # and suffix it with OK. This won't break with other locales.
-#         status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
-#         if not status.endswith("OK") or "not-installed" in status:
-#             package_install_apt(p)
-#             res[p] = False
-#         else:
-#             if update:
-#                 package_update_apt(p)
-#             res[p] = True
-#     if len(res) == 1:
-#         return next(_ for _ in res.values())
-#     else:
-#         return res
-#
-#
-# def package_clean_apt(package=None):
-#     if type(package) in (list, tuple):
-#         package = " ".join(package)
-#     return apt_get("-y --purge remove %s" % package)
-#
-#
-# def package_remove_apt(package, autoclean=False):
-#     apt_get('remove ' + package)
-#     if autoclean:
-#         apt_get("autoclean")
+class PackageAPTAPI(APIModule):
+
+    def apt_get(self,cmd):
+        result = self.api.sudo(cmd)
+        # If the installation process was interrupted, we might get the following message
+        # E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem.
+        if "sudo dpkg --configure -a" in result:
+            self.api.sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
+            result = self.api.sudo(cmd)
+        return result
+
+    def apt_cache(self, cmd):
+        cmd = CMD_APT_CACHE + cmd
+        return self.api.run(cmd)
+
+    @logged
+    @expose
+    @variant("apt")
+    def repository_ensure_apt(self, repository):
+        return self.api.sudo("add-apt-repository --yes " + repository)
+
+    @expose
+    @variant("apt")
+    def package_available_apt(package: str) -> bool:
+        return self.apt_cache(f" search '^{quote_safe(package)}$'").has_value
+
+    @expose
+    @variant("apt")
+    def package_update_apt(self, package=None):
+        if package == None:
+            return self.apt_get("-q --yes update")
+        else:
+            if isinstance(package,list) or isinstance(package, tuple):
+                package = " ".join(package)
+            return self.apt_get(' install --only-upgrade ' + package)
+    @expose
+    @variant("apt")
+    def package_upgrade_apt(self, distupgrade=False):
+        if distupgrade:
+            return self.apt_get("dist-upgrade")
+        else:
+            return self.apt_get("install --only-upgrade")
+    @expose
+    @variant("apt")
+    def package_install_apt(self, package, update=False):
+        if update:
+            self.apt_get("update")
+        if isinstance(package,list) or isinstance(package, tuple):
+            package = " ".join(package)
+        return self.apt_get("install " + package)
+
+    @expose
+    @variant("apt")
+    def package_installed_apt(self, package, update=False) -> False:
+        pkg = package.strip()
+        if not pkg:
+            raise ValueError(f"Package argument is empty: {repr(package)}")
+        # The most reliable way to detect success is to use the command status
+        # and suffix it with OK. This won't break with other locales.
+        status = self.api.run(
+            f"dpkg-query -W -f='${{Status}} ' '{pkg}' && echo OK;true")
+        return status.last_line.endswith("OK")
+    
+    
+    @expose
+    @variant("apt")
+    def package_ensure_apt(self, package, update=False):
+        """Ensure apt packages are installed"""
+        if isinstance(package, str):
+            package = package.split()
+        res = {}
+        for p in package:
+            p = p.strip()
+            if not p:
+                continue
+            # The most reliable way to detect success is to use the command status
+            # and suffix it with OK. This won't break with other locales.
+            status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
+            if not status.endswith("OK") or "not-installed" in status:
+                package_install_apt(p)
+                res[p] = False
+            else:
+                if update:
+                    package_update_apt(p)
+                res[p] = True
+        if len(res) == 1:
+            return next(_ for _ in res.values())
+        else:
+            return res
+    
+    
+    @expose
+    @variant("apt")
+    def package_clean_apt(self, package=None):
+        if type(package) in (list, tuple):
+            package = " ".join(package)
+        return self.apt_get("-y --purge remove %s" % package)
+    
+    
+    @expose
+    @variant("apt")
+    def package_remove_apt(self, package, autoclean=False):
+        self.apt_get('remove ' + package)
+        if autoclean:
+            self.apt_get("autoclean")
 #
 # # -----------------------------------------------------------------------------
 # # YUM PACKAGE (RedHat, CentOS)
 # # added by Prune - 20120408 - v1.0
 # # -----------------------------------------------------------------------------
 #
-#
-# def repository_ensure_yum(repository):
-#     raise Exception("Not implemented for Yum")
-#
-#
-# def package_upgrade_yum():
-#     sudo("yum -y update")
-#
-#
-# def package_update_yum(package=None):
-#     if package == None:
-#         sudo("yum -y update")
-#     else:
-#         if type(package) in (list, tuple):
-#             package = " ".join(package)
-#         sudo("yum -y upgrade " + package)
-#
-#
-# def package_install_yum(package, update=False):
-#     if update:
-#         sudo("yum -y update")
-#     if type(package) in (list, tuple):
-#         package = " ".join(package)
-#     sudo("yum -y install %s" % (package))
-#
-#
-# def package_ensure_yum(package, update=False):
-#     status = run("yum list installed %s ; true" % package)
-#     if status.find("No matching Packages") != -1 or status.find(package) == -1:
-#         package_install_yum(package, update)
-#         return False
-#     else:
-#         if update:
-#             package_update_yum(package)
-#         return True
-#
-#
-# def package_clean_yum(package=None):
-#     sudo("yum -y clean all")
-#
-#
-# def package_remove_yum(package, autoclean=False):
-#     sudo("yum -y remove %s" % (package))
+class PackageYUMAPI(APIModule):
+
+    @expose
+    @variant("yum")
+    def repository_ensure_yum(self, repository:str):
+        raise Exception("Not implemented for Yum")
+
+
+    @expose
+    @variant("yum")
+    def package_upgrade_yum():
+        self.api.sudo("yum -y update")
+
+
+    @expose
+    @variant("yum")
+    def package_update_yum(self, package=None):
+        if package == None:
+            self.api.sudo("yum -y update")
+        else:
+            if type(package) in (list, tuple):
+                package = " ".join(package)
+            self.api.sudo("yum -y upgrade " + package)
+
+
+    @expose
+    @variant("yum")
+    def package_install_yum(self, package, update=False):
+        if update:
+            self.api.sudo("yum -y update")
+        if type(package) in (list, tuple):
+            package = " ".join(package)
+        self.api.sudo("yum -y install %s" % (package))
+
+
+    @expose
+    @variant("yum")
+    def package_ensure_yum(self, package, update=False):
+        status = self.api.run("yum list installed %s ; true" % package)
+        if status.find("No matching Packages") != -1 or status.find(package) == -1:
+            self.package_install_yum(package, update)
+            return False
+        else:
+            if update:
+                self.package_update_yum(package)
+            return True
+
+
+    @expose
+    @variant("yum")
+    def package_clean_yum(self, package=None):
+        self.api.sudosudo("yum -y clean all")
+
+
+    @expose
+    @variant("yum")
+    def package_remove_yum(self, package, autoclean=False):
+        self.api.sudo("yum -y remove %s" % (package))
 #
 # # -----------------------------------------------------------------------------
 # # ZYPPER PACKAGE (openSUSE)
