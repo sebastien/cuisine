@@ -47,7 +47,7 @@ def introspect() -> Iterable[Tuple[str, str, str, Callable]]:
 
 
 PREAMBLE = [
-    "from typing import Optional, Union",
+    "from typing import Dict, Optional, Union, ContextManager",
     "import cuisine.connection",
     "import pathlib",
 ]

@@ -53,11 +53,14 @@ class Context:
     def dispatch(self, type: str, args: List[Any]):
         self.formatter.receive(self, type, args)
 
-    def action(self, name: str,  command: str):
-        self.dispatch("action", [name, command])
+    def action(self, name: str,  *args: str):
+        self.dispatch("action", [name] + [_ for _ in args])
 
-    def result(self, value: Any):
-        self.dispatch("result", [value])
+    def result(self, value: Any, success=True):
+        self.dispatch("result", [value, success])
+
+    def error(self, message: str):
+        self.dispatch("error", [message])
 
     def out(self, data: Union[str, bytes]):
         self.dispatch("out", [data])
@@ -95,16 +98,22 @@ class Formatter:
             self.write(RESET)
         elif action == "err":
             self.write(RED)
-            self.block(args, "┊")
+            self.block(args, "⫼")
             self.write(RESET)
         elif action == "action" and args[0] == "command":
             self.write(
                 f"{DIM}┌─●\t{BRIGHT}{' '.join(args[1:])}{RESET}\n")
         elif action == "result":
+            color = GREEN if args[1] else RED
+            if args[0]:
+                self.write(
+                    f"{color}{DIM}└─►\t{RESET}{color}{json.dumps(args[0])}{RESET}\n")
+        elif action == "error":
             self.write(
-                f"{GREEN}{DIM}└─►\t{RESET}{GREEN}{json.dumps(args[0])}{RESET}\n")
+                f"{RED}{DIM}└─✕\t{RESET}{RED}{json.dumps(args[0])}{RESET}\n")
         else:
-            self.write(f"@{action}\t{stringify(args)}\n")
+            self.write(
+                f"{BLUE}{DIM}▹▹▹{RESET}\t{BLUE}{' '.join(stringify(_) for _ in args)}{RESET}\n")
 
     def block(self, data: Iterable[Any], char="|"):
         for item in data:

@@ -1,9 +1,11 @@
 import os.path
 import base64
 import tempfile
+import hashlib
 from ..api import APIModule as API
 from ..decorators import logged, expose, requires
 from ..utils import shell_safe
+from typing import Dict
 
 
 class FileAPI(API):
@@ -49,19 +51,22 @@ class FileAPI(API):
         return self.api.run(f"test -e '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
 
     @expose
-    def file_is_file(self, path):
-        return self.api.run("test -f %s && echo OK ; true" % (shell_safe(path))).value.endswith("OK")
+    def file_is_file(self, path: str):
+        """Tells if the given path is a file or not"""
+        return self.api.run(f"test -f '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
 
     @expose
     def file_is_dir(self, path: str) -> bool:
-        return self.api.run("test -d %s && echo OK ; true" % (shell_safe(path))).value.endswith("OK")
+        """Tells if the given path is a directory or not"""
+        return self.api.run(f"test -d '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
 
     @expose
     def file_is_link(self, path: str) -> bool:
-        return self.api.run("test -L %s && echo OK ; true" % (shell_safe(path))).value.endswith("OK")
+        """Tells if the given path is a symlink or not"""
+        return self.api.run(f"test -L '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
 
     @logged
-    def file_attribs(self, path, mode=None, owner=None, group=None):
+    def file_attribs(self, path: str, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         path."""
         return self.api.dir_attribs(path, mode, owner, group, False)
@@ -69,7 +74,7 @@ class FileAPI(API):
     @expose
     @logged
     @requires("stat")
-    def file_attribs_get(self, path):
+    def file_attribs_get(self, path: str) -> Dict[str, str]:
         """Return mode, owner, and group for remote path.
         Return mode, owner, and group if remote path exists, 'None'
         otherwise.
@@ -134,34 +139,24 @@ class FileAPI(API):
             self.file_write(path, "", mode=mode, owner=owner,
                             group=group, scp=scp)
 
+    def file_is_same(self, local: str, remote: str) -> bool:
+        """Tells if the local and remote file have the same content. Both
+        file must exist and have the same signature."""
+        if not os.path.exists(local):
+            return False
+        if not self.file_exits(remote):
+            return False
+        with open(local, "rb") as f:
+            content = f.read()
+        return self.file_md5(remote) == hashlib.md5(content).hexdigest()
+
     @expose
     @logged
-    def file_upload(self, local, remote, sudo=None, scp=False):
+    def file_upload(self, local, remote):
         """Uploads the local file to the remote path only if the remote path does not
         exists or the content are different."""
         # FIXME: Big files are never transferred properly!
-        # XXX: this 'sudo' kw arg shadows the function named 'sudo'
-        use_sudo = self.is_sudo() or sudo
-        with open(local, "rb") as f:
-            content = f.read()
-        sig = hashlib.md5(content).hexdigest()
-        if not self.file_exists(remote) or sig != self.file_md5(remote):
-            if self.is_local():
-                if use_sudo:
-                    globals()['sudo']("cp '%s' '%s'" %
-                                      (shell_safe(local), shell_safe(remote)))
-                else:
-                    run("cp '%s' '%s'" % (local, remote))
-            else:
-                if scp:
-                    # TODO: We should be able to run a local command there
-                    raise NotImplementedError
-                    # scp_cmd = @scp %s %s@%s:%s' % (shell_safe(local), shell_safe(
-                    #     env_.user), shell_safe(hostname), shell_safe(remote))
-                    # log_debug('file_upload():[localhost] ' + scp_cmd)
-                    # run_local(scp_cmd)
-                else:
-                    self.connection().upload(remote, local)
+        self.api.connection().upload(remote, local)
 
     @expose
     @logged
@@ -202,32 +197,35 @@ class FileAPI(API):
     @logged
     @requires(("unlink"))
     def file_unlink(self, path: str):
+        """Removes the given file path if it exists"""
         if self.file_exists(path):
-            self.run("unlink %s" % (shell_safe(path)))
+            self.api.run(f"unlink {shell_safe(path)}")
 
-    @expose
-    @logged
+    @ expose
+    @ logged
     def file_link(self, source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
         optionally setting its mode/owner/group."""
-        if file_exists(destination) and (not file_is_link(destination)):
+        if self.file_exists(destination) and (not self.file_is_link(destination)):
             raise Exception(
                 "Destination already exists and is not a link: %s" % (destination))
         # FIXME: Should resolve the link first before unlinking
-        if file_is_link(destination):
-            file_unlink(destination)
+        if self.file_is_link(destination):
+            self.file_unlink(destination)
         if symbolic:
-            run('ln -sf %s %s' % (shell_safe(source), shell_safe(destination)))
+            self.api.run('ln -sf %s %s' %
+                         (shell_safe(source), shell_safe(destination)))
         else:
-            run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
-        file_attribs(destination, mode, owner, group)
+            self.api.run('ln -f %s %s' %
+                         (shell_safe(source), shell_safe(destination)))
+        self.file_attribs(destination, mode, owner, group)
 
     # SHA256/MD5 sums with openssl are tricky to get working cross-platform
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
-    @expose
-    @logged
+    @ expose
+    @ logged
     def file_base64(self, path: str):
         """Returns the base64-encoded content of the file at the given path."""
         if env_get(OPTION_HASH) == "python":
@@ -235,7 +233,7 @@ class FileAPI(API):
         else:
             return run("cat {0} | openssl base64".format(shell_safe((path))))
 
-    @logged
+    @ logged
     def file_sha256(self, path: str):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given path."""
         # NOTE: In some cases, sudo can output errors in here -- but the errors will

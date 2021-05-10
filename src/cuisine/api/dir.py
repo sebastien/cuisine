@@ -1,9 +1,10 @@
-from ..api import APIModule as API
+from ..api import APIModule
 from ..decorators import logged, expose, requires
 from ..utils import shell_safe
+import os
 
 
-class DirAPI(API):
+class DirAPI(APIModule):
 
     @expose
     @logged
@@ -30,11 +31,9 @@ class DirAPI(API):
     @requires("rm")
     def dir_remove(self, path: str, recursive=True):
         """ Removes a directory """
-        flag = ''
-        if recursive:
-            flag = 'r'
+        flag = "r" if recursive else ""
         if self.api.dir_exists(path):
-            return self.api.run('rm -%sf %s && echo OK ; true' % (flag, shell_safe(path)))
+            return self.api.run(f"rm -{flag}f '{shell_safe(path)}' && echo OK ; true")
 
     @expose
     def dir_ensure_parent(self, path: str):
@@ -52,7 +51,7 @@ class DirAPI(API):
         ssh call, so use that method, otherwise set owner/group after creation."""
         if not self.dir_exists(path):
             self.api.run(
-                f"mkdir {'-p' if recursive else ''} '{shell_safe(path)}")
+                f"mkdir {'-p' if recursive else ''} '{shell_safe(path)}'")
         if owner or group or mode:
             self.api.dir_attribs(path, owner=owner, group=group,
                                  mode=mode, recursive=recursive)

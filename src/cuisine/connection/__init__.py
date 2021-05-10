@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from typing import Optional, Tuple, Any, List, Iterable
+from typing import Optional, Tuple, Any, List, Iterable, ContextManager
 from ..utils import shell_safe
 from .. import logging
 
@@ -96,6 +96,32 @@ class CommandOutput(str):
 
 # =============================================================================
 #
+# CURRENT PATH
+#
+# =============================================================================
+
+
+class CurrentPathContext(ContextManager):
+    """A helper object returned by `cd` that will return the connection's
+    path to where it was."""
+
+    def __init__(self, connection: 'Connection', path: Optional[str] = None):
+        """On exit, the given connection will be cd'ed to the given path. If no path
+        is given ,then the connection's current path will be used."""
+        self.path = path or connection.path
+        self.connection = connection
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        # We don't do anything recursive
+        if self.path and self.connection.path != self.path:
+            self.connection._cd(self.path)
+
+
+# =============================================================================
+#
 # CONNECTION
 #
 # =============================================================================
@@ -116,12 +142,13 @@ class Connection:
         self.user: Optional[str] = user
         self.host: Optional[str] = host
         self.port: Optional[int] = port
-        self.isConnected = False
+        self.is_connected = False
         self.type = self.TYPE
         self._path: Optional[str] = None
         self.cd_prefix: str = ""
         self.log = logging.Context()
         self.log.prompt = self.prompt
+        self.on_disconnect = None
         self.init()
 
     def prompt(self):
@@ -152,11 +179,15 @@ class Connection:
     def init(self):
         pass
 
-    def connect(self, host: str = "localhost", port=None) -> 'Connection':
-        assert not self.isConnected, "Connection already made, call 'disconnect' first"
+    def connect(self, host: Optional[str] = None, port: Optional[int] = None, user: Optional[str] = None, password: Optional[str] = None, key: Optional[Path] = None):
+        assert not self.is_connected, "Connection already made, call 'disconnect' first"
         self.host = host or self.host
         self.port = port or self.port
+        self.user = user or self.user
+        self.password = password or self.password
+        self.key = password or self.key
         self.log.action("connect")
+        self._connect()
         return self
 
     def reconnect(self, user: Optional[str], host: Optional[str], port: Optional[int]) -> 'Connection':
@@ -170,14 +201,14 @@ class Connection:
     def run(self, command: str) -> Optional[CommandOutput]:
         self.log.action("command", command)
         res = self._run(command)
-        self.log.result(res.value if res else None)
+        self.log.result(res.value if res else None, res.is_success)
         return res
 
-    def _run(self, path: str) -> Optional[CommandOutput]:
-        raise NotImplementedError
-
-    def cd(self, path: str) -> bool:
-        raise NotImplementedError
+    def cd(self, path: str) -> CurrentPathContext:
+        context = CurrentPathContext(self, self.path)
+        self.path = path
+        self._cd(path)
+        return context
 
     def upload(self, remote: str, local: str) -> bool:
         """Copies from the local file to the remote path"""
@@ -186,6 +217,7 @@ class Connection:
             os.path.expanduser(os.path.expandvars(local))))
         if not local_path.exists():
             raise ValueError(f"Local path does not exists: '{local}'")
+        self._upload(remote, local_path)
         return True
 
     def write(self, remote: str, content: bytes) -> bool:
@@ -195,6 +227,24 @@ class Connection:
 
     def disconnect(self) -> bool:
         self.log.action("disconnect")
-        return self.isConnected
+        self._disconnect()
+        if self.on_disconnect:
+            self.on_disconnect(self)
+        return self.is_connected
+
+    def _connect(self):
+        raise NotImplementedError
+
+    def _disconnect(self):
+        raise NotImplementedError
+
+    def _run(self, path: str) -> Optional[CommandOutput]:
+        raise NotImplementedError
+
+    def _upload(self, remove: str, source: Path):
+        raise NotImplementedError
+
+    def _cd(self, path: str):
+        raise NotImplementedError
 
 # EOF

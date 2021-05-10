@@ -12,53 +12,59 @@ class ParamikoConnection(Connection):
     TYPE = "paramiko"
 
     def __init__(self, host: Optional[str] = None, port: Optional[int] = None, user: Optional[str] = None, password: Optional[str] = None, key: Optional[Path] = None):
-        super().__init__(user, host, port, password, key)
-
-    def init(self):
+        super().__init__(user=user, host=host, port=port, password=password, key=key)
         # SEE: https://docs.paramiko.org/en/stable/api/client.html
         try:
             import paramiko
             import paramiko.ssh_exception as paramiko_exceptions
         except ImportError as e:
-            logging.error(
+            self.log.error(
                 "Paramiko <https://docs.paramiko.org> is required: python -m pip install --user paramiko")
             raise e
         self.paramiko = paramiko
-        self._sftp = None
         self.paramiko_exceptions = paramiko_exceptions
+        self._sftp = None
+        self._context = None
 
     @property
     def sftp(self):
         if not self._sftp:
-            self._sftp = self.context.open_sftp()
+            if not self._context:
+                self.log.error(f"Cannot create SFTP client, connection failed")
+                return self._sftp
+            self._sftp = self._context.open_sftp()
         return self._sftp
 
-    def connect(self, host: str, port=22) -> 'ParamikoConnection':
-        # NOTE: Connect will update self.{host,port}
-        super().connect(host, port)
+    def _connect(self) -> 'ParamikoConnection':
         # SEE: https://docs.paramiko.org/en/stable/api/client.html
-        self.context = client = self.paramiko.SSHClient()
+        self._context = client = self.paramiko.SSHClient()
         client.load_system_host_keys()
         client.set_missing_host_key_policy(self.paramiko.WarningPolicy)
         try:
-            client.connect(self.host, username=self.user, port=self.port,
-                           key_filename=self.key, look_for_keys=True)
+            kwargs = dict((k, v) for k, v in dict(
+                hostname=self.host,
+                username=self.user,
+                port=self.port,
+                key_filename=self.key,
+                look_for_keys=True
+            ).items() if v is not None)
+            client.connect(**kwargs)
         except self.paramiko_exceptions.AuthenticationException as e:
-            logging.fatal(
+            self.log.error(
                 f"Cannot connect to {self.user}@{self.host}:{self.port} using {self.type}: {e}")
-            self.context = None
-            self.isConnected = False
+            self._context = None
+            self.is_connected = False
+            raise e
             return self
         return self
 
-    def run(self, command) -> CommandOutput:
-        if not self.context:
-            logging.error(f"Connection failed, cannot run: {command}")
+    def _run(self, command: str) -> CommandOutput:
+        if not self._context:
+            self.log.error(f"Connection failed, cannot run: {command}")
             return CommandOutput((command, 127, b"", b""))
         else:
-            super().run(command)
             cmd = self.cd_prefix + command
-            _, stdout, stderr = self.context.exec_command(cmd)
+            _, stdout, stderr = self._context.exec_command(cmd)
             # FIXME: We might be deadlocking here, we might want to reuse the
             # threaded readers.
             err = stderr.read()
@@ -66,33 +72,29 @@ class ParamikoConnection(Connection):
             status = stdout.channel.recv_exit_status()
             return CommandOutput((command, status, out, err))
 
-    def upload(self, remote: str, local: str) -> bool:
-        if not super().upload(remote, local):
-            raise ValueError("Could not upload", remote, local)
-            return False
+    def _upload(self, remote: str, local: Path):
         self.sftp.put(local, remote)
-        return True
 
-    def write(self, remote: str, content: bytes) -> bool:
-        if not super().write(remote, content):
-            return False
+    def _write(self, remote: str, content: bytes) -> bool:
+        with self.sftp.open(remote, "wb") as f:
+            f.write(content)
+
+    def _cd(self, path: str):
+        sftp = self.sftp
+        if sftp:
+            self.sftp.chdir(path)
         else:
-            with self.sftp.open(remote, "wb") as f:
-                f.write(content)
-            return True
-
-    def cd(self, path: str) -> bool:
-        self.sftp.chdir(path)
-        self.path = path
-        return True
+            raise RuntimeError("Unable to change directory")
 
     def disconnect(self) -> bool:
         if super().disconnect():
             if self._sftp:
                 self._sftp.close()
                 self._sftp = None
-            self.context.close()
-            self.context = None
+            self._context.close()
+            self._context = None
             return True
         else:
             return False
+
+# EOF

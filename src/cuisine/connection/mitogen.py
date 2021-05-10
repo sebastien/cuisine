@@ -5,7 +5,7 @@ from .. import logging
 
 
 class MitogenConnection(Connection):
-    """Manages a remote connection through Mitogen. 
+    """Manages a remote connection through Mitogen.
      See <https://mitogen.networkgenomics.com/>."""
 
     TYPE = "mitogen"
@@ -41,7 +41,7 @@ class MitogenConnection(Connection):
             logging.fatal(
                 f"Cannot connect to {self.user}@{self.host}:{self.port} using {self.type}: {e}")
             self.context = None
-            self.isConnected = False
+            self.is_connected = False
             return self
         return self
 

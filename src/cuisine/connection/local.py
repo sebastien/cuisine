@@ -1,5 +1,8 @@
 import subprocess
 import threading
+import shutil
+import os
+from pathlib import Path
 from ..connection import Connection, CommandOutput
 from typing import List, Tuple, Callable, Optional
 
@@ -9,8 +12,21 @@ class LocalConnection(Connection):
     TYPE = "local"
 
     def _run(self, command: str) -> Optional[CommandOutput]:
+        cmd = self.cd_prefix + command
         return CommandOutput(run_local_raw(
-            command, on_out=self.log.out, on_err=self.log.err))
+            cmd, on_out=self.log.out, on_err=self.log.err))
+
+    def _upload(self, remote: str, source: Path):
+        try:
+            shutil.copy2(source, remote)
+        except Exception as e:
+            self.log.error(f"Cannot copy {source} to {remote}: {e}")
+
+    def _cd(self, path: str):
+        try:
+            os.chdir(path)
+        except FileNotFoundError as e:
+            self.log.error(f"Path does not exist: {path}")
 
 
 def run_local_raw(command: str, cwd=".", encoding="utf8", shell=True, on_out: Optional[Callable[[bytes], None]] = None, on_err: Optional[Callable[[bytes], None]] = None) -> Tuple[str, int, bytes, bytes]:

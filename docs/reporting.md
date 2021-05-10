@@ -9,8 +9,19 @@ the following:
 - In tracing mode, the session output is communicated back
 - By default, only the errors are communicated back up
 
+## Error handling
 
+Cuisine by default won't stop when there is a command error, but will stop
+in the following cases:
+
+- A connection error, in which case an exception will be raised.
+
+```
+with mode_strict():
+    # Any error in the commands will stop the current session
+```
 ## Error reporting
+
 
 Errors are reported in a way that is both easy to read (for humans), and
 where structured data can be easily extracted when automating cuisine from
@@ -23,10 +34,11 @@ run("tar fxz package.tar.gz")
 will yield the following:
 
 ```
-ERR user@localhost[local]: tar fxz package.tar.gz
-    command: 'tar fxz package.tar.gz'
-    error: 'Cannot open: No such file or directory'
-    status: 2
+⫼	/bin/sh: line 1: cd: /home/service/dist: No such file or directory
+⫼	tar (child): package.tar.gz: Cannot open: No such file or directory
+⫼	tar (child): Error is not recoverable: exiting now
+⫼	tar: Child returned status 2
+⫼	tar: Error is not recoverable: exiting now
 ```
 
 

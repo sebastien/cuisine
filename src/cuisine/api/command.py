@@ -9,7 +9,7 @@ class CommandAPI(APIModule):
 
     @expose
     def command(self, name: str) -> str:
-        """Returns the normalized command name. This first tries to find a match 
+        """Returns the normalized command name. This first tries to find a match
         in `DEFAULT_COMMANDS` and extract it, and then look for a `COMMAND_{name}`
         in the environment."""
         if match := RE_COMMAND.match(name):
@@ -40,3 +40,6 @@ class CommandAPI(APIModule):
         assert self.command_check(command), \
             "Command was not installed, check for errors: %s" % (command)
         return True
+
+
+# EOF
