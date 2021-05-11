@@ -11,6 +11,13 @@ class LocalConnection(Connection):
 
     TYPE = "local"
 
+    def _connect(self):
+        # TODO: We should detect if we need to switch user or not.
+        pass
+
+    def _disconnect(self):
+        pass
+
     def _run(self, command: str) -> Optional[CommandOutput]:
         cmd = self.cd_prefix + command
         return CommandOutput(run_local_raw(

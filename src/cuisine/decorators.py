@@ -73,7 +73,7 @@ def logged(message=None):
     # [2013-10-28T10:18:32] user@host [sudo|user] [!] Exception
     def logged_wrapper(function, message=message):
         def wrapper(*args, **kwargs):
-            print("TODO: Logging", (function, args, kwargs))
+            # TODO: Defines what we do with that.
             # log_call(function, args, kwargs)
             return function(*args, **kwargs)
         # We copy name and docstring

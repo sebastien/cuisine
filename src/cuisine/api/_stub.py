@@ -76,6 +76,10 @@ class API:
           """None"""
           raise NotImplementedError
 
+     def connect_tmux(self, session: str, window: str) -> cuisine.connection.Connection:
+          """Creates a new connection using the TmuxConnection"""
+          raise NotImplementedError
+
      def connection(self) -> cuisine.connection.Connection:
           """Returns the current connection"""
           raise NotImplementedError

@@ -1,4 +1,5 @@
 from cuisine.connection.paramiko import ParamikoConnection
+from cuisine.connection.tmux import TmuxConnection
 from ..connection import CommandOutput, Connection
 from ..connection.local import LocalConnection
 from ..api import APIModule
@@ -92,6 +93,14 @@ class Connection(APIModule):
     @variant("paramiko")
     def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> Connection:
         return ParamikoConnection(host=host, port=port, user=user, password=password, key=key)
+
+    @expose
+    def connect_tmux(self, session: str, window: str) -> Connection:
+        """Creates a new connection using the TmuxConnection"""
+        res = TmuxConnection(self._connection, session, window)
+        res.connect()
+        self.__connections.append(res)
+        return res
 
     @expose
     def run(self, command: str) -> 'CommandOutput':

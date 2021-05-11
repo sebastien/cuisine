@@ -48,7 +48,21 @@ class Context:
 
     def __init__(self):
         self.prompt: Callable[[], str] = lambda: ""
-        self.formatter = Formatter.Get()
+        self._formatters = [Formatter.Get()]
+
+    @property
+    def formatter(self):
+        return self._formatters[-1]
+
+    def push(self, formatter: Optional['Formatter'] = None):
+        """Used to push a new formatter onto the stack"""
+        # FIXME: May not be the best way to do it, see TMux
+        self._formatters.append(formatter or NullFormatter.Get())
+        return self
+
+    def pop(self):
+        self._formatters.pop()
+        return self
 
     def dispatch(self, type: str, args: List[Any]):
         self.formatter.receive(self, type, args)
@@ -78,7 +92,7 @@ class Formatter:
     @classmethod
     def Get(cls) -> 'Formatter':
         if not cls.SINGLETON:
-            cls.SINGLETON = Formatter()
+            cls.SINGLETON = cls()
         return cls.SINGLETON
 
     def __init__(self):
@@ -104,10 +118,8 @@ class Formatter:
             self.write(
                 f"{DIM}┌─●\t{BRIGHT}{' '.join(args[1:])}{RESET}\n")
         elif action == "result":
-            color = GREEN if args[1] else RED
-            if args[0]:
-                self.write(
-                    f"{color}{DIM}└─►\t{RESET}{color}{json.dumps(args[0])}{RESET}\n")
+            self.write(
+                f"{GREEN}{DIM}└─►\t{RESET}{GREEN}{json.dumps(args[0])}{RESET}\n")
         elif action == "error":
             self.write(
                 f"{RED}{DIM}└─✕\t{RESET}{RED}{json.dumps(args[0])}{RESET}\n")
@@ -130,5 +142,16 @@ class Formatter:
             if i == last and not line.strip():
                 continue
             print(f"{prefix}{line}")
+
+
+class NullFormatter(Formatter):
+
+    SINGLETON: Optional['Formatter'] = None
+
+    def write(self, line: str):
+        pass
+
+    def receive(self, origin: Context, action: str, args: List[Any]):
+        pass
 
 # EOF

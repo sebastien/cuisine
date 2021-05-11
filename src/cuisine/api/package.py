@@ -1,6 +1,6 @@
 from ..api import APIModule
 from ..decorators import logged, dispatch, variant, expose
-from ..utils import quote_safe
+from ..utils import single_quote_safe
 
 # =============================================================================
 #
@@ -12,11 +12,11 @@ from ..utils import quote_safe
 class PackageAPI(APIModule):
 
     @expose
-    def select_package( self, type:str ) -> bool:
+    def select_package(self, type: str) -> bool:
         return True
 
     @expose
-    def detect_package( self ) -> str:
+    def detect_package(self) -> str:
         """Automatically detects the type of package"""
         return "yum"
 
@@ -34,13 +34,13 @@ class PackageAPI(APIModule):
 
     @logged
     @expose
-    @dispatch("package",multiple=True)
+    @dispatch("package", multiple=True)
     def package_upgrade(self, distupgrade=False):
         """Updates every package present on the system."""
 
     @logged
     @expose
-    @dispatch("package",multiple=True)
+    @dispatch("package", multiple=True)
     def package_update(self, package=None):
         """Updates the package database (when no argument) or update the package
         or list of packages given as argument."""
@@ -54,7 +54,7 @@ class PackageAPI(APIModule):
 
     @logged
     @expose
-    @dispatch("package",multiple=True)
+    @dispatch("package", multiple=True)
     def package_ensure(self, package, update=False):
         """Tests if the given package is installed, and installs it in
         case it's not already there. If `update` is true, then the
@@ -79,7 +79,7 @@ class PackageAPI(APIModule):
 
 class PackageAPTAPI(APIModule):
 
-    def apt_get(self,cmd):
+    def apt_get(self, cmd):
         result = self.api.sudo(cmd)
         # If the installation process was interrupted, we might get the following message
         # E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem.
@@ -101,7 +101,7 @@ class PackageAPTAPI(APIModule):
     @expose
     @variant("apt")
     def package_available_apt(package: str) -> bool:
-        return self.apt_cache(f" search '^{quote_safe(package)}$'").has_value
+        return self.apt_cache(f" search '^{single_quote_safe(package)}$'").has_value
 
     @expose
     @variant("apt")
@@ -109,9 +109,10 @@ class PackageAPTAPI(APIModule):
         if package == None:
             return self.apt_get("-q --yes update")
         else:
-            if isinstance(package,list) or isinstance(package, tuple):
+            if isinstance(package, list) or isinstance(package, tuple):
                 package = " ".join(package)
             return self.apt_get(' install --only-upgrade ' + package)
+
     @expose
     @variant("apt")
     def package_upgrade_apt(self, distupgrade=False):
@@ -119,12 +120,13 @@ class PackageAPTAPI(APIModule):
             return self.apt_get("dist-upgrade")
         else:
             return self.apt_get("install --only-upgrade")
+
     @expose
     @variant("apt")
     def package_install_apt(self, package, update=False):
         if update:
             self.apt_get("update")
-        if isinstance(package,list) or isinstance(package, tuple):
+        if isinstance(package, list) or isinstance(package, tuple):
             package = " ".join(package)
         return self.apt_get("install " + package)
 
@@ -139,8 +141,7 @@ class PackageAPTAPI(APIModule):
         status = self.api.run(
             f"dpkg-query -W -f='${{Status}} ' '{pkg}' && echo OK;true")
         return status.last_line.endswith("OK")
-    
-    
+
     @expose
     @variant("apt")
     def package_ensure_apt(self, package, update=False):
@@ -154,7 +155,8 @@ class PackageAPTAPI(APIModule):
                 continue
             # The most reliable way to detect success is to use the command status
             # and suffix it with OK. This won't break with other locales.
-            status = run("dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
+            status = run(
+                "dpkg-query -W -f='${Status} ' %s && echo OK;true" % p)
             if not status.endswith("OK") or "not-installed" in status:
                 package_install_apt(p)
                 res[p] = False
@@ -166,16 +168,14 @@ class PackageAPTAPI(APIModule):
             return next(_ for _ in res.values())
         else:
             return res
-    
-    
+
     @expose
     @variant("apt")
     def package_clean_apt(self, package=None):
         if type(package) in (list, tuple):
             package = " ".join(package)
         return self.apt_get("-y --purge remove %s" % package)
-    
-    
+
     @expose
     @variant("apt")
     def package_remove_apt(self, package, autoclean=False):
@@ -188,19 +188,19 @@ class PackageAPTAPI(APIModule):
 # # added by Prune - 20120408 - v1.0
 # # -----------------------------------------------------------------------------
 #
+
+
 class PackageYUMAPI(APIModule):
 
     @expose
     @variant("yum")
-    def repository_ensure_yum(self, repository:str):
+    def repository_ensure_yum(self, repository: str):
         raise Exception("Not implemented for Yum")
-
 
     @expose
     @variant("yum")
     def package_upgrade_yum():
         self.api.sudo("yum -y update")
-
 
     @expose
     @variant("yum")
@@ -212,7 +212,6 @@ class PackageYUMAPI(APIModule):
                 package = " ".join(package)
             self.api.sudo("yum -y upgrade " + package)
 
-
     @expose
     @variant("yum")
     def package_install_yum(self, package, update=False):
@@ -221,7 +220,6 @@ class PackageYUMAPI(APIModule):
         if type(package) in (list, tuple):
             package = " ".join(package)
         self.api.sudo("yum -y install %s" % (package))
-
 
     @expose
     @variant("yum")
@@ -235,12 +233,10 @@ class PackageYUMAPI(APIModule):
                 self.package_update_yum(package)
             return True
 
-
     @expose
     @variant("yum")
     def package_clean_yum(self, package=None):
         self.api.sudosudo("yum -y clean all")
-
 
     @expose
     @variant("yum")

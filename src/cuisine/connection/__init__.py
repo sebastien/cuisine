@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 from typing import Optional, Tuple, Any, List, Iterable, ContextManager
-from ..utils import shell_safe
+from ..utils import shell_safe, strip_ansi
 from .. import logging
 
 # =============================================================================
@@ -45,10 +45,18 @@ class CommandOutput(str):
         return self._outStr
 
     @property
+    def out_nocolor(self) -> str:
+        return strip_ansi(self.out)
+
+    @property
     def err(self) -> str:
         if self._errStr is None:
             self._errStr = str(self._err, self.encoding)
         return self._errStr
+
+    @property
+    def err_nocolor(self) -> str:
+        return strip_ansi(self.err)
 
     @property
     def out_bytes(self) -> bytes:

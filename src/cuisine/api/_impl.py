@@ -98,6 +98,10 @@ class API(Interface):
           """None"""
           return self._connection.connect_paramiko(host, port, user, password, key)
 
+     def connect_tmux(self, session: str, window: str) -> cuisine.connection.Connection:
+          """Creates a new connection using the TmuxConnection"""
+          return self._connection.connect_tmux(session, window)
+
      def connection(self) -> cuisine.connection.Connection:
           """Returns the current connection"""
           return self._connection.connection()

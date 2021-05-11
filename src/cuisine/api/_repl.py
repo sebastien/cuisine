@@ -82,6 +82,10 @@ def connect_paramiko( host=None, port=None, user=None, password=None, key: Optio
      """None"""
      return default_api().connect_paramiko(host, port, user, password, key)
 
+def connect_tmux( session: str, window: str) -> cuisine.connection.Connection:
+     """Creates a new connection using the TmuxConnection"""
+     return default_api().connect_tmux(session, window)
+
 def connection(self) -> cuisine.connection.Connection:
      """Returns the current connection"""
      return default_api().connection()
