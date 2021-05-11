@@ -68,17 +68,17 @@ def config_set( variable: str, value: str) -> str:
         `default` if not found."""
      return default_api().config_set(variable, value)
 
-def connect( host=None, port=None, user=None, password=None, key: Union[str, pathlib.Path] = None, transport: Optional[str] = None) -> cuisine.connection.Connection:
+def connect( host=None, port=None, user=None, password=None, key: Union[str, pathlib.Path] = None, transport: Optional[str] = None) -> ContextManager:
      """Connects to the given host/port using the given user/password/key_path credentials. Note that
         not all connection types support all these arguments, so you might get warnings if they are
         not supported."""
      return default_api().connect(host, port, user, password, key, transport)
 
-def connect_local(self) -> cuisine.connection.Connection:
+def connect_local() -> ContextManager:
      """None"""
      return default_api().connect_local()
 
-def connect_paramiko( host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> cuisine.connection.Connection:
+def connect_paramiko( host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
      """None"""
      return default_api().connect_paramiko(host, port, user, password, key)
 
@@ -86,19 +86,19 @@ def connect_tmux( session: str, window: str) -> cuisine.connection.Connection:
      """Creates a new connection using the TmuxConnection"""
      return default_api().connect_tmux(session, window)
 
-def connection(self) -> cuisine.connection.Connection:
+def connection() -> cuisine.connection.Connection:
      """Returns the current connection"""
      return default_api().connection()
 
-def detect_connection(self) -> str:
+def detect_connection() -> str:
      """Detects the recommended type of connection"""
      return default_api().detect_connection()
 
-def detect_package(self) -> str:
+def detect_package() -> str:
      """Automatically detects the type of package"""
      return default_api().detect_package()
 
-def detect_python_package(self) -> str:
+def detect_python_package() -> str:
      """Automatically detects the type of package"""
      return default_api().detect_python_package()
 
@@ -126,7 +126,7 @@ def dir_remove( path: str, recursive=True):
      """ Removes a directory """
      return default_api().dir_remove(path, recursive)
 
-def disconnect(self) -> Optional[cuisine.connection.Connection]:
+def disconnect() -> Optional[cuisine.connection.Connection]:
      """Disconnects from the current connection unless it's the default
         local connection."""
      return default_api().disconnect()
@@ -237,7 +237,7 @@ def file_write( path: str, content: bytes, mode=None, owner=None, group=None, su
         path, optionally setting mode/owner/group."""
      return default_api().file_write(path, content, mode, owner, group, sudo, check, scp)
 
-def is_local(self) -> bool:
+def is_local() -> bool:
      """Tells if the current connection is local or not."""
      return default_api().is_local()
 

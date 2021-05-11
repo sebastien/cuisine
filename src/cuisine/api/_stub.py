@@ -62,17 +62,17 @@ class API:
         """
           raise NotImplementedError
 
-     def connect(self, host=None, port=None, user=None, password=None, key: Union[str, pathlib.Path] = None, transport: Optional[str] = None) -> cuisine.connection.Connection:
+     def connect(self, host=None, port=None, user=None, password=None, key: Union[str, pathlib.Path] = None, transport: Optional[str] = None) -> ContextManager:
           """Connects to the given host/port using the given user/password/key_path credentials. Note that
         not all connection types support all these arguments, so you might get warnings if they are
         not supported."""
           raise NotImplementedError
 
-     def connect_local(self) -> cuisine.connection.Connection:
+     def connect_local(self) -> ContextManager:
           """None"""
           raise NotImplementedError
 
-     def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> cuisine.connection.Connection:
+     def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
           """None"""
           raise NotImplementedError
 

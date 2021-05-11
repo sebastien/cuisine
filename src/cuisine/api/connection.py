@@ -9,12 +9,38 @@ from typing import Optional, ContextManager, Union, List
 from pathlib import Path
 
 
+class ConnectionContext(ContextManager):
+    """Automatically diconnects a connection
+    path to where it was."""
+
+    def __init__(self, connection: 'Connection'):
+        self.connection = connection
+        self.has_entered = False
+
+    def __enter__(self):
+        self.has_entered = True
+
+    def __exit__(self, type, value, traceback):
+        print("Has entered?")
+        if self.has_entered:
+            self.connection.disconnect()
+
+
 class Connection(APIModule):
     """Manages connections to local and remote hosts."""
 
     def init(self):
         # We the default connection is local
         self.__connections: List[Connection] = [LocalConnection()]
+
+    def register_connection(self, connection: Connection) -> ContextManager:
+        """Registers the connection, connects it and returns a context
+        manager that will disconnect from it on exit. This is an internal
+        method used by the `connect_*` methods."""
+        self.__connections.append(connection)
+        connection.on_disconnect = lambda _: self.clean_connections(_)
+        connection.connect()
+        return ConnectionContext(connection)
 
     def clean_connections(self, connection: Optional[Connection] = None):
         """Cleans the connections, removing the ones that are disconnected"""
@@ -51,7 +77,7 @@ class Connection(APIModule):
         return True
 
     @expose
-    def connect(self, host=None, port=None, user=None, password=None, key: Union[str, Path] = None, transport: Optional[str] = None) -> Connection:
+    def connect(self, host=None, port=None, user=None, password=None, key: Union[str, Path] = None, transport: Optional[str] = None) -> ContextManager:
         """Connects to the given host/port using the given user/password/key_path credentials. Note that
         not all connection types support all these arguments, so you might get warnings if they are
         not supported."""
@@ -59,26 +85,22 @@ class Connection(APIModule):
         transport = transport or self.api.detect_connection() if host or port else "local"
         if transport == "local":
             assert not user, "Local user change is not supported yet"
-            return self.connection()
+            return ConnectionContext(self.connection())
         else:
             connection_creator = getattr(self.api, f"connect_{transport}")
             if not connection_creator:
                 raise RuntimeError(
                     f"Connection type not supported: {transport}")
             else:
-                res = connection_creator(
-                    host=host, port=port, user=user, password=password, key=key)
-                self.__connections.append(res)
-                res.on_disconnect = self.clean_connections
-                res.connect()
-                return res
+                return self.register_connection(connection_creator(
+                    host=host, port=port, user=user, password=password, key=key))
 
     @expose
     def disconnect(self) -> Optional[Connection]:
         """Disconnects from the current connection unless it's the default
         local connection."""
         if len(self.__connections) > 1:
-            conn = self._connections.pop()
+            conn = self.__connections.pop()
             conn.disconnect()
             return conn
         else:
@@ -86,21 +108,18 @@ class Connection(APIModule):
 
     @expose
     @variant("local")
-    def connect_local(self) -> Connection:
-        return LocalConnection()
+    def connect_local(self) -> ContextManager:
+        return self.register_connection(LocalConnection())
 
     @expose
     @variant("paramiko")
-    def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> Connection:
-        return ParamikoConnection(host=host, port=port, user=user, password=password, key=key)
+    def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> ContextManager:
+        return self.register_connection(ParamikoConnection(host=host, port=port, user=user, password=password, key=key))
 
     @expose
     def connect_tmux(self, session: str, window: str) -> Connection:
         """Creates a new connection using the TmuxConnection"""
-        res = TmuxConnection(self._connection, session, window)
-        res.connect()
-        self.__connections.append(res)
-        return res
+        return self.register_connection(TmuxConnection(self._connection, session, window))
 
     @expose
     def run(self, command: str) -> 'CommandOutput':

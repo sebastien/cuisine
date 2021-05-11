@@ -84,17 +84,17 @@ class API(Interface):
         """
           return self._connection.cd(path)
 
-     def connect(self, host=None, port=None, user=None, password=None, key: Union[str, pathlib.Path] = None, transport: Optional[str] = None) -> cuisine.connection.Connection:
+     def connect(self, host=None, port=None, user=None, password=None, key: Union[str, pathlib.Path] = None, transport: Optional[str] = None) -> ContextManager:
           """Connects to the given host/port using the given user/password/key_path credentials. Note that
         not all connection types support all these arguments, so you might get warnings if they are
         not supported."""
           return self._connection.connect(host, port, user, password, key, transport)
 
-     def connect_local(self) -> cuisine.connection.Connection:
+     def connect_local(self) -> ContextManager:
           """None"""
           return self._connection.connect_local()
 
-     def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> cuisine.connection.Connection:
+     def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
           """None"""
           return self._connection.connect_paramiko(host, port, user, password, key)
 

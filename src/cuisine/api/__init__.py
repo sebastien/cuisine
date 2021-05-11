@@ -106,7 +106,7 @@ def toNamespace() -> Iterable[str]:
     for method_name, method in sorted(set((_[2], _[3]) for _ in data)):
         # We erase the leading type
         sig = inspect.signature(method)
-        sig_str = str(sig).replace("self,", "")
+        sig_str = str(sig).replace("self,", "").replace("(self)", "()")
         yield f"\ndef {method_name}{sig_str}:"
         yield f"{TAB}\"\"\"{method.__doc__}\"\"\""
         args = ", ".join([_ for _ in sig.parameters][1:])
