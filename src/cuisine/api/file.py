@@ -201,8 +201,8 @@ class FileAPI(API):
         if self.file_exists(path):
             self.api.run(f"unlink {shell_safe(path)}")
 
-    @ expose
-    @ logged
+    @expose
+    @logged
     def file_link(self, source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
         optionally setting its mode/owner/group."""
@@ -224,8 +224,8 @@ class FileAPI(API):
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
-    @ expose
-    @ logged
+    @expose
+    @logged
     def file_base64(self, path: str):
         """Returns the base64-encoded content of the file at the given path."""
         if env_get(OPTION_HASH) == "python":
@@ -233,7 +233,8 @@ class FileAPI(API):
         else:
             return run("cat {0} | openssl base64".format(shell_safe((path))))
 
-    @ logged
+    @expose
+    @logged
     def file_sha256(self, path: str):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given path."""
         # NOTE: In some cases, sudo can output errors in here -- but the errors will

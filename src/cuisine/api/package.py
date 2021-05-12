@@ -219,13 +219,15 @@ class PackageYUMAPI(APIModule):
             self.api.sudo("yum -y update")
         if type(package) in (list, tuple):
             package = " ".join(package)
-        self.api.sudo("yum -y install %s" % (package))
+        if not self.api.sudo(f"yum -y install {package} && echo OK").value.endswith("OK"):
+            return self.api.fail()
+        else:
+            return True
 
     @expose
     @variant("yum")
     def package_ensure_yum(self, package, update=False):
-        status = self.api.run("yum list installed %s ; true" % package)
-        if status.find("No matching Packages") != -1 or status.find(package) == -1:
+        if not self.api.run(f"yum list installed {package} && echo OK").value.endswith("OK"):
             self.package_install_yum(package, update)
             return False
         else:

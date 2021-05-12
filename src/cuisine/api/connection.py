@@ -10,8 +10,7 @@ from pathlib import Path
 
 
 class ConnectionContext(ContextManager):
-    """Automatically diconnects a connection
-    path to where it was."""
+    """Automatically disconnects a connection path to where it was."""
 
     def __init__(self, connection: 'Connection'):
         self.connection = connection
@@ -21,7 +20,6 @@ class ConnectionContext(ContextManager):
         self.has_entered = True
 
     def __exit__(self, type, value, traceback):
-        print("Has entered?")
         if self.has_entered:
             self.connection.disconnect()
 
@@ -54,6 +52,10 @@ class Connection(APIModule):
     @property
     def _connection(self) -> Connection:
         return self.__connections[-1]
+
+    @expose
+    def fail(self, message: Optional[str] = None):
+        self._connection.log.error(f"Failure: {message}")
 
     @expose
     def connection(self) -> Connection:
@@ -92,12 +94,12 @@ class Connection(APIModule):
                 raise RuntimeError(
                     f"Connection type not supported: {transport}")
             else:
-                return self.register_connection(connection_creator(
-                    host=host, port=port, user=user, password=password, key=key))
+                return connection_creator(
+                    host=host, port=port, user=user, password=password, key=key)
 
     @expose
     def disconnect(self) -> Optional[Connection]:
-        """Disconnects from the current connection unless it's the default
+        """Disconnects from the current connection unless it'"s the default
         local connection."""
         if len(self.__connections) > 1:
             conn = self.__connections.pop()
@@ -125,17 +127,17 @@ class Connection(APIModule):
     def run(self, command: str) -> 'CommandOutput':
         return self._connection.run(command)
 
-    @ expose
+    @expose
     def run_local(self, command: str) -> 'CommandOutput':
         local_connection = self.__connections[0]
         assert isinstance(local_connection, LocalConnection)
         return local_connection.run(command)
 
-    @ expose
+    @expose
     def sudo(self, command: str) -> 'CommandOutput':
         return self._connection.run(prefix_command(command, "sudo"))
 
-    @ expose
+    @expose
     def cd(self, path: str) -> ContextManager:
         """Changes the current connection path, returning a context that can be
         used like so:

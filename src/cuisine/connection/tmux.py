@@ -2,8 +2,12 @@ from ..utils import single_quote_safe, timenum
 from typing import Optional, List
 from pathlib import Path
 import time
+import re
 
 from ..connection import Connection, CommandOutput
+
+
+RE_TMUX_FIELDS = re.compile(r"\[[^\]]+\]|\([^\)]+\)|[^ ]+")
 
 
 class TmuxConnection(Connection):
@@ -39,6 +43,8 @@ class TmuxConnection(Connection):
                       f"cd '{single_quote_safe(path)}'")
 
 
+# TODO: We might want to change that so that an instance is not required, and
+# we just have flat class methods.
 class Tmux:
     """A simple wrapper around the `tmux`  terminal multiplexer that allows to
     create sessions and windows and execute arbitrary code in it.
@@ -62,12 +68,13 @@ class Tmux:
             return str(res.out_nocolor)
         else:
             self.connection.log.error(
-                "Could not run Tmux command '{command}' through connection '{self.connection.prompt()}'")
+                f"Could not run Tmux command '{command}' through connection '{self.connection.prompt()}'")
+            return ""
 
     def session_list(self) -> List[str]:
         """Returns the list of sessions"""
         sessions = self.command("list-session").split("\n")
-        return [_ for _ in (_.split(":")[0] for _ in sessions) if _]
+        return [_.split(":", 1)[0] for _ in sessions if _]
 
     def session_ensure(self, session: str) -> bool:
         """Ensures that the given session exists."""
@@ -92,18 +99,20 @@ class Tmux:
         # OUTPUT is like:
         # 1: ONE- (1 panes) [122x45] [layout bffe,122x45,0,0,1] @1
         # 2: ONE* (1 panes) [122x45] [layout bfff,122x45,0,0,2] @2 (active)
-        for window in windows:
-            index, name = window.split(":", 1)
-            name = name.split("(", 1)[0].split("[")[0].strip()
-            if name[-1] in "*-":
-                name = name[:-1]
-            res.append((int(index), name, window.endswith("(active)")))
+        # 2: service@ip-172-31-15-180:~/dist* (1 panes) [80x23] [layout ae5f,80x23,0,0,2] @2 (active)
+        for line in windows:
+            fields = [_.group() for _ in RE_TMUX_FIELDS.finditer(line)]
+            if len(fields) >= 2:
+                index = int(fields[0][:-1])
+                name = (fields[1][:-1] if fields[1][-1]
+                        in "*-" else fields[1]).split("@", 1)[0].split(":", 1)[0]
+            res.append(name)
         return res
 
     def window_get(self, session: str, window: str) -> List[str]:
         if not self.session_has(session):
             return []
-        return ([_ for _ in self.window_list(session) if _[1] == window or _[0] == window])
+        return window in self.window_list(session)
 
     def window_has(self, session: str, window: str) -> bool:
         return bool(self.window_get(session, window)) if self.session_has(session) else False
