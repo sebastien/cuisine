@@ -82,7 +82,7 @@ def connect_paramiko( host=None, port=None, user=None, password=None, key: Optio
      """None"""
      return default_api().connect_paramiko(host, port, user, password, key)
 
-def connect_tmux( session: str, window: str) -> cuisine.connection.Connection:
+def connect_tmux( session: str, window: str) -> ContextManager:
      """Creates a new connection using the TmuxConnection"""
      return default_api().connect_tmux(session, window)
 
@@ -210,6 +210,10 @@ def file_read( path, default=None):
      """Reads the *remote* file at the given path, if default is not `None`,
         default will be returned if the file does not exist."""
      return default_api().file_read(path, default)
+
+def file_sha256( path: str):
+     """Returns the SHA-256 sum (as a hex string) for the remote file at the given path."""
+     return default_api().file_sha256(path)
 
 def file_unlink( path: str):
      """Removes the given file path if it exists"""
@@ -402,6 +406,10 @@ def select_python_package( type: str) -> bool:
 def sudo( command: str) -> 'CommandOutput':
      """None"""
      return default_api().sudo(command)
+
+def tmux_is_responsive( session: str, window: str) -> bool:
+     """None"""
+     return default_api().tmux_is_responsive(session, window)
 
 def tmux_session_list() -> List[str]:
      """None"""

@@ -76,7 +76,7 @@ class API:
           """None"""
           raise NotImplementedError
 
-     def connect_tmux(self, session: str, window: str) -> cuisine.connection.Connection:
+     def connect_tmux(self, session: str, window: str) -> ContextManager:
           """Creates a new connection using the TmuxConnection"""
           raise NotImplementedError
 
@@ -216,6 +216,10 @@ class API:
      def file_read(self, path, default=None):
           """Reads the *remote* file at the given path, if default is not `None`,
         default will be returned if the file does not exist."""
+          raise NotImplementedError
+
+     def file_sha256(self, path: str):
+          """Returns the SHA-256 sum (as a hex string) for the remote file at the given path."""
           raise NotImplementedError
 
      def file_unlink(self, path: str):
@@ -394,6 +398,10 @@ class API:
           raise NotImplementedError
 
      def select_python_package(self, type: str) -> bool:
+          """None"""
+          raise NotImplementedError
+
+     def tmux_is_responsive(self, session: str, window: str) -> bool:
           """None"""
           raise NotImplementedError
 

@@ -7,20 +7,21 @@ import re
 from ..connection import Connection, CommandOutput
 
 
+# SEE: https://gist.github.com/henrik/1967800
 RE_TMUX_FIELDS = re.compile(r"\[[^\]]+\]|\([^\)]+\)|[^ ]+")
 
 
 class TmuxConnection(Connection):
 
-    def __init__(self, connection: Connection, session: str, window: str):
+    def __init__(self, connection: Connection, session: str, window: int = 0):
         super().__init__()
         self._connection = connection
-        self.session = session
-        self.window = window
+        self.session: str = session
+        self.window: int = window
         self.tmux = Tmux(connection)
 
     def prompt(self):
-        return f"{self._connection.prompt()}[tmux:{self.session}.{self.window}]"
+        return f"{self._connection.prompt()}[tmux:{self.session}:{self.window}]"
 
     def _connect(self):
         if not self._connection.is_connected:
@@ -55,7 +56,7 @@ class Tmux:
         """The Tmux wrapper takes a regular connection"""
         self.connection = connection
 
-    def command(self, command: str, silent=False) -> str:
+    def command(self, command: str, silent=True) -> str:
         """Executes the given Tmux command, given directly to the connection
         as arguments to `tmux …`."""
         cmd = f"tmux {command}"
@@ -89,7 +90,7 @@ class Tmux:
         """Tells if the given session exists or not."""
         return session in self.session_list()
 
-    def window_list(self, session: str) -> List[str]:
+    def window_list(self, session: str) -> List[int]:
         """Retuns the list of windows in the given session"""
         if not self.session_has(session):
             return []
@@ -104,23 +105,26 @@ class Tmux:
             fields = [_.group() for _ in RE_TMUX_FIELDS.finditer(line)]
             if len(fields) >= 2:
                 index = int(fields[0][:-1])
-                name = (fields[1][:-1] if fields[1][-1]
-                        in "*-" else fields[1]).split("@", 1)[0].split(":", 1)[0]
-            res.append(name)
+                # TODO: If we want, we could use the name
+                # name = (fields[1][:-1] if fields[1][-1]
+                #         in "*-" else fields[1]).split("@", 1)[0].split(":", 1)[0]
+            res.append(index)
         return res
 
-    def window_get(self, session: str, window: str) -> List[str]:
+    def window_get(self, session: str, window: int) -> List[str]:
         if not self.session_has(session):
             return []
         return window in self.window_list(session)
 
-    def window_has(self, session: str, window: str) -> bool:
+    def window_has(self, session: str, window: int) -> bool:
         return bool(self.window_get(session, window)) if self.session_has(session) else False
 
-    def window_ensure(self, session: str, window: str) -> bool:
+    def window_ensure(self, session: str, window: int) -> bool:
         self.session_ensure(session)
         if not self.window_get(session, window):
-            self.command(f"new-window -t {session} -n {window}")
+            self.command(
+                f"set-option -g allow-rename off \\; new-window -t {session} -n {window} \\; set-window -g automatic-rename off ")
+
             return False
         else:
             return True
@@ -129,34 +133,34 @@ class Tmux:
         if not self.session_has(session):
             return False
         res = False
-        for i, window, is_active in self.window_list(session):
+        for window in self.window_list(session):
             self.window_kill(session, window)
             res = True
         return res
 
-    def window_kill(self, session: str, window: str) -> bool:
+    def window_kill(self, session: str, window: int) -> bool:
         if not self.session_has(session):
             return False
         res = False
-        for i, window, is_active in self.window_get(session, window):
+        for window in self.window_get(session, window):
             self.command(f"kill-window -t {session}:{i}")
             res = True
         return res
 
-    def read(self, session: str, window: str) -> str:
+    def read(self, session: str, window: int) -> str:
         """Reads from the given session and window"""
         return self.command(f"capture-pane -t {session}:{window} \\; save-buffer -", silent=True)
 
-    def write(self, session: str, window: str, commands: str):
+    def write(self, session: str, window: int, commands: str):
         self.command(
             f"send-keys -t {session}:{window}  '{single_quote_safe(commands)}'")
         self.command(f"send-keys -t {session}:{window} C-m")
 
-    def halt(self, session: str, window: str):
+    def halt(self, session: str, window: int):
         """Sends a `Ctrl-c` keystroke in this session."""
         self.command(f"send-keys -t {session}:{window} C-c")
 
-    def run(self, session: str, window: str, command: str, timeout=10, resolution=0.1) -> Optional[str]:
+    def run(self, session: str, window: int, command: str, timeout=2, resolution=0.1) -> Optional[str]:
         """This function allows to run a command and retrieve its output
         as given by the shell. It is quite error prone, as it will include
         your prompt styling and will only poll the output at `resolution` seconds
@@ -197,12 +201,11 @@ class Tmux:
         return "\n".join(result)
         # return output.rsplit(delimiter, 2)[-2].split("\n", 1)[-1] if found else None
 
-    def is_responsive(self, session: str, window: str, timeout=1, resolution=1):
+    def is_responsive(self, session: str, window: int, timeout: int = 1, resolution: float = 0.1) -> Optional[bool]:
         """Tells if the given session/window is responsive"""
-        is_responsive = False
         if self.session_has(session) and self.window_has(session, window):
             # Is the terminal responsive?
-            key = f"TMUX_ACTION_CHECK_{timenum}"
+            key = f"TMUX_ACTION_CHECK_{timenum()}"
             self.write(session, window, "echo " + key)
             key = "\n" + key
             for _ in range(int(timeout / resolution)):
@@ -211,7 +214,9 @@ class Tmux:
                 if not is_responsive:
                     time.sleep(resolution)
                 else:
-                    break
-        return is_responsive
+                    return True
+            return False
+        else:
+            return None
 
 # EOF

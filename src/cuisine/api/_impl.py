@@ -100,7 +100,7 @@ class API(Interface):
           """None"""
           return self._connection.connect_paramiko(host, port, user, password, key)
 
-     def connect_tmux(self, session: str, window: str) -> cuisine.connection.Connection:
+     def connect_tmux(self, session: str, window: str) -> ContextManager:
           """Creates a new connection using the TmuxConnection"""
           return self._connection.connect_tmux(session, window)
 
@@ -241,6 +241,10 @@ class API(Interface):
           """Reads the *remote* file at the given path, if default is not `None`,
         default will be returned if the file does not exist."""
           return self._file.file_read(path, default)
+
+     def file_sha256(self, path: str):
+          """Returns the SHA-256 sum (as a hex string) for the remote file at the given path."""
+          return self._file.file_sha256(path)
 
      def file_unlink(self, path: str):
           """Removes the given file path if it exists"""
@@ -420,6 +424,10 @@ class API(Interface):
      def select_python_package(self, type: str) -> bool:
           """None"""
           return self._pythonpackage.select_python_package(type)
+
+     def tmux_is_responsive(self, session: str, window: str) -> bool:
+          """None"""
+          return self._tmux.tmux_is_responsive(session, window)
 
      def tmux_session_list(self) -> List[str]:
           """None"""

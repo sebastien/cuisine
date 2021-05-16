@@ -119,7 +119,7 @@ class Connection(APIModule):
         return self.register_connection(ParamikoConnection(host=host, port=port, user=user, password=password, key=key))
 
     @expose
-    def connect_tmux(self, session: str, window: str) -> Connection:
+    def connect_tmux(self, session: str, window: str) -> ContextManager:
         """Creates a new connection using the TmuxConnection"""
         return self.register_connection(TmuxConnection(self._connection, session, window))
 
