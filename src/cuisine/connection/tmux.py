@@ -174,31 +174,24 @@ class Tmux:
         self.write(
             session, window, f"echo {start_delimiter};{command};echo {end_delimiter};")
         # TODO: This should be a new thread
-        result: List[str] = []
+        result: str = ""
         for _ in range(int(timeout / resolution)):
             # FIXME: We should find a better way to capture TMux's output. Either
             # we're detecting the new lines (starting from the bottom) and adding
             # them, or we find some other way to do that.
             output = self.read(session, window)
-            is_output = False
-            has_finished = False
-            for line in output.split("\n"):
-                if line == start_delimiter:
-                    is_output = True
-                elif line == end_delimiter:
-                    is_output = False
-                    has_finished = True
-                elif is_output:
-                    result.append(line)
-            if has_finished:
-                break
-            else:
-                time.sleep(resolution)
+            chunk = output.rsplit(start_delimiter, 1)
+            if len(chunk) == 2:
+                chunk = chunk[1].rsplit(end_delimiter, 1)
+                if len(chunk) == 2:
+                    result = chunk[0]
+                    break
+            time.sleep(resolution)
         # The command output will be conveniently placed after the `echo
         # CMD_XXX` and before the output `CMD_XXX`. We use negative indexes
         # to avoid access problems when the program's output is too long.
         # print(repr(output))
-        return "\n".join(result)
+        return result
         # return output.rsplit(delimiter, 2)[-2].split("\n", 1)[-1] if found else None
 
     def is_responsive(self, session: str, window: int, timeout: int = 1, resolution: float = 0.1) -> Optional[bool]:

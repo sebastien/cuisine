@@ -1,6 +1,7 @@
 from ..api import APIModule
 from ..decorators import expose
 from typing import Optional
+import os
 
 
 class Environment(APIModule):
@@ -10,13 +11,15 @@ class Environment(APIModule):
     def env_get(self, variable: str, default: Optional[str] = None) -> str:
         """Returns the given `variable` from the connection's environment, returning
         `default` if not found."""
-        raise NotImplementedError
+        return os.environ[variable] if variable in os.environ else default or ""
 
     @expose
     def env_set(self, variable: str, value: str) -> str:
         """Sets the given `variable` in the connection's environment, returning
         `default` if not found."""
-        raise NotImplementedError
+        previous = self.env_get(variable)
+        os.environ[variable] = value
+        return previous
 
     @expose
     def env_clear(self, variable: str) -> str:

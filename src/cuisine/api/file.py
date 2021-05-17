@@ -144,7 +144,7 @@ class FileAPI(API):
         file must exist and have the same signature."""
         if not os.path.exists(local):
             return False
-        if not self.file_exits(remote):
+        if not self.api.file_exits(remote):
             return False
         with open(local, "rb") as f:
             content = f.read()
@@ -152,10 +152,12 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_upload(self, local, remote):
+    def file_upload(self, local: str, remote: str):
         """Uploads the local file to the remote path only if the remote path does not
         exists or the content are different."""
         # FIXME: Big files are never transferred properly!
+        assert os.path.exists(
+            local), f"Cannot upload, local file does not exists: {local}"
         self.api.connection().upload(remote, local)
 
     @expose
@@ -226,12 +228,15 @@ class FileAPI(API):
 
     @expose
     @logged
+    @requires("python", "cat", "openssl")
     def file_base64(self, path: str):
         """Returns the base64-encoded content of the file at the given path."""
-        if env_get(OPTION_HASH) == "python":
-            return run("cat {0} | python -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read()))'".format(shell_safe((path))))
+        # TODO: Support options
+        option_hash = self.api.config_get("hash", "python")
+        if option_hash == "python":
+            return self.api.run(f"cat {shell_safe(path)} | {self.api.command('python')} -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read()))'")
         else:
-            return run("cat {0} | openssl base64".format(shell_safe((path))))
+            return run(f"cat {shell_safe(path)} | {self.api.command('openssl')} base64".format(shell_safe((path))))
 
     @expose
     @logged
@@ -240,17 +245,15 @@ class FileAPI(API):
         # NOTE: In some cases, sudo can output errors in here -- but the errors will
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
-        if env_get(OPTION_HASH) == "python":
-            if not _hashlib_supported():
-                raise EnvironmentError(
-                    "Remote host has not hashlib support. Please, use select_hash('openssl')")
-            if file_exists(path):
-                return run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((path))))
+        option_hash = self.api.config_get("hash", "python")
+        if option_hash == "python":
+            if self.file_exists(path):
+                return self.api.run(f"cat {shell_safe(path)} | ${self.api.command('python')} -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'")
             else:
                 return None
         else:
-            if file_exists(path):
-                return run('openssl dgst -sha256 %s' % (shell_safe(path))).split("\n")[-1].split(")= ", 1)[-1].strip()
+            if self.file_exists(path):
+                return self.api.run('openssl dgst -sha256 %s' % (shell_safe(path))).split("\n")[-1].split(")= ", 1)[-1].strip()
             else:
                 return None
 
@@ -264,9 +267,6 @@ class FileAPI(API):
         # be on the safe side.
         # FIXME: This should go through the options
         if self.api.env_get(OPTION_HASH) == "python":
-            if not _hashlib_supported():
-                raise EnvironmentError(
-                    "Remote host has not hashlib support. Please, use select_hash('openssl')")
             if self.file_exists(path):
                 return self.api.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((path))))
             else:
