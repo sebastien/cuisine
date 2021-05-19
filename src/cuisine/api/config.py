@@ -54,10 +54,4 @@ class Configuration(APIModule):
         else:
             return self.config_get(f"default.{group}")
 
-    @expose
-    def config_command(self, command: str) -> str:
-        """Returns the normalized/configured command replacing the given
-        command."""
-        return command
-
 # EOF

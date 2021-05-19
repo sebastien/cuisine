@@ -39,25 +39,25 @@ class PythonPIPPackage(APIModule):
 
     @expose
     def python_package_upgrade_pip(self, package=None, local=True):
-        pip = self.api.config_command("pip")
+        pip = self.api.command("pip")
         self.api.run(
             f"{pip} install {'--user' if local else ''} --upgrade {package}")
 
     @expose
     def python_package_install_pip(self, package=None, local=True):
-        pip = self.api.config_command("pip")
+        pip = self.api.command("pip")
         self.api.run(
             f"{pip} install {'--user' if local else ''} --upgrade {package}")
 
     @expose
     def python_package_ensure_pip(self, package=None, local=True):
-        pip = self.api.config_command("pip")
+        pip = self.api.command("pip")
         self.api.run(
             f"{pip} install {'--user' if local else ''} --upgrade {package}")
 
     @expose
     def python_package_remove_pip(self, package, local=True):
-        pip = self.api.config_command("pip")
+        pip = self.api.command("pip")
         self.api.run(
             f"${pip} install {'--user' if local else ''} --upgrade {package}")
 
@@ -70,14 +70,14 @@ class PythonEIPackage:
         The "package" argument, defines the name of the package that will be upgraded.
         '''
         self.api.run(
-            f"{self.api.config_command('easy_install')} --upgrade '{package}")
+            f"{self.api.command('easy_install')} --upgrade '{package}")
 
     @expose
     def python_package_install_easy_install(self, package):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
-        self.api.run(f"{self.api.config_command('easy_install')} '{package}")
+        self.api.run(f"{self.api.command('easy_install')} '{package}")
 
     @expose
     def python_package_ensure_easy_install(self, package):
@@ -96,6 +96,6 @@ class PythonEIPackage:
         '''
         # FIXME: this will not remove egg file etc.
         self.api.run(
-            f"{self.api.config_command('easy_install')} -m '{package}")
+            f"{self.api.command('easy_install')} -m '{package}")
 
 # EOF

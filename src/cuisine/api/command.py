@@ -5,6 +5,8 @@ from ..decorators import requires, expose
 RE_COMMAND = re.compile(r"\s*([A-Za-z0-9\-]+)(.*)")
 
 DEFAULT_COMMANDS = {
+    "pip": "python -m pip",
+    "python": "python3",
 }
 
 

@@ -190,7 +190,6 @@ class Tmux:
         # The command output will be conveniently placed after the `echo
         # CMD_XXX` and before the output `CMD_XXX`. We use negative indexes
         # to avoid access problems when the program's output is too long.
-        # print(repr(output))
         return result
         # return output.rsplit(delimiter, 2)[-2].split("\n", 1)[-1] if found else None
 

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Union
 import os
 import datetime
 import re
@@ -21,9 +22,9 @@ def strip_ansi(data: str) -> str:
     return RE_ANSI_ESCAPE.sub('', data)
 
 
-def shell_safe(path: str) -> str:
+def shell_safe(path: Union[Path, str]) -> str:
     """Makes sure that the given path/string is escaped and safe for shell"""
-    return "".join([("\\" + _) if _ in " '\";`|" else _ for _ in path])
+    return "".join([("\\" + _) if _ in " '\";`|" else _ for _ in str(path)])
 
 
 def single_quote_safe(line: str) -> str:

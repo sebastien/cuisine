@@ -158,6 +158,7 @@ class FileAPI(API):
         # FIXME: Big files are never transferred properly!
         assert os.path.exists(
             local), f"Cannot upload, local file does not exists: {local}"
+        self.api.dir_ensure(os.path.dirname(remote))
         self.api.connection().upload(remote, local)
 
     @expose
