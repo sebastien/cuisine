@@ -26,7 +26,7 @@ def ssh_keygen(user, keytype="dsa"):
 def ssh_authorize(user, key):
     """Adds the given key to the '.ssh/authorized_keys' for the given
     user."""
-    d = user_check(user, need_passwd=False)
+    d = self.api.user_get(user, need_passwd=False)
     group = d["gid"]
     keyf = d["home"] + "/.ssh/authorized_keys"
     if key[-1] != "\n":
@@ -58,5 +58,3 @@ def ssh_unauthorize(user, key):
         return True
     else:
         return False
-
-

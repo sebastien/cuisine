@@ -21,25 +21,25 @@ class Text(unittest.TestCase):
 class Users(unittest.TestCase):
 
     def testUserCheck(self):
-        user_data = cuisine.user_check(USER)
+        user_data = cuisine.user_get(USER)
         assert user_data
         assert user_data["name"] == USER
-        assert user_data == cuisine.user_check(name=USER)
-        # We ensure that user_check works with uid and name
-        assert cuisine.user_check(uid=user_data["uid"])
-        assert cuisine.user_check(uid=user_data["uid"])[
+        assert user_data == cuisine.user_get(name=USER)
+        # We ensure that user_get works with uid and name
+        assert cuisine.user_get(uid=user_data["uid"])
+        assert cuisine.user_get(uid=user_data["uid"])[
             "name"] == user_data["name"]
 
     def testUserCheckNeedPasswd(self):
-        user_data = cuisine.user_check(USER, need_passwd=False)
-        user_data_with_passwd = cuisine.user_check(name=USER)
+        user_data = cuisine.user_get(USER, need_passwd=False)
+        user_data_with_passwd = cuisine.user_get(name=USER)
         assert user_data
         assert user_data["name"] == USER
         assert 'passwd' in user_data_with_passwd
         assert 'passwd' not in user_data
-        # We ensure that user_check works with uid and name
-        assert cuisine.user_check(uid=user_data["uid"], need_passwd=False)
-        assert cuisine.user_check(uid=user_data["uid"], need_passwd=False)[
+        # We ensure that user_get works with uid and name
+        assert cuisine.user_get(uid=user_data["uid"], need_passwd=False)
+        assert cuisine.user_get(uid=user_data["uid"], need_passwd=False)[
             "name"] == user_data["name"]
 
 
@@ -248,14 +248,14 @@ class SSHKeys(unittest.TestCase):
 
     def testAuthorize(self):
         cuisine.ssh_authorize(USER, self.key)
-        d = cuisine.user_check(USER, need_passwd=False)
+        d = cuisine.user_get(USER, need_passwd=False)
         keyf = d["home"] + "/.ssh/authorized_keys"
         keys = [line.strip() for line in open(keyf)]
         assert keys.count(self.key) == 1
 
     def testUnauthorize(self):
         cuisine.ssh_unauthorize(USER, self.key)
-        d = cuisine.user_check(USER, need_passwd=False)
+        d = cuisine.user_get(USER, need_passwd=False)
         keyf = d["home"] + "/.ssh/authorized_keys"
         keys = [line.strip() for line in open(keyf)]
         assert keys.count(self.key) == 0

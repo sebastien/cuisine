@@ -15,6 +15,7 @@ class API(Interface):
           import cuisine.api.package as cuisine_api_package
           import cuisine.api.packages_python as cuisine_api_packages_python
           import cuisine.api.tmux as cuisine_api_tmux
+          import cuisine.api.user as cuisine_api_user
           self._command = cuisine_api_command.CommandAPI(self)
           self._configuration = cuisine_api_config.Configuration(self)
           self._connection = cuisine_api_connection.Connection(self)
@@ -27,6 +28,8 @@ class API(Interface):
           self._pythonpippackage = cuisine_api_packages_python.PythonPIPPackage(self)
           self._pythonpackage = cuisine_api_packages_python.PythonPackageAPI(self)
           self._tmux = cuisine_api_tmux.TmuxAPI(self)
+          self._linuxuser = cuisine_api_user.LinuxUserAPI(self)
+          self._user = cuisine_api_user.UserAPI(self)
 
      def command(self, name: str) -> str:
           """Returns the normalized command name. This first tries to find a match
@@ -48,11 +51,6 @@ class API(Interface):
           """Clears the given `variable` from connection's environment.
         `default` if not found."""
           return self._configuration.config_clear(variable)
-
-     def config_command(self, command: str) -> str:
-          """Returns the normalized/configured command replacing the given
-        command."""
-          return self._configuration.config_command(command)
 
      def config_get(self, variable: str, default: Optional[str] = None) -> Optional[str]:
           """Returns the given `variable` from the connection's environment, returning
@@ -266,7 +264,7 @@ class API(Interface):
         """
           return self._file.file_update(path, updater)
 
-     def file_upload(self, local, remote):
+     def file_upload(self, local: str, remote: str):
           """Uploads the local file to the remote path only if the remote path does not
         exists or the content are different."""
           return self._file.file_upload(local, remote)
@@ -275,6 +273,31 @@ class API(Interface):
           """Writes the given content to the file at the given remote
         path, optionally setting mode/owner/group."""
           return self._file.file_write(path, content, mode, owner, group, sudo, check, scp)
+
+     def user_create_linux(self, name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+          """None"""
+          return self._linuxuser.user_create_linux(name, passwd, home, uid, gid, shell, uid_min, uid_max, encrypted_passwd, fullname, create_home)
+
+     def user_ensure_linux(self, name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+          """None"""
+          return self._linuxuser.user_ensure_linux(name, passwd, home, uid, gid, shell, uid_min, uid_max, encrypted_passwd, fullname, create_home)
+
+     def user_exists_linux(self, name: str) -> bool:
+          """None"""
+          return self._linuxuser.user_exists_linux(name)
+
+     def user_get_linux(self, name: str = None, uid: int = None):
+          """None"""
+          return self._linuxuser.user_get_linux(name, uid)
+
+     def user_passwd_linux(self, name: str, passwd: str, encrypted_passwd=True):
+          """Sets the given user password. Password is expected to be encrypted by default."""
+          return self._linuxuser.user_passwd_linux(name, passwd, encrypted_passwd)
+
+     def user_remove_linux(self, name: str, remove_home: bool = False):
+          """Removes the user with the given name, optionally
+        removing the home directory and mail spool."""
+          return self._linuxuser.user_remove_linux(name, remove_home)
 
      def detect_package(self) -> str:
           """Automatically detects the type of package"""
@@ -436,5 +459,42 @@ class API(Interface):
      def tmux_window_list(self, session: str) -> List[str]:
           """None"""
           return self._tmux.tmux_window_list(session)
+
+     def detect_user(self) -> str:
+          """None"""
+          return self._user.detect_user()
+
+     def user_create(self, name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+          """Creates the user with the given name, optionally giving a
+        specific password/home/uid/gid/shell."""
+          return self._user.user_create(name, passwd, home, uid, gid, shell, uid_min, uid_max, encrypted_passwd, fullname, create_home)
+
+     def user_ensure(self, name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+          """Ensures that the given users exists, optionally updating their
+        passwd/home/uid/gid/shell."""
+          return self._user.user_ensure(name, passwd, home, uid, gid, shell, uid_min, uid_max, encrypted_passwd, fullname, create_home)
+
+     def user_exists(self, name: str) -> bool:
+          """Tells if the user exists."""
+          return self._user.user_exists(name)
+
+     def user_get(self, name: Optional[str] = None, uid: Optional[int] = None) -> Dict:
+          """Checks if there is a user defined with the given name,
+        returning its information as a
+        '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
+        or 'None' if the user does not exists.
+        need_passwd (Boolean) indicates if password to be included in result or not.
+                If set to True it parses 'getent shadow' and needs sudo access
+        """
+          return self._user.user_get(name, uid)
+
+     def user_passwd(self, name: str, passwd: str, encrypted_passwd=True):
+          """Sets the given user password. Password is expected to be encrypted by default."""
+          return self._user.user_passwd(name, passwd, encrypted_passwd)
+
+     def user_remove(self, name: str, remove_home: bool = False):
+          """Removes the user with the given name, optionally
+        removing the home directory and mail spool."""
+          return self._user.user_remove(name, remove_home)
 
 # EOF

@@ -16,25 +16,25 @@ readonly-post=if [ -e "$1" ]; then chmod -w "$1" ; fi
 all: $(PRODUCT)
 
 release: $(PRODUCT)
-	git commit -a -m "Release $(VERSION)" ; true
-	git tag $(VERSION) ; true
-	git push --all ; true
-	python setup.py clean sdist register upload
+	@git commit -a -m "Release $(VERSION)" ; true
+	@git tag $(VERSION) ; true
+	@git push --all ; true
+	@python setup.py clean sdist register upload
 
 tests:
-	PYTHONPATH=src:$(PYTHONPATH) python tests/$(OS)/all.py
+	@PYTHONPATH=src:$(PYTHONPATH) python tests/$(OS)/all.py
 
 build-live:
-	echo $(SOURCES_PY) | xargs -n1 echo | entr make
+	@echo $(SOURCES_PY) | xargs -n1 echo | entr make
 
 clean:
 	@for FILE in $(PRODUCT); do if [ -f "$$FILE" ]; then unlink "$$FILE"; fi; done
 
 check:
-	pychecker -100 $(SOURCES)
+	@pychecker -100 $(SOURCES)
 
 test:
-	python tests/all.py
+	@python tests/all.py
 
 MANIFEST: $(MANIFEST)
 	echo $(MANIFEST) | xargs -n1 | sort | uniq > $@
@@ -42,19 +42,19 @@ MANIFEST: $(MANIFEST)
 # # Specific
 
 src/cuisine/api/_stub.py: $(filter src/cuisine/api/%,$(SOURCES_PY))
-	$(call readonly-pre,$@)
-	PYTHONPATH=src $(PYTHON) -m cuisine.api -t stub -o "$@"
-	$(call readonly-post,$@)
+	@$(call readonly-pre,$@)
+	@PYTHONPATH=src $(PYTHON) -m cuisine.api -t stub -o "$@"
+	@$(call readonly-post,$@)
 
 src/cuisine/api/_impl.py: $(filter src/cuisine/api/%,$(SOURCES_PY))
-	$(call readonly-pre,$@)
-	PYTHONPATH=src $(PYTHON) -m cuisine.api -t impl -o "$@"
-	$(call readonly-post,$@)
+	@$(call readonly-pre,$@)
+	@PYTHONPATH=src $(PYTHON) -m cuisine.api -t impl -o "$@"
+	@$(call readonly-post,$@)
 
 src/cuisine/api/_repl.py: $(filter src/cuisine/api/%,$(SOURCES_PY))
-	$(call readonly-pre,$@)
-	PYTHONPATH=src $(PYTHON) -m cuisine.api -t repl -o "$@"
-	$(call readonly-post,$@)
+	@$(call readonly-pre,$@)
+	@PYTHONPATH=src $(PYTHON) -m cuisine.api -t repl -o "$@"
+	@$(call readonly-post,$@)
 
 
 

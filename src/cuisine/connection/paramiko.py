@@ -45,8 +45,9 @@ class ParamikoConnection(Connection):
                 hostname=self.host,
                 username=self.user,
                 port=self.port,
-                key_filename=self.key,
-                look_for_keys=True
+                key_filename=str(self.key) if self.key else None,
+                look_for_keys=True,
+                timeout=5,
             ).items() if v is not None)
             client.connect(**kwargs)
         except self.paramiko_exceptions.AuthenticationException as e:

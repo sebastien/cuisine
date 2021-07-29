@@ -25,11 +25,6 @@ class API:
         `default` if not found."""
           raise NotImplementedError
 
-     def config_command(self, command: str) -> str:
-          """Returns the normalized/configured command replacing the given
-        command."""
-          raise NotImplementedError
-
      def config_get(self, variable: str, default: Optional[str] = None) -> Optional[str]:
           """Returns the given `variable` from the connection's environment, returning
         `default` if not found."""
@@ -242,7 +237,7 @@ class API:
         """
           raise NotImplementedError
 
-     def file_upload(self, local, remote):
+     def file_upload(self, local: str, remote: str):
           """Uploads the local file to the remote path only if the remote path does not
         exists or the content are different."""
           raise NotImplementedError
@@ -250,6 +245,31 @@ class API:
      def file_write(self, path: str, content: bytes, mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
           """Writes the given content to the file at the given remote
         path, optionally setting mode/owner/group."""
+          raise NotImplementedError
+
+     def user_create_linux(self, name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+          """None"""
+          raise NotImplementedError
+
+     def user_ensure_linux(self, name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+          """None"""
+          raise NotImplementedError
+
+     def user_exists_linux(self, name: str) -> bool:
+          """None"""
+          raise NotImplementedError
+
+     def user_get_linux(self, name: str = None, uid: int = None):
+          """None"""
+          raise NotImplementedError
+
+     def user_passwd_linux(self, name: str, passwd: str, encrypted_passwd=True):
+          """Sets the given user password. Password is expected to be encrypted by default."""
+          raise NotImplementedError
+
+     def user_remove_linux(self, name: str, remove_home: bool = False):
+          """Removes the user with the given name, optionally
+        removing the home directory and mail spool."""
           raise NotImplementedError
 
      def detect_package(self) -> str:
@@ -411,6 +431,43 @@ class API:
 
      def tmux_window_list(self, session: str) -> List[str]:
           """None"""
+          raise NotImplementedError
+
+     def detect_user(self) -> str:
+          """None"""
+          raise NotImplementedError
+
+     def user_create(self, name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+          """Creates the user with the given name, optionally giving a
+        specific password/home/uid/gid/shell."""
+          raise NotImplementedError
+
+     def user_ensure(self, name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+          """Ensures that the given users exists, optionally updating their
+        passwd/home/uid/gid/shell."""
+          raise NotImplementedError
+
+     def user_exists(self, name: str) -> bool:
+          """Tells if the user exists."""
+          raise NotImplementedError
+
+     def user_get(self, name: Optional[str] = None, uid: Optional[int] = None) -> Dict:
+          """Checks if there is a user defined with the given name,
+        returning its information as a
+        '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
+        or 'None' if the user does not exists.
+        need_passwd (Boolean) indicates if password to be included in result or not.
+                If set to True it parses 'getent shadow' and needs sudo access
+        """
+          raise NotImplementedError
+
+     def user_passwd(self, name: str, passwd: str, encrypted_passwd=True):
+          """Sets the given user password. Password is expected to be encrypted by default."""
+          raise NotImplementedError
+
+     def user_remove(self, name: str, remove_home: bool = False):
+          """Removes the user with the given name, optionally
+        removing the home directory and mail spool."""
           raise NotImplementedError
 
 # EOF

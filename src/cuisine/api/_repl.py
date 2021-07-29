@@ -44,11 +44,6 @@ def config_clear( variable: str) -> Optional[str]:
         `default` if not found."""
      return default_api().config_clear(variable)
 
-def config_command( command: str) -> str:
-     """Returns the normalized/configured command replacing the given
-        command."""
-     return default_api().config_command(command)
-
 def config_get( variable: str, default: Optional[str] = None) -> Optional[str]:
      """Returns the given `variable` from the connection's environment, returning
         `default` if not found."""
@@ -101,6 +96,10 @@ def detect_package() -> str:
 def detect_python_package() -> str:
      """Automatically detects the type of package"""
      return default_api().detect_python_package()
+
+def detect_user() -> str:
+     """None"""
+     return default_api().detect_user()
 
 def dir_attribs( path: str, mode=None, owner=None, group=None, recursive=False):
      """Updates the mode/owner/group for the given remote directory."""
@@ -235,7 +234,7 @@ def file_update( path: str, updater=None):
         """
      return default_api().file_update(path, updater)
 
-def file_upload( local, remote):
+def file_upload( local: str, remote: str):
      """Uploads the local file to the remote path only if the remote path does not
         exists or the content are different."""
      return default_api().file_upload(local, remote)
@@ -418,5 +417,63 @@ def tmux_session_list() -> List[str]:
 def tmux_window_list( session: str) -> List[str]:
      """None"""
      return default_api().tmux_window_list(session)
+
+def user_create( name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+     """Creates the user with the given name, optionally giving a
+        specific password/home/uid/gid/shell."""
+     return default_api().user_create(name, passwd, home, uid, gid, shell, uid_min, uid_max, encrypted_passwd, fullname, create_home)
+
+def user_create_linux( name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+     """None"""
+     return default_api().user_create_linux(name, passwd, home, uid, gid, shell, uid_min, uid_max, encrypted_passwd, fullname, create_home)
+
+def user_ensure( name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+     """Ensures that the given users exists, optionally updating their
+        passwd/home/uid/gid/shell."""
+     return default_api().user_ensure(name, passwd, home, uid, gid, shell, uid_min, uid_max, encrypted_passwd, fullname, create_home)
+
+def user_ensure_linux( name: str, passwd: Optional[str] = None, home: Optional[str] = None, uid: Optional[int] = None, gid: Optional[int] = None, shell: Optional[str] = None, uid_min: Optional[int] = None, uid_max: Optional[int] = None, encrypted_passwd: Optional[bool] = True, fullname: Optional[str] = None, create_home: Optional[bool] = True):
+     """None"""
+     return default_api().user_ensure_linux(name, passwd, home, uid, gid, shell, uid_min, uid_max, encrypted_passwd, fullname, create_home)
+
+def user_exists( name: str) -> bool:
+     """Tells if the user exists."""
+     return default_api().user_exists(name)
+
+def user_exists_linux( name: str) -> bool:
+     """None"""
+     return default_api().user_exists_linux(name)
+
+def user_get( name: Optional[str] = None, uid: Optional[int] = None) -> Dict:
+     """Checks if there is a user defined with the given name,
+        returning its information as a
+        '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
+        or 'None' if the user does not exists.
+        need_passwd (Boolean) indicates if password to be included in result or not.
+                If set to True it parses 'getent shadow' and needs sudo access
+        """
+     return default_api().user_get(name, uid)
+
+def user_get_linux( name: str = None, uid: int = None):
+     """None"""
+     return default_api().user_get_linux(name, uid)
+
+def user_passwd( name: str, passwd: str, encrypted_passwd=True):
+     """Sets the given user password. Password is expected to be encrypted by default."""
+     return default_api().user_passwd(name, passwd, encrypted_passwd)
+
+def user_passwd_linux( name: str, passwd: str, encrypted_passwd=True):
+     """Sets the given user password. Password is expected to be encrypted by default."""
+     return default_api().user_passwd_linux(name, passwd, encrypted_passwd)
+
+def user_remove( name: str, remove_home: bool = False):
+     """Removes the user with the given name, optionally
+        removing the home directory and mail spool."""
+     return default_api().user_remove(name, remove_home)
+
+def user_remove_linux( name: str, remove_home: bool = False):
+     """Removes the user with the given name, optionally
+        removing the home directory and mail spool."""
+     return default_api().user_remove_linux(name, remove_home)
 
 # EOF

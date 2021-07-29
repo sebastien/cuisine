@@ -1,9 +1,16 @@
 from pathlib import Path
 from typing import Union
+from typing import Dict, List
 import os
 import datetime
 import re
 
+
+# --
+# # Utilities
+#
+# This module contains functions that make it easier to work with shell data, mainly
+# around quoting, escaping and normalizing.
 
 # FROM: https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
 # 7-bit and 8-bit C1 ANSI sequences
@@ -33,9 +40,31 @@ def single_quote_safe(line: str) -> str:
     return line.replace("'", "'\"'\"'")
 
 
+def quoted(line: str) -> str:
+    return f"'{single_quote_safe(line)}'"
+
+
 def normalize_path(path: str) -> Path:
     """Normalizes the given path, expanding variables and user home."""
     return Path(os.path.normpath(os.path.expanduser(os.path.expandvars(path))))
+
+
+def make_options_str(options: Dict[str, Union[None, str, int, bool]]) -> str:
+    """Like `make_options`, but returning a string"""
+    return " ".join(make_options(options)) or ""
+
+
+def make_options(options: Dict[str, Union[None, str, int, bool]]) -> List[str]:
+    """Converts a dict of options to a string."""
+    res: List[str] = []
+    for k, v in options.items():
+        if v in (None, False):
+            continue
+        if v is True:
+            res.append(k)
+        else:
+            res.append(f"{k}{quoted(v)}")
+    return res
 
 
 def prefix_command(command: str, prefix: str) -> str:
