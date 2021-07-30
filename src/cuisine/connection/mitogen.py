@@ -71,4 +71,8 @@ class MitogenConnection(Connection):
         else:
             return CommandOutput(self.context.call(run_local_raw, command))
 
+    def _disconnect(self):
+        self.context.shutdown(wait=True)
+        self.context = None
+
 # EOF
