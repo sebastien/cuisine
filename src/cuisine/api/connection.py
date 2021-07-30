@@ -1,10 +1,10 @@
 from cuisine.connection.paramiko import ParamikoConnection
+from cuisine.connection.mitogen import MitogenConnection
 from cuisine.connection.tmux import TmuxConnection
 from ..connection import CommandOutput, Connection
 from ..connection.local import LocalConnection
 from ..api import APIModule
 from ..decorators import expose, dispatch, variant
-from ..utils import prefix_command
 from typing import Optional, ContextManager, Union, List
 from pathlib import Path
 
@@ -70,7 +70,7 @@ class Connection(APIModule):
     @expose
     def detect_connection(self) -> str:
         """Detects the recommended type of connection"""
-        return "paramiko"
+        return "mitogen"
 
     @expose
     def select_connection(self, type: str) -> bool:
@@ -83,7 +83,6 @@ class Connection(APIModule):
         """Connects to the given host/port using the given user/password/key_path credentials. Note that
         not all connection types support all these arguments, so you might get warnings if they are
         not supported."""
-        print(host, port, user, password, key)
         transport = transport or self.api.detect_connection() if host or port else "local"
         if transport == "local":
             assert not user, "Local user change is not supported yet"
@@ -119,6 +118,11 @@ class Connection(APIModule):
         return self.register_connection(ParamikoConnection(host=host, port=port, user=user, password=password, key=key))
 
     @expose
+    @variant("mitogen")
+    def connect_mitogen(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> ContextManager:
+        return self.register_connection(MitogenConnection(host=host, port=port, user=user, password=password, key=key))
+
+    @expose
     def connect_tmux(self, session: str, window: str) -> ContextManager:
         """Creates a new connection using the TmuxConnection"""
         return self.register_connection(TmuxConnection(self._connection, session, window))
@@ -134,8 +138,8 @@ class Connection(APIModule):
         return local_connection.run(command)
 
     @expose
-    def sudo(self, command: str) -> 'CommandOutput':
-        return self._connection.run(prefix_command(command, "sudo"))
+    def sudo(self, command: Optional[str] = None) -> Union[ContextManager, 'CommandOutput']:
+        return self._connection.sudo(command)
 
     @expose
     def cd(self, path: str) -> ContextManager:

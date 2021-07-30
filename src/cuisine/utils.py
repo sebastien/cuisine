@@ -89,4 +89,20 @@ def timenum():
     return "%04d%02d%02d%02d%02d%02d" % (
         n.year, n.month, n.day, n.hour, n.minute, n.second
     )
+
+
+def ssh_remove_known_host(ips: Union[str, List[str]]) -> bool:
+    known_hosts = Path("~/.ssh/known_hosts").expanduser()
+    all_ips = [ips] if isinstance(ips, str) else ips
+    if known_hosts.exists():
+        with open(known_hosts) as f:
+            lines = list(f.readlines())
+        filtered = [_ for _ in lines if _.split()[0] not in all_ips]
+        if len(lines) != len(filtered):
+            with open(known_hosts, "wt") as f:
+                f.write("".join(filtered))
+            return True
+    return False
+
+
 # EOF

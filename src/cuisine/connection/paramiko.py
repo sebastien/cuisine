@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 # SEE: https://gist.github.com/mlafeldt/841944
+# NOTE: Fedora still has a bug that prevents Paramiko to work https://bugzilla.redhat.com/show_bug.cgi?id=1775693
 
 
 class ParamikoConnection(Connection):
@@ -47,7 +48,7 @@ class ParamikoConnection(Connection):
                 port=self.port,
                 key_filename=str(self.key) if self.key else None,
                 look_for_keys=True,
-                timeout=5,
+                timeout=self.timeout,
             ).items() if v is not None)
             client.connect(**kwargs)
         except self.paramiko_exceptions.AuthenticationException as e:

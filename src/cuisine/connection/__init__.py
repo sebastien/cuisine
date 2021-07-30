@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
-from typing import Optional, Tuple, Any, List, Iterable, ContextManager
-from ..utils import shell_safe, strip_ansi
+from typing import Optional, Tuple, Any, List, Iterable, Union, ContextManager
+from ..utils import shell_safe, strip_ansi, prefix_command
 from .. import logging
 
 # =============================================================================
@@ -128,6 +128,19 @@ class CurrentPathContext(ContextManager):
             self.connection._cd(self.path)
 
 
+class SudoContext(ContextManager):
+    """A helper object that will temporarily set the connection to sudo."""
+
+    def __init__(self, connection: 'Connection'):
+        self.is_sudo = connection.is_sudo
+        self.connection = connection
+
+    def __enter__(self):
+        self.connection.is_sudo = True
+
+    def __exit__(self, type, value, traceback):
+        self.connection.is_sudo = self.is_sudo
+
 # =============================================================================
 #
 # CONNECTION
@@ -150,6 +163,8 @@ class Connection:
         self.user: Optional[str] = user
         self.host: Optional[str] = host
         self.port: Optional[int] = port
+        self.timeout: int = 5
+        self.is_sudo = False
         self.is_connected = False
         self.type = self.TYPE
         self._path: Optional[str] = None
@@ -158,6 +173,9 @@ class Connection:
         self.log.prompt = self.prompt
         self.on_disconnect = None
         self.init()
+
+    def init(self):
+        pass
 
     def prompt(self):
         res: List[str] = []
@@ -184,9 +202,6 @@ class Connection:
         # a directory.
         self.cd_prefix = f"cd '{shell_safe(value)}';"if value else ""
 
-    def init(self):
-        pass
-
     def connect(self, host: Optional[str] = None, port: Optional[int] = None, user: Optional[str] = None, password: Optional[str] = None, key: Optional[Path] = None):
         assert not self.is_connected, "Connection already made, call 'disconnect' first"
         self.host = host or self.host
@@ -207,10 +222,22 @@ class Connection:
         return self.connect(host, port)
 
     def run(self, command: str) -> Optional[CommandOutput]:
-        self.log.action("command", command)
-        res = self._run(command)
-        self.log.result(res.value if res else None, res.is_success)
-        return res
+        if self.is_sudo:
+            return self.sudo(command)
+        else:
+            self.log.action("command", command)
+            res = self._run(command)
+            self.log.result(res.value if res else None, res.is_success)
+            return res
+
+    def sudo(self, command: Optional[str] = None) -> Union[ContextManager, Optional[CommandOutput]]:
+        if not command:
+            return SudoContext(self)
+        else:
+            self.log.action("command.sudo", command)
+            res = self._sudo(command)
+            self.log.result(res.value if res else None, res.is_success)
+            return res
 
     def cd(self, path: str) -> CurrentPathContext:
         context = CurrentPathContext(self, self.path)
@@ -229,9 +256,8 @@ class Connection:
         return True
 
     def write(self, remote: str, content: bytes) -> bool:
-        self.log.action("write", remote)
-        """Writes the given content to the remote path"""
-        return True
+        self.log.action("write", remote, str(len(content)))
+        return self._write(remote, content)
 
     def disconnect(self) -> bool:
         self.log.action("disconnect")
@@ -246,8 +272,15 @@ class Connection:
     def _disconnect(self):
         raise NotImplementedError
 
+    def _write(self, path: str, content: bytes):
+        raise NotImplementedError
+
+    # FIXME: Arg #1 should be command
     def _run(self, path: str) -> Optional[CommandOutput]:
         raise NotImplementedError
+
+    def _sudo(self, command: str) -> Optional[CommandOutput]:
+        return self._run(prefix_command(command, "sudo"))
 
     def _upload(self, remove: str, source: Path):
         raise NotImplementedError

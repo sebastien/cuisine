@@ -2,10 +2,11 @@ import os.path
 import base64
 import tempfile
 import hashlib
+import os
 from ..api import APIModule as API
 from ..decorators import logged, expose, requires
-from ..utils import shell_safe
-from typing import Dict
+from ..utils import shell_safe, quoted
+from typing import Dict, Union, Optional
 
 
 class FileAPI(API):
@@ -33,22 +34,31 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_read(self, path, default=None):
+    def file_read(self, path: str) -> bytes:
         """Reads the *remote* file at the given path, if default is not `None`,
         default will be returned if the file does not exist."""
         # NOTE: We use base64 here to be sure to preserve the encoding (UNIX/DOC/MAC) of EOLs
-        if default is None:
-            assert self.file_exists(
-                path), "cuisine.file_read: file does not exists {0}".format(path)
-        elif not self.file_exists(path):
-            return default
-        frame = self.file_base64(path)
-        return base64.b64decode(frame)
+        if not self.file_exists(path):
+            return b""
+        else:
+            data = self.file_base64(path)
+            if not data:
+                return b""
+            else:
+                return base64.b64decode(data)
+
+    @expose
+    @logged
+    def file_read_str(self, path: str) -> str:
+        try:
+            return str(self.api.file_read(path), "utf8")
+        except UnicodeDecodeError as e:
+            raise RuntimeError(f"Cannot decode contents of file '{path}': {e}")
 
     @expose
     def file_exists(self, path: str) -> bool:
         """Tests if there is a *remote* file at the given path."""
-        return self.api.run(f"test -e '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
+        return self.api.run(f"test -e {quoted(path)}").is_success
 
     @expose
     def file_is_file(self, path: str):
@@ -66,6 +76,7 @@ class FileAPI(API):
         return self.api.run(f"test -L '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
 
     @logged
+    @expose
     def file_attribs(self, path: str, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         path."""
@@ -89,44 +100,29 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_write(self, path: str, content: bytes, mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
+    def file_write(self, path: str, content: Union[str, bytes], mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
         """Writes the given content to the file at the given remote
         path, optionally setting mode/owner/group."""
         # FIXME: Big files are never transferred properly!
         # Gets the content signature and write it to a secure tempfile
-        use_sudo = sudo if sudo is not None else is_sudo()
-        sig = hashlib.md5(content).hexdigest()
+        bytes_content = content if isinstance(
+            content, bytes) else bytes(content, "utf8")
+        self.api.dir_ensure(os.path.dirname(path))
+        sig = hashlib.md5(bytes_content).hexdigest()
         fd, local_path = tempfile.mkstemp()
-        os.write(fd, content)
+        os.write(fd, bytes_content)
         # Upload the content if necessary
-        if sig != file_md5(path):
-            if is_local():
-                with mode_sudo(use_sudo):
-                    run("cp '%s' '%s'" %
-                        (shell_safe(local_path), shell_safe(path)))
-            else:
-                if scp:
-                    raise NotImplementedError
-                    # hostname = env_.host_string if len(env_.host_string.split(
-                    #     ':')) == 1 else env_.host_string.split(':')[0]
-                    # scp_cmd = 'scp %s %s@%s:%s' % (shell_safe(local_path), shell_safe(
-                    #     env_.user), shell_safe(hostname), shell_safe(path))
-                    log_debug('file_write:[localhost]] ' + scp_cmd)
-                    run_local(scp_cmd)
-                else:
-                    raise NotImplementedError
+        if sig != self.file_md5(path):
+            self.api.connection().write(path, bytes_content)
         # Remove the local temp file
         os.fsync(fd)
         os.close(fd)
         os.unlink(local_path)
         # Ensures that the signature matches
         if check:
-            with mode_sudo(use_sudo):
-                file_sig = file_md5(path)
-            assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
-                path, repr(file_sig), repr(sig))
-        with mode_sudo(use_sudo):
-            self.file_attribs(path, mode=mode, owner=owner, group=group)
+            file_sig = self.file_md5(path)
+            assert sig == file_sig, f"File content does not matches file: {path}, got {file_sig}, expects {sig}"
+        return self.file_attribs(path, mode=mode, owner=owner, group=group)
 
     @expose
     @logged
@@ -188,13 +184,17 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_append(self, path, content, mode=None, owner=None, group=None):
+    def file_append(self, path: str, content: Union[bytes, str], mode: Optional[str] = None, owner: Optional[str] = None, group: Optional[str] = None):
         """Appends the given content to the remote file at the given
         path, optionally updating its mode/owner/group."""
         # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
-        self.run('echo "%s" | openssl base64 -A -d >> %s' %
-                 (base64.b64encode(content), shell_safe(path)))
-        self.file_attribs(path, mode, owner, group)
+        # NOTE: We use tee to preserve the writing rights (sudo)
+        content_bytes = content if isinstance(
+            content, bytes) else bytes(content, "utf8")
+        # SEE: https://unix.stackexchange.com/questions/503990/redirecting-from-right-to-left
+        self.api.run(
+            f"tee -a {quoted(path)} < <(echo {quoted(str(base64.b64encode(content_bytes), 'ascii'))} | openssl base64 -A -d) > /dev/null")
+        return self.api.file_attribs(path, mode, owner, group)
 
     @expose
     @logged
@@ -227,17 +227,20 @@ class FileAPI(API):
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
+    # NOTE: We need to use `cat` here as the first command will be run with sudo
+
     @expose
     @logged
-    @requires("python", "cat", "openssl")
-    def file_base64(self, path: str):
+    @requires("python", "openssl")
+    def file_base64(self, path: str) -> str:
         """Returns the base64-encoded content of the file at the given path."""
         # TODO: Support options
-        option_hash = self.api.config_get("hash", "python")
+        option_hash = self.api.config_get("hash", "openssl")
         if option_hash == "python":
-            return self.api.run(f"cat {shell_safe(path)} | {self.api.command('python')} -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read()))'")
+            # FIXME: This does not seem to work al
+            return self.api.run(f"cat {quoted(path)} | {self.api.command('python')} -c 'import sys,base64;sys.stdout.buffer.write(base64.b64encode(sys.stdin.buffer.read()))'").out
         else:
-            return run(f"cat {shell_safe(path)} | {self.api.command('openssl')} base64".format(shell_safe((path))))
+            return self.api.run(f"cat {quoted(path)} | {self.api.command('openssl')} base64").out
 
     @expose
     @logged
@@ -247,16 +250,12 @@ class FileAPI(API):
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
         option_hash = self.api.config_get("hash", "python")
-        if option_hash == "python":
-            if self.file_exists(path):
-                return self.api.run(f"cat {shell_safe(path)} | ${self.api.command('python')} -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'")
-            else:
-                return None
+        if not self.file_exists(path):
+            return None
+        elif option_hash == "python":
+            return self.api.run(f"cat {quoted(path)} | ${self.api.command('python')} -c 'import sys,hashlib;sys.stdout.buffer.write(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())'")
         else:
-            if self.file_exists(path):
-                return self.api.run('openssl dgst -sha256 %s' % (shell_safe(path))).split("\n")[-1].split(")= ", 1)[-1].strip()
-            else:
-                return None
+            return self.api.run(f"openssl dgst -sha256 {quoted(path)}").split("\n")[-1].split(")= ", 1)[-1].strip()
 
     @expose
     @logged
@@ -267,14 +266,11 @@ class FileAPI(API):
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
         # FIXME: This should go through the options
-        if self.api.env_get(OPTION_HASH) == "python":
-            if self.file_exists(path):
-                return self.api.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read()).hexdigest())'".format(shell_safe((path))))
-            else:
-                return None
+        option_hash = self.api.config_get("hash", "openssl")
+        if not self.file_exists(path):
+            return None
+        elif option_hash == "python":
+            return self.api.run(f"python -c 'import sys,hashlib;sys.stdout.buffer.write(hashlib.md5(sys.stdin.buffer.read()).hexdigest())' < {quoted(path)}").out
         else:
-            if self.file_exists(path):
-                return self.api.run('openssl dgst -md5 %s' % (shell_safe(path))).split("\n")[-1].split(")= ", 1)[-1].strip()
-            else:
-                return None
+            return self.api.run(f"openssl dgst -md5 {quoted(path)}").out.split("\n")[-1].split(")= ", 1)[-1].strip()
 # EOF

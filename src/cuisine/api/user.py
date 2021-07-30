@@ -118,9 +118,9 @@ class LinuxUserAPI(API):
             fields = line.split(":")
             if len(fields) < 7:
                 continue
-            name, _, uid, gid, fullname, home, shell = fields[0:7]
-            if name == name or uid == uid:
-                return dict(name=name, uid=uid, gid=gid, fullname=fullname, home=home, shell=shell)
+            user_name, _, user_id, gid, fullname, home, shell = fields[0:7]
+            if user_name == name or user_id == uid:
+                return dict(name=user_name, uid=user_id, gid=gid, fullname=fullname, home=home, shell=shell)
         return None
 
     @expose

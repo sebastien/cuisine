@@ -1,6 +1,6 @@
 from ..api import APIModule
 from ..decorators import logged, expose, requires
-from ..utils import shell_safe
+from ..utils import shell_safe, quoted
 import os
 
 
@@ -12,13 +12,12 @@ class DirAPI(APIModule):
     def dir_attribs(self, path: str, mode=None, owner=None, group=None, recursive=False):
         """Updates the mode/owner/group for the given remote directory."""
         recursive = recursive and "-R " or ""
-        safe_path = shell_safe(path)
         if mode:
-            self.api.run(f"chmod {recursive} '{mode}' '{safe_path}'")
+            self.api.run(f"chmod {recursive} '{mode}' {quoted(path)}")
         if owner:
-            self.api.run(f"chown {recursive} '{owner}' '{safe_path}'")
+            self.api.run(f"chown {recursive} '{owner}' {quoted(path)}")
         if group:
-            self.api.run(f"chgrp {recursive} '{group}' '{safe_path}'")
+            self.api.run(f"chgrp {recursive} '{group}' {quoted(path)}")
 
     @expose
     @requires("test")

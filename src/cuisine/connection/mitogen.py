@@ -1,7 +1,16 @@
 from ..connection import Connection, CommandOutput
+from .. import logging
+from .local import run_local_raw
+from ..utils import quoted
 from pathlib import Path
 from typing import Optional
-from .. import logging
+import tempfile
+
+
+def file_write(path: str, content: bytes):
+    with open(path, "wb") as f:
+        f.write(content)
+    return path
 
 
 class MitogenConnection(Connection):
@@ -9,9 +18,6 @@ class MitogenConnection(Connection):
      See <https://mitogen.networkgenomics.com/>."""
 
     TYPE = "mitogen"
-
-    def __init__(self, user: Optional[str] = None, password: Optional[str] = None, key: Optional[Path] = None):
-        super().__init__(user, password, key)
 
     def init(self):
         try:
@@ -28,15 +34,19 @@ class MitogenConnection(Connection):
         self.mitogen_master = mitogen_master
         self.mitogen_ssh = mitogen_ssh
 
-    def connect(self, host: str, port=22) -> 'MitogenConnection':
+    def _connect(self) -> 'MitogenConnection':
         # NOTE: Connect will update self.{host,port}
-        super().connect(host, port)
         broker = self.mitogen_master.Broker()
         router = self.mitogen_master.Router(broker)
         try:
             # NOTE: See <https://github.com/mitogen-hq/mitogen/blob/master/mitogen/ssh.py>
             self.context = router.ssh(
-                hostname=self.host, username=self.user, port=self.port, identity_file=self.key)
+                hostname=self.host,
+                username=self.user,
+                port=self.port,
+                identity_file=self.key,
+                connect_timeout=self.timeout,
+            )
         except self.mitogen_ssh.PasswordError as e:
             logging.fatal(
                 f"Cannot connect to {self.user}@{self.host}:{self.port} using {self.type}: {e}")
@@ -45,10 +55,16 @@ class MitogenConnection(Connection):
             return self
         return self
 
-    def run(self, command) -> CommandOutput:
+    def _write(self, path: str, content: bytes) -> CommandOutput:
+        temp_path = tempfile.mkdtemp()
+        self.context.call(file_write, temp_path, content)
+        return self.run(f"touch {quoted(path)}; cp --attributes-only {quoted(path)} {quoted(temp_path)}; mv {quoted(temp_path)} {quoted(path)}")
+
+    def _run(self, command) -> CommandOutput:
         if not self.context:
             logging.error(f"Connection failed, cannot run: {command}")
             return CommandOutput((command, 127, b"", b""))
         else:
-            super().run(command)
             return CommandOutput(self.context.call(run_local_raw, command))
+
+# EOF
