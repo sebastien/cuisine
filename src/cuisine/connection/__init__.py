@@ -282,8 +282,9 @@ class Connection:
     def _sudo(self, command: str) -> Optional[CommandOutput]:
         return self._run(prefix_command(command, "sudo"))
 
-    def _upload(self, remove: str, source: Path):
-        raise NotImplementedError
+    def _upload(self, remote: str, source: Path):
+        with open(source, "rb") as f:
+            self._write(remote, f.read())
 
     def _cd(self, path: str):
         raise NotImplementedError

@@ -5,6 +5,7 @@ from ..utils import quoted
 from pathlib import Path
 from typing import Optional
 import tempfile
+import os
 
 
 def file_write(path: str, content: bytes):
@@ -59,6 +60,9 @@ class MitogenConnection(Connection):
         temp_path = tempfile.mkdtemp()
         self.context.call(file_write, temp_path, content)
         return self.run(f"touch {quoted(path)}; cp --attributes-only {quoted(path)} {quoted(temp_path)}; mv {quoted(temp_path)} {quoted(path)}")
+
+    def _cd(self, path: str):
+        self.context.call(os.chdir, path)
 
     def _run(self, command) -> CommandOutput:
         if not self.context:
