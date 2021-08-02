@@ -100,6 +100,10 @@ class API(Interface):
           """None"""
           return self._connection.connect_mitogen(host, port, user, password, key)
 
+     def connect_parallelssh(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
+          """None"""
+          return self._connection.connect_parallelssh(host, port, user, password, key)
+
      def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
           """None"""
           return self._connection.connect_paramiko(host, port, user, password, key)

@@ -1,12 +1,19 @@
 from cuisine.connection.paramiko import ParamikoConnection
 from cuisine.connection.mitogen import MitogenConnection
 from cuisine.connection.tmux import TmuxConnection
+from cuisine.connection.parallelssh import ParallelSSHConnection
 from ..connection import CommandOutput, Connection
 from ..connection.local import LocalConnection
 from ..api import APIModule
 from ..decorators import expose, dispatch, variant
 from typing import Optional, ContextManager, Union, List
 from pathlib import Path
+
+
+# --
+# We keep a global counter of active connections, which is mainly useful
+# for debugging.
+ACTIVE_CONNECTIONS = 0
 
 
 class ConnectionContext(ContextManager):
@@ -35,6 +42,8 @@ class Connection(APIModule):
         """Registers the connection, connects it and returns a context
         manager that will disconnect from it on exit. This is an internal
         method used by the `connect_*` methods."""
+        global ACTIVE_CONNECTIONS
+        ACTIVE_CONNECTIONS += 1
         self.__connections.append(connection)
         connection.on_disconnect = lambda _: self.clean_connections(_)
         connection.connect()
@@ -42,12 +51,15 @@ class Connection(APIModule):
 
     def clean_connections(self, connection: Optional[Connection] = None):
         """Cleans the connections, removing the ones that are disconnected"""
+        n = len(self.__connections)
         if connection:
             self.__connections = [
                 _ for _ in self.__connections if _ is not connection]
         else:
             self.__connections = [
                 _ for _ in self.__connections if _.is_connected]
+        global ACTIVE_CONNECTIONS
+        ACTIVE_CONNECTIONS -= n - len(self.__connections)
 
     @property
     def _connection(self) -> Connection:
@@ -102,6 +114,7 @@ class Connection(APIModule):
         local connection."""
         if len(self.__connections) > 1:
             conn = self.__connections.pop()
+            ACTIVE_CONNECTIONS -= 1
             conn.disconnect()
             return conn
         else:
@@ -121,6 +134,11 @@ class Connection(APIModule):
     @variant("mitogen")
     def connect_mitogen(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> ContextManager:
         return self.register_connection(MitogenConnection(host=host, port=port, user=user, password=password, key=key))
+
+    @expose
+    @variant("parallelssh")
+    def connect_parallelssh(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> ContextManager:
+        return self.register_connection(ParallelSSHConnection(host=host, port=port, user=user, password=password, key=key))
 
     @expose
     def connect_tmux(self, session: str, window: str) -> ContextManager:

@@ -77,6 +77,10 @@ def connect_mitogen( host=None, port=None, user=None, password=None, key: Option
      """None"""
      return default_api().connect_mitogen(host, port, user, password, key)
 
+def connect_parallelssh( host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
+     """None"""
+     return default_api().connect_parallelssh(host, port, user, password, key)
+
 def connect_paramiko( host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
      """None"""
      return default_api().connect_paramiko(host, port, user, password, key)

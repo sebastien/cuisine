@@ -71,6 +71,10 @@ class API:
           """None"""
           raise NotImplementedError
 
+     def connect_parallelssh(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
+          """None"""
+          raise NotImplementedError
+
      def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
           """None"""
           raise NotImplementedError
