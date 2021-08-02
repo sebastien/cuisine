@@ -437,6 +437,10 @@ def sudo( command: Optional[str] = None) -> Union[ContextManager, ForwardRef('Co
      """None"""
      return default_api().sudo(command)
 
+def terminate() -> List[cuisine.connection.Connection]:
+     """None"""
+     return default_api().terminate()
+
 def tmux_is_responsive( session: str, window: str) -> bool:
      """None"""
      return default_api().tmux_is_responsive(session, window)

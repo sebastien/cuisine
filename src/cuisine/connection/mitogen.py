@@ -22,6 +22,13 @@ class MitogenConnection(Connection):
     TYPE = "mitogen"
     ACTIVE = 0
 
+    # --
+    # The mitogen *broker* and  *router* are shared across connections, and
+    # will be recycled.
+
+    BROKER = None
+    ROUTER = None
+
     def init(self):
         try:
             import mitogen
@@ -36,13 +43,12 @@ class MitogenConnection(Connection):
         self.mitogen_utils = mitogen_utils
         self.mitogen_master = mitogen_master
         self.mitogen_ssh = mitogen_ssh
-        self.broker = None
-        self.router = None
 
     def _connect(self) -> 'MitogenConnection':
         # NOTE: Connect will update self.{host,port}
-        broker = self.broker = self.broker or self.mitogen_master.Broker()
-        router = self.router = self.router or self.mitogen_master.Router(
+        # NOTE: We reuse Brokers and Routers, and also cleans them up
+        broker = MitogenConnection.BROKER = MitogenConnection.BROKER or self.mitogen_master.Broker()
+        router = MitogenConnection.ROUTER = MitogenConnection.ROUTER or self.mitogen_master.Router(
             broker)
         try:
             # NOTE: See <https://github.com/mitogen-hq/mitogen/blob/master/mitogen/ssh.py>
@@ -53,7 +59,7 @@ class MitogenConnection(Connection):
                 identity_file=self.key,
                 connect_timeout=self.timeout,
             )
-            MitogenConnection.ACTIVE -= 1
+            MitogenConnection.ACTIVE += 1
         except self.mitogen_ssh.PasswordError as e:
             logging.fatal(
                 f"Cannot connect to {self.user}@{self.host}:{self.port} using {self.type}: {e}")
@@ -80,12 +86,11 @@ class MitogenConnection(Connection):
     def _disconnect(self):
         MitogenConnection.ACTIVE -= 1
         self.context.shutdown(wait=True)
-        # We do a final shutdown
+        # We do a final shutdown when we don't have any active connection
         if not MitogenConnection.ACTIVE:
-            self.broker.shutdown()
-            self.router.shutdown()
-            self.router = None
-            self.broker = None
+            MitogenConnection.BROKER.shutdown()
+            MitogenConnection.ROUTER = None
+            MitogenConnection.BROKER = None
         self.context = None
 
 # EOF

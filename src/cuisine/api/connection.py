@@ -12,7 +12,7 @@ from pathlib import Path
 
 # --
 # We keep a global counter of active connections, which is mainly useful
-# for debugging.
+# for debuggin.
 ACTIVE_CONNECTIONS = 0
 
 
@@ -119,6 +119,14 @@ class Connection(APIModule):
             return conn
         else:
             return None
+
+    @expose
+    def terminate(self) -> List[Connection]:
+        """Terminates/disconnects any remaining connection"""
+        res = []
+        while connection := self.disconnect():
+            res.append(connection)
+        return res
 
     @expose
     @variant("local")

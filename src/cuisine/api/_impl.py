@@ -150,6 +150,10 @@ class API(Interface):
           """None"""
           return self._connection.sudo(command)
 
+     def terminate(self) -> List[cuisine.connection.Connection]:
+          """None"""
+          return self._connection.terminate()
+
      def dir_attribs(self, path: str, mode=None, owner=None, group=None, recursive=False):
           """Updates the mode/owner/group for the given remote directory."""
           return self._dir.dir_attribs(path, mode, owner, group, recursive)

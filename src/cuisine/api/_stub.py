@@ -121,6 +121,10 @@ class API:
           """None"""
           raise NotImplementedError
 
+     def terminate(self) -> List[cuisine.connection.Connection]:
+          """None"""
+          raise NotImplementedError
+
      def dir_attribs(self, path: str, mode=None, owner=None, group=None, recursive=False):
           """Updates the mode/owner/group for the given remote directory."""
           raise NotImplementedError
