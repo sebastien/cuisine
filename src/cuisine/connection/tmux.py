@@ -175,7 +175,7 @@ class Tmux:
         # NOTE: First, we're wrapping the expression in a new shell context, and
         # we're also adding an OK delimiter to make sure we determine if the
         # command succeeded or not.
-        tmux_command = f"echo {start_delimiter};echo $({command}) && echo {ok_delimiter}; echo {end_delimiter};"
+        tmux_command = f"echo {start_delimiter};({command}) && echo {ok_delimiter}; echo {end_delimiter};"
         self.write(session, window, tmux_command)
         # TODO: This should be a new thread
         result: list[str] = []
