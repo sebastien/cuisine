@@ -92,9 +92,9 @@ class API(Interface):
         not supported."""
           return self._connection.connect(host, port, user, password, key, transport)
 
-     def connect_local(self) -> ContextManager:
+     def connect_local(self, user=None) -> ContextManager:
           """None"""
-          return self._connection.connect_local()
+          return self._connection.connect_local(user)
 
      def connect_mitogen(self, host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
           """None"""
@@ -151,7 +151,7 @@ class API(Interface):
           return self._connection.sudo(command)
 
      def terminate(self) -> List[cuisine.connection.Connection]:
-          """None"""
+          """Terminates/disconnects any remaining connection"""
           return self._connection.terminate()
 
      def dir_attribs(self, path: str, mode=None, owner=None, group=None, recursive=False):
@@ -166,15 +166,15 @@ class API(Interface):
         ssh call, so use that method, otherwise set owner/group after creation."""
           return self._dir.dir_ensure(path, recursive, mode, owner, group)
 
-     def dir_ensure_parent(self, path: str):
+     def dir_ensure_parent(self, path: str, recursive=True, mode=None, owner=None, group=None):
           """Ensures that the parent directory of the given path exists"""
-          return self._dir.dir_ensure_parent(path)
+          return self._dir.dir_ensure_parent(path, recursive, mode, owner, group)
 
      def dir_exists(self, path: str) -> bool:
           """Tells if there is a remote directory at the given path."""
           return self._dir.dir_exists(path)
 
-     def dir_remove(self, path: str, recursive=True):
+     def dir_remove(self, path: str, recursive=True) -> Optional[bool]:
           """ Removes a directory """
           return self._dir.dir_remove(path, recursive)
 

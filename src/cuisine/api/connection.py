@@ -130,8 +130,8 @@ class Connection(APIModule):
 
     @expose
     @variant("local")
-    def connect_local(self) -> ContextManager:
-        return self.register_connection(LocalConnection())
+    def connect_local(self, user=None) -> ContextManager:
+        return self.register_connection(LocalConnection(user=user))
 
     @expose
     @variant("paramiko")

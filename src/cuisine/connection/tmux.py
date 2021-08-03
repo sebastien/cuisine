@@ -194,7 +194,8 @@ class Tmux:
         # return output.rsplit(delimiter, 2)[-2].split("\n", 1)[-1] if found else None
 
     def is_responsive(self, session: str, window: int, timeout: int = 1, resolution: float = 0.1) -> Optional[bool]:
-        """Tells if the given session/window is responsive"""
+        """Tells if the given session/window is responsive, returning None if the session does not
+        exist."""
         if self.session_has(session) and self.window_has(session, window):
             # Is the terminal responsive?
             key = f"TMUX_ACTION_CHECK_{timenum()}"

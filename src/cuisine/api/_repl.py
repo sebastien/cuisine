@@ -69,9 +69,9 @@ def connect( host=None, port=None, user=None, password=None, key: Union[str, pat
         not supported."""
      return default_api().connect(host, port, user, password, key, transport)
 
-def connect_local() -> ContextManager:
+def connect_local( user=None) -> ContextManager:
      """None"""
-     return default_api().connect_local()
+     return default_api().connect_local(user)
 
 def connect_mitogen( host=None, port=None, user=None, password=None, key: Optional[pathlib.Path] = None) -> ContextManager:
      """None"""
@@ -121,15 +121,15 @@ def dir_ensure( path: str, recursive=True, mode=None, owner=None, group=None) ->
         ssh call, so use that method, otherwise set owner/group after creation."""
      return default_api().dir_ensure(path, recursive, mode, owner, group)
 
-def dir_ensure_parent( path: str):
+def dir_ensure_parent( path: str, recursive=True, mode=None, owner=None, group=None):
      """Ensures that the parent directory of the given path exists"""
-     return default_api().dir_ensure_parent(path)
+     return default_api().dir_ensure_parent(path, recursive, mode, owner, group)
 
 def dir_exists( path: str) -> bool:
      """Tells if there is a remote directory at the given path."""
      return default_api().dir_exists(path)
 
-def dir_remove( path: str, recursive=True):
+def dir_remove( path: str, recursive=True) -> Optional[bool]:
      """ Removes a directory """
      return default_api().dir_remove(path, recursive)
 
@@ -438,7 +438,7 @@ def sudo( command: Optional[str] = None) -> Union[ContextManager, ForwardRef('Co
      return default_api().sudo(command)
 
 def terminate() -> List[cuisine.connection.Connection]:
-     """None"""
+     """Terminates/disconnects any remaining connection"""
      return default_api().terminate()
 
 def tmux_is_responsive( session: str, window: str) -> bool:

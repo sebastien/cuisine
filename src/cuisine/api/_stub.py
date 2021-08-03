@@ -63,7 +63,7 @@ class API:
         not supported."""
           raise NotImplementedError
 
-     def connect_local(self) -> ContextManager:
+     def connect_local(self, user=None) -> ContextManager:
           """None"""
           raise NotImplementedError
 
@@ -122,7 +122,7 @@ class API:
           raise NotImplementedError
 
      def terminate(self) -> List[cuisine.connection.Connection]:
-          """None"""
+          """Terminates/disconnects any remaining connection"""
           raise NotImplementedError
 
      def dir_attribs(self, path: str, mode=None, owner=None, group=None, recursive=False):
@@ -137,7 +137,7 @@ class API:
         ssh call, so use that method, otherwise set owner/group after creation."""
           raise NotImplementedError
 
-     def dir_ensure_parent(self, path: str):
+     def dir_ensure_parent(self, path: str, recursive=True, mode=None, owner=None, group=None):
           """Ensures that the parent directory of the given path exists"""
           raise NotImplementedError
 
@@ -145,7 +145,7 @@ class API:
           """Tells if there is a remote directory at the given path."""
           raise NotImplementedError
 
-     def dir_remove(self, path: str, recursive=True):
+     def dir_remove(self, path: str, recursive=True) -> Optional[bool]:
           """ Removes a directory """
           raise NotImplementedError
 
