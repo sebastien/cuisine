@@ -4,6 +4,7 @@ from typing import Dict, List
 import os
 import datetime
 import re
+import random
 
 
 # --
@@ -86,8 +87,9 @@ def timestamp():
 def timenum():
     """Like timestamp, but just the numbers."""
     n = datetime.datetime.now()
-    return "%04d%02d%02d%02d%02d%02d" % (
-        n.year, n.month, n.day, n.hour, n.minute, n.second
+    return "%04d%02d%02d%02d%02d%02d%02d" % (
+        n.year, n.month, n.day, n.hour, n.minute, n.second, random.randint(
+            0, 99)
     )
 
 

@@ -1,5 +1,5 @@
 from ..utils import single_quote_safe, timenum
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from pathlib import Path
 import time
 import re
@@ -33,8 +33,8 @@ class TmuxConnection(Connection):
 
     def _run(self, command: str) -> Optional[CommandOutput]:
         cmd = self.cd_prefix + command
-        out = self.tmux.run(self.session, self.window, cmd)
-        return CommandOutput((command, 0, bytes(out or "", "utf8"), b""))
+        success, out = self.tmux.run(self.session, self.window, cmd)
+        return CommandOutput((command, 0 if success else 1, bytes(out or "", "utf8"), b""))
 
     def _upload(self, remote: str, source: Path):
         return self._connection._upload(remote, source)
@@ -160,7 +160,7 @@ class Tmux:
         """Sends a `Ctrl-c` keystroke in this session."""
         self.command(f"send-keys -t {session}:{window} C-c")
 
-    def run(self, session: str, window: int, command: str, timeout=2, resolution=0.1) -> Optional[str]:
+    def run(self, session: str, window: int, command: str, timeout=2, resolution=0.1) -> Tuple[bool, str]:
         """This function allows to run a command and retrieve its output
         as given by the shell. It is quite error prone, as it will include
         your prompt styling and will only poll the output at `resolution` seconds
@@ -170,27 +170,43 @@ class Tmux:
         output = None
         found = False
         start_delimiter = f"START_{delimiter}"
+        ok_delimiter = f"OK_{delimiter}"
         end_delimiter = f"END_{delimiter}"
-        self.write(
-            session, window, f"echo {start_delimiter};{command};echo {end_delimiter};")
+        # NOTE: First, we're wrapping the expression in a new shell context, and
+        # we're also adding an OK delimiter to make sure we determine if the
+        # command succeeded or not.
+        tmux_command = f"echo {start_delimiter};echo $({command}) && echo {ok_delimiter}; echo {end_delimiter};"
+        self.write(session, window, tmux_command)
         # TODO: This should be a new thread
-        result: str = ""
+        result: list[str] = []
+        is_success = False
+        has_finished = False
         for _ in range(int(timeout / resolution)):
             # FIXME: We should find a better way to capture TMux's output. Either
             # we're detecting the new lines (starting from the bottom) and adding
             # them, or we find some other way to do that.
             output = self.read(session, window)
-            chunk = output.rsplit(start_delimiter, 1)
-            if len(chunk) == 2:
-                chunk = chunk[1].rsplit(end_delimiter, 1)
-                if len(chunk) == 2:
-                    result = chunk[0]
+            has_data = False
+            block = []
+            for i, line in enumerate(output.split("\n")):
+                if line.startswith(start_delimiter):
+                    has_data = True
+                elif line.startswith(ok_delimiter):
+                    is_success = True
+                    has_finished = True
                     break
-            time.sleep(resolution)
+                elif line.startswith(end_delimiter):
+                    has_finished = True
+                    break
+                elif has_data:
+                    block.append(line)
+                    result = block
+            if not has_finished:
+                time.sleep(resolution)
         # The command output will be conveniently placed after the `echo
         # CMD_XXX` and before the output `CMD_XXX`. We use negative indexes
         # to avoid access problems when the program's output is too long.
-        return result
+        return is_success, "\n".join(result)
         # return output.rsplit(delimiter, 2)[-2].split("\n", 1)[-1] if found else None
 
     def is_responsive(self, session: str, window: int, timeout: int = 1, resolution: float = 0.1) -> Optional[bool]:

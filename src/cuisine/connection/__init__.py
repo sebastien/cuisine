@@ -67,6 +67,14 @@ class CommandOutput(str):
         return self._err
 
     @property
+    def check_value(self) -> Any:
+        if not self.is_success:
+            raise RuntimeError(
+                f"Command failed with status {self.status}: {self.command}")
+        else:
+            return self.value
+
+    @property
     def value(self) -> Any:
         if self._value is None:
             self._value = self.last_line
