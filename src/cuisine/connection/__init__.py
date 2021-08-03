@@ -67,7 +67,7 @@ class CommandOutput(str):
         return self._err
 
     @property
-    def check_value(self) -> Any:
+    def checked_value(self) -> Any:
         if not self.is_success:
             raise RuntimeError(
                 f"Command failed with status {self.status}: {self.command}")

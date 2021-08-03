@@ -9,9 +9,10 @@ import threading
 import os
 
 
-def file_write(path: str, content: bytes):
-    with open(path, "wb") as f:
-        f.write(content)
+def file_write(content: bytes):
+    fd, path = tempfile.mkstemp()
+    os.write(fd, content)
+    os.close(fd)
     return path
 
 
@@ -69,9 +70,8 @@ class MitogenConnection(Connection):
         return self
 
     def _write(self, path: str, content: bytes) -> CommandOutput:
-        temp_path = tempfile.mkdtemp()
-        self.context.call(file_write, temp_path, content)
-        return self.run(f"touch {quoted(path)}; cp --attributes-only {quoted(path)} {quoted(temp_path)}; mv {quoted(temp_path)} {quoted(path)}")
+        temp_path = self.context.call(file_write, content)
+        return self.run(f"touch {quoted(path)}; cp --attributes-only {quoted(temp_path)} {quoted(path)}; mv {quoted(temp_path)} {quoted(path)}")
 
     def _cd(self, path: str):
         self.context.call(os.chdir, path)

@@ -112,7 +112,8 @@ class FileAPI(API):
         fd, local_path = tempfile.mkstemp()
         os.write(fd, bytes_content)
         # Upload the content if necessary
-        if sig != self.file_md5(path):
+        remote_sig = self.file_md5(path)
+        if sig != remote_sig:
             self.api.connection().write(path, bytes_content)
         # Remove the local temp file
         os.fsync(fd)
@@ -179,7 +180,7 @@ class FileAPI(API):
         if (old_content == new_content):
             return False
         # assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
-        file_write(path, new_content)
+        self.api.file_write(path, new_content)
         return True
 
     @expose
@@ -272,5 +273,6 @@ class FileAPI(API):
         elif option_hash == "python":
             return self.api.run(f"python -c 'import sys,hashlib;sys.stdout.buffer.write(hashlib.md5(sys.stdin.buffer.read()).hexdigest())' < {quoted(path)}").out
         else:
-            return self.api.run(f"openssl dgst -md5 {quoted(path)}").out.split("\n")[-1].split(")= ", 1)[-1].strip()
+            return self.api.run(
+                f"openssl dgst -md5 {quoted(path)}").checked_value.split(")= ", 1)[-1]
 # EOF
