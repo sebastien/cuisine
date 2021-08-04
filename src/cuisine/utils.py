@@ -35,14 +35,26 @@ def shell_safe(path: Union[Path, str]) -> str:
     return "".join([("\\" + _) if _ in " '\";`|" else _ for _ in str(path)])
 
 
-def single_quote_safe(line: str) -> str:
-    """Returns a single-quoted version of the given line."""
-    # FROM: https://stackoverflow.com/questions/1250079/how-to-escape-single-quotes-within-single-quoted-strings#1250279
-    return line.replace("'", "'\"'\"'")
+QUOTE_ESCAPE = "'\"'\"'"
+QUOTE = "'"
+
+
+def quotable(line: str) -> str:
+    """Returns a string that can be used in single quotes, but won't necessariy
+    work without quotes."""
+    if "'" not in line:
+        return line
+    else:
+        return line.replace(QUOTE_ESCAPE, QUOTE).replace(QUOTE, QUOTE_ESCAPE)
 
 
 def quoted(line: str) -> str:
-    return f"'{single_quote_safe(line)}'"
+    # FIXME: https://unix.stackexchange.com/questions/30903/how-to-escape-quotes-in-shell#30904
+    # FROM: https://stackoverflow.com/questions/1250079/how-to-escape-single-quotes-within-single-quoted-strings#1250279
+    if line and line[0] == line[-1] and line[0] == "'":
+        return line
+    else:
+        return f"'{quotable(line)}'"
 
 
 def normalize_path(path: str) -> Path:

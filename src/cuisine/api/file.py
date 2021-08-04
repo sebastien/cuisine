@@ -58,22 +58,22 @@ class FileAPI(API):
     @expose
     def file_exists(self, path: str) -> bool:
         """Tests if there is a *remote* file at the given path."""
-        return self.api.run(f"test -e {quoted(path)}").is_success
+        return self.api.run(f"test -e {quoted(path)} && echo OK").is_ok
 
     @expose
     def file_is_file(self, path: str):
         """Tells if the given path is a file or not"""
-        return self.api.run(f"test -f '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
+        return self.api.run(f"test -f '{shell_safe(path)}' && echo OK; true").is_ok
 
     @expose
     def file_is_dir(self, path: str) -> bool:
         """Tells if the given path is a directory or not"""
-        return self.api.run(f"test -d '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
+        return self.api.run(f"test -d '{shell_safe(path)}' && echo OK ; true").is_ok
 
     @expose
     def file_is_link(self, path: str) -> bool:
         """Tells if the given path is a symlink or not"""
-        return self.api.run(f"test -L '{shell_safe(path)}' && echo OK ; true").value.endswith("OK")
+        return self.api.run(f"test -L '{shell_safe(path)}' && echo OK ; true").is_ok
 
     @logged
     @expose

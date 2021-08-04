@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 from typing import Optional, Tuple, Any, List, Iterable, Union, ContextManager
-from ..utils import shell_safe, strip_ansi, prefix_command
+from ..utils import shell_safe, strip_ansi, quoted
 from .. import logging
 
 # =============================================================================
@@ -79,6 +79,12 @@ class CommandOutput(str):
         if self._value is None:
             self._value = self.last_line
         return self._value
+
+    @property
+    def is_ok(self) -> Any:
+        """Checks if the value ends with 'OK', which is a convenience function
+        for the pattern where the command ends in `&& echo OK; true`."""
+        return self.value.endswith("OK")
 
     @property
     def lines(self) -> Iterable[str]:
@@ -288,7 +294,8 @@ class Connection:
         raise NotImplementedError
 
     def _sudo(self, command: str) -> Optional[CommandOutput]:
-        return self._run(prefix_command(command, "sudo"))
+        # NOTE: We need to wrap that in a shell
+        return self._run(f"sudo sh -c {quoted(command)}")
 
     def _upload(self, remote: str, source: Path):
         with open(source, "rb") as f:

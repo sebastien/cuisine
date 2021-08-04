@@ -71,7 +71,8 @@ class MitogenConnection(Connection):
 
     def _write(self, path: str, content: bytes) -> CommandOutput:
         temp_path = self.context.call(file_write, content)
-        return self.run(f"touch {quoted(path)}; cp --attributes-only {quoted(temp_path)} {quoted(path)}; mv {quoted(temp_path)} {quoted(path)}")
+        command = f"touch {quoted(path)}; cp --attributes-only {quoted(temp_path)} {quoted(path)}; mv -f {quoted(temp_path)} {quoted(path)}"
+        return self.run(command)
 
     def _cd(self, path: str):
         self.context.call(os.chdir, path)

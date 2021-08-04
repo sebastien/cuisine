@@ -24,7 +24,7 @@ class DirAPI(APIModule):
     @requires("test")
     def dir_exists(self, path: str) -> bool:
         """Tells if there is a remote directory at the given path."""
-        return self.api.run(f"test -d {quoted(path)}").is_success
+        return self.api.run(f"test -d {quoted(path)} && echo OK").is_ok
 
     @expose
     @logged
@@ -33,7 +33,7 @@ class DirAPI(APIModule):
         """ Removes a directory """
         flag = "r" if recursive else ""
         if self.api.dir_exists(path):
-            return self.api.run(f"rm -{flag}f {quoted(path)}").is_success
+            return self.api.run(f"rm -{flag}f {quoted(path)} && OK").is_ok
         else:
             return None
 

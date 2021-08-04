@@ -1,6 +1,6 @@
 from ..api import APIModule
 from ..decorators import logged, dispatch, variant, expose
-from ..utils import single_quote_safe
+from ..utils import quotable
 
 # =============================================================================
 #
@@ -101,7 +101,7 @@ class PackageAPTAPI(APIModule):
     @expose
     @variant("apt")
     def package_available_apt(package: str) -> bool:
-        return self.apt_cache(f" search '^{single_quote_safe(package)}$'").has_value
+        return self.apt_cache(f" search '^{quotable(package)}$'").has_value
 
     @expose
     @variant("apt")

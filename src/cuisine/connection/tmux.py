@@ -1,4 +1,4 @@
-from ..utils import single_quote_safe, timenum
+from ..utils import quoted, timenum
 from typing import Optional, List, Tuple
 from pathlib import Path
 import time
@@ -41,7 +41,7 @@ class TmuxConnection(Connection):
 
     def _cd(self, path: str):
         self.tmux.run(self.session, self.window,
-                      f"cd '{single_quote_safe(path)}'")
+                      f"cd {quoted(path)}")
 
 
 # TODO: We might want to change that so that an instance is not required, and
@@ -153,7 +153,7 @@ class Tmux:
 
     def write(self, session: str, window: int, commands: str):
         self.command(
-            f"send-keys -t {session}:{window}  '{single_quote_safe(commands)}'")
+            f"send-keys -t {session}:{window}  {quoted(commands)}")
         self.command(f"send-keys -t {session}:{window} C-m")
 
     def halt(self, session: str, window: int):
