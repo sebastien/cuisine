@@ -33,7 +33,7 @@ class DirAPI(APIModule):
         """ Removes a directory """
         flag = "r" if recursive else ""
         if self.api.dir_exists(path):
-            return self.api.run(f"rm -{flag}f {quoted(path)} && OK").is_ok
+            return self.api.run(f"rm -{flag}f {quoted(path)} && echo OK").is_ok
         else:
             return None
 
