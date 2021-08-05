@@ -116,6 +116,11 @@ class API(Interface):
           """Returns the current connection"""
           return self._connection.connection()
 
+     def connection_like(self, predicate) -> Optional[cuisine.connection.Connection]:
+          """Returns the most recent opened connection that matches the given
+        predicate."""
+          return self._connection.connection_like(predicate)
+
      def detect_connection(self) -> str:
           """Detects the recommended type of connection"""
           return self._connection.detect_connection()

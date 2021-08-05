@@ -1,6 +1,6 @@
 from ..api import APIModule
 from ..decorators import logged, dispatch, variant, expose
-from ..connection.tmux import Tmux
+from ..connection.tmux import Tmux, TmuxConnection
 from typing import List
 
 
@@ -8,7 +8,10 @@ class TmuxAPI(APIModule):
 
     @property
     def _tmux(self) -> Tmux:
-        return Tmux(self.api.connection())
+        c = self.api.connection_like(
+            lambda _: not isinstance(_, TmuxConnection))
+        assert c, "Could not find a suitable connection for creating a Tmux instance"
+        return Tmux(c)
 
     @expose
     def tmux_session_list(self) -> List[str]:

@@ -75,6 +75,15 @@ class Connection(APIModule):
         return self._connection
 
     @expose
+    def connection_like(self, predicate) -> Optional[Connection]:
+        """Returns the most recent opened connection that matches the given
+        predicate."""
+        for i in reversed(range(len(self.__connections))):
+            c = self.__connections[i]
+            if predicate(c):
+                return c
+
+    @expose
     def is_local(self) -> bool:
         """Tells if the current connection is local or not."""
         return isinstance(self._connection, LocalConnection)

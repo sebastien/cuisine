@@ -87,6 +87,11 @@ class API:
           """Returns the current connection"""
           raise NotImplementedError
 
+     def connection_like(self, predicate) -> Optional[cuisine.connection.Connection]:
+          """Returns the most recent opened connection that matches the given
+        predicate."""
+          raise NotImplementedError
+
      def detect_connection(self) -> str:
           """Detects the recommended type of connection"""
           raise NotImplementedError

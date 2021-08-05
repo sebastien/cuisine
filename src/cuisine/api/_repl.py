@@ -93,6 +93,11 @@ def connection() -> cuisine.connection.Connection:
      """Returns the current connection"""
      return default_api().connection()
 
+def connection_like( predicate) -> Optional[cuisine.connection.Connection]:
+     """Returns the most recent opened connection that matches the given
+        predicate."""
+     return default_api().connection_like(predicate)
+
 def detect_connection() -> str:
      """Detects the recommended type of connection"""
      return default_api().detect_connection()

@@ -54,6 +54,8 @@ class Tmux:
 
     def __init__(self, connection: Connection):
         """The Tmux wrapper takes a regular connection"""
+        assert not isinstance(
+            connection, TmuxConnection), "TMux cannot use a TMux connection"
         self.connection = connection
 
     def command(self, command: str, silent=True) -> str:
@@ -172,6 +174,8 @@ class Tmux:
         start_delimiter = f"START_{delimiter}"
         ok_delimiter = f"OK_{delimiter}"
         end_delimiter = f"END_{delimiter}"
+        # First, we need to clear any weird manipulation of the shell prompt.
+        self.write(session, window, "\nexport PS1='> '")
         # NOTE: First, we're wrapping the expression in a new shell context, and
         # we're also adding an OK delimiter to make sure we determine if the
         # command succeeded or not.
@@ -181,7 +185,8 @@ class Tmux:
         result: list[str] = []
         is_success = False
         has_finished = False
-        for _ in range(int(timeout / resolution)):
+        iterations = int(timeout / resolution)
+        for _ in range(iterations):
             # FIXME: We should find a better way to capture TMux's output. Either
             # we're detecting the new lines (starting from the bottom) and adding
             # them, or we find some other way to do that.
@@ -201,7 +206,9 @@ class Tmux:
                 elif has_data:
                     block.append(line)
                     result = block
-            if not has_finished:
+            if has_finished:
+                break
+            else:
                 time.sleep(resolution)
         # The command output will be conveniently placed after the `echo
         # CMD_XXX` and before the output `CMD_XXX`. We use negative indexes
