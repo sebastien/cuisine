@@ -22,6 +22,9 @@ class MitogenConnection(Connection):
 
     TYPE = "mitogen"
     ACTIVE = 0
+    # When using automated provisionning, the servers (and keys) can change,
+    # so it makes sense to clear the host keys.
+    CHECK_HOST_KEYS = False
 
     # --
     # The mitogen *broker* and  *router* are shared across connections, and
@@ -59,6 +62,7 @@ class MitogenConnection(Connection):
                 port=self.port,
                 identity_file=self.key,
                 connect_timeout=self.timeout,
+                check_host_keys="accept" if self.CHECK_HOST_KEYS else "ignore",
             )
             MitogenConnection.ACTIVE += 1
         except self.mitogen_ssh.PasswordError as e:
