@@ -241,7 +241,7 @@ class Connection:
         else:
             self.log.action("command", command)
             res = self._run(command)
-            self.log.result(res.value if res else None, res.is_success)
+            self.log.output(res)
             return res
 
     def sudo(self, command: Optional[str] = None) -> Union[ContextManager, Optional[CommandOutput]]:
@@ -250,7 +250,7 @@ class Connection:
         else:
             self.log.action("command.sudo", command)
             res = self._sudo(command)
-            self.log.result(res.value if res else None, res.is_success)
+            self.log.output(res)
             return res
 
     def cd(self, path: str) -> CurrentPathContext:

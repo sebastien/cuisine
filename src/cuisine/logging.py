@@ -72,6 +72,12 @@ class LoggingContext:
     def action(self, name: str,  *args: str):
         self.dispatch("action", [name] + [_ for _ in args])
 
+    def output(self, output: "CommandOutput"):
+        if output.status != 0:
+            self.error(output.err)
+        else:
+            self.result(output.value if output else None, output.is_success)
+
     def result(self, value: Any, success=True):
         self.dispatch("result", [value, success])
 
