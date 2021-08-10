@@ -298,6 +298,14 @@ class API:
         removing the home directory and mail spool."""
           raise NotImplementedError
 
+     def error(self, message: str) -> None:
+          """None"""
+          raise NotImplementedError
+
+     def info(self, message: str) -> None:
+          """None"""
+          raise NotImplementedError
+
      def detect_package(self) -> str:
           """Automatically detects the type of package"""
           raise NotImplementedError
@@ -461,7 +469,11 @@ class API:
         user."""
           raise NotImplementedError
 
-     def tmux_is_responsive(self, session: str, window: str) -> bool:
+     def tmux_has(self, session: str, window: Optional[int]) -> bool:
+          """None"""
+          raise NotImplementedError
+
+     def tmux_is_responsive(self, session: str, window: int) -> Optional[bool]:
           """None"""
           raise NotImplementedError
 
@@ -469,7 +481,7 @@ class API:
           """None"""
           raise NotImplementedError
 
-     def tmux_window_list(self, session: str) -> List[str]:
+     def tmux_window_list(self, session: str) -> List[int]:
           """None"""
           raise NotImplementedError
 

@@ -158,6 +158,10 @@ def env_set( variable: str, value: str) -> str:
         `default` if not found."""
      return default_api().env_set(variable, value)
 
+def error( message: str) -> None:
+     """None"""
+     return default_api().error(message)
+
 def fail( message: Optional[str] = None):
      """None"""
      return default_api().fail(message)
@@ -265,6 +269,10 @@ def file_write( path: str, content: Union[str, bytes], mode=None, owner=None, gr
      """Writes the given content to the file at the given remote
         path, optionally setting mode/owner/group."""
      return default_api().file_write(path, content, mode, owner, group, sudo, check, scp)
+
+def info( message: str) -> None:
+     """None"""
+     return default_api().info(message)
 
 def is_local() -> bool:
      """Tells if the current connection is local or not."""
@@ -446,7 +454,11 @@ def terminate() -> List[cuisine.connection.Connection]:
      """Terminates/disconnects any remaining connection"""
      return default_api().terminate()
 
-def tmux_is_responsive( session: str, window: str) -> bool:
+def tmux_has( session: str, window: Optional[int]) -> bool:
+     """None"""
+     return default_api().tmux_has(session, window)
+
+def tmux_is_responsive( session: str, window: int) -> Optional[bool]:
      """None"""
      return default_api().tmux_is_responsive(session, window)
 
@@ -454,7 +466,7 @@ def tmux_session_list() -> List[str]:
      """None"""
      return default_api().tmux_session_list()
 
-def tmux_window_list( session: str) -> List[str]:
+def tmux_window_list( session: str) -> List[int]:
      """None"""
      return default_api().tmux_window_list(session)
 

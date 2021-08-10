@@ -183,7 +183,7 @@ class Connection:
         self.type = self.TYPE
         self._path: Optional[str] = None
         self.cd_prefix: str = ""
-        self.log = logging.Context()
+        self.log = logging.LoggingContext()
         self.log.prompt = self.prompt
         self.on_disconnect = None
         self.init()

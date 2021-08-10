@@ -44,7 +44,7 @@ def log_call(function, args, kwargs):
 
 
 # TODO: The context should be tweakable, we should be able to apply a filter
-class Context:
+class LoggingContext:
 
     def __init__(self):
         self.prompt: Callable[[], str] = lambda: ""
@@ -79,6 +79,9 @@ class Context:
     def out(self, data: Union[str, bytes]):
         self.dispatch("out", [data])
 
+    def info(self, data: Union[str, bytes]):
+        self.dispatch("info", [data])
+
     def err(self, data: Union[str, bytes]):
         self.dispatch("err", [data])
 
@@ -96,12 +99,12 @@ class Formatter:
         return cls.SINGLETON
 
     def __init__(self):
-        self.active: Optional[Context] = None
+        self.active: Optional[LoggingContext] = None
 
     def write(self, line: str):
         sys.stdout.write(line)
 
-    def receive(self, origin: Context, action: str, args: List[Any]):
+    def receive(self, origin: LoggingContext, action: str, args: List[Any]):
         if origin != self.active:
             self.write(
                 f"{BLUE}{DIM}═══{RESET}\t{BLUE}{origin.prompt()}{RESET}\n")
@@ -109,6 +112,10 @@ class Formatter:
         if action == "out":
             self.write(DIM)
             self.block(args, "┆")
+            self.write(RESET)
+        elif action == "info":
+            self.write(BLUE)
+            self.block(args, "🛈")
             self.write(RESET)
         elif action == "err":
             self.write(RED)
@@ -151,7 +158,7 @@ class NullFormatter(Formatter):
     def write(self, line: str):
         pass
 
-    def receive(self, origin: Context, action: str, args: List[Any]):
+    def receive(self, origin: LoggingContext, action: str, args: List[Any]):
         pass
 
 # EOF

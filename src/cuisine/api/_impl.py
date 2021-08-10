@@ -12,6 +12,7 @@ class API(Interface):
           import cuisine.api.dir as cuisine_api_dir
           import cuisine.api.env as cuisine_api_env
           import cuisine.api.file as cuisine_api_file
+          import cuisine.api.logging as cuisine_api_logging
           import cuisine.api.package as cuisine_api_package
           import cuisine.api.packages_python as cuisine_api_packages_python
           import cuisine.api.ssh as cuisine_api_ssh
@@ -23,6 +24,7 @@ class API(Interface):
           self._dir = cuisine_api_dir.DirAPI(self)
           self._environment = cuisine_api_env.Environment(self)
           self._file = cuisine_api_file.FileAPI(self)
+          self._logging = cuisine_api_logging.LoggingAPI(self)
           self._package = cuisine_api_package.PackageAPI(self)
           self._packageapt = cuisine_api_package.PackageAPTAPI(self)
           self._packageyum = cuisine_api_package.PackageYUMAPI(self)
@@ -327,6 +329,14 @@ class API(Interface):
         removing the home directory and mail spool."""
           return self._linuxuser.user_remove_linux(name, remove_home)
 
+     def error(self, message: str) -> None:
+          """None"""
+          return self._logging.error(message)
+
+     def info(self, message: str) -> None:
+          """None"""
+          return self._logging.info(message)
+
      def detect_package(self) -> str:
           """Automatically detects the type of package"""
           return self._package.detect_package()
@@ -490,7 +500,11 @@ class API(Interface):
         user."""
           return self._ssh.ssh_unauthorize(user, key)
 
-     def tmux_is_responsive(self, session: str, window: str) -> bool:
+     def tmux_has(self, session: str, window: Optional[int]) -> bool:
+          """None"""
+          return self._tmux.tmux_has(session, window)
+
+     def tmux_is_responsive(self, session: str, window: int) -> Optional[bool]:
           """None"""
           return self._tmux.tmux_is_responsive(session, window)
 
@@ -498,7 +512,7 @@ class API(Interface):
           """None"""
           return self._tmux.tmux_session_list()
 
-     def tmux_window_list(self, session: str) -> List[str]:
+     def tmux_window_list(self, session: str) -> List[int]:
           """None"""
           return self._tmux.tmux_window_list(session)
 
