@@ -5,7 +5,7 @@ from ..logging import LoggingContext
 
 class LoggingAPI(API):
 
-    def __init__(self):
+    def init(self):
         self.log = LoggingContext()
 
     @expose

@@ -4,6 +4,7 @@ try:
     from colorama import Fore, Style
     RED = Fore.RED
     GREEN = Fore.GREEN
+    YELLOW = Fore.YELLOW
     BLUE = Fore.BLUE
     DIM = Style.DIM
     BRIGHT = Style.BRIGHT
@@ -12,6 +13,7 @@ except ImportError as e:
     RED = ""
     GREEN = ""
     BLUE = ""
+    YELLOW = ""
     DIM = ""
     BRIGHT = ""
     RESET = ""
@@ -114,7 +116,7 @@ class Formatter:
             self.block(args, "┆")
             self.write(RESET)
         elif action == "info":
-            self.write(BLUE)
+            self.write(YELLOW)
             self.block(args, "🛈")
             self.write(RESET)
         elif action == "err":
