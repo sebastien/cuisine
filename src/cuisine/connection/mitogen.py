@@ -7,6 +7,7 @@ from typing import Optional
 import tempfile
 import threading
 import os
+import sys
 
 
 def file_write(content: bytes):
@@ -40,8 +41,8 @@ class MitogenConnection(Connection):
             import mitogen.master as mitogen_master
             import mitogen.ssh as mitogen_ssh
         except (ImportError, ModuleNotFoundError) as e:
-            logging.error(
-                "Mitogen <https://mitogen.networkgenomics.com/> is required: python -m pip install --user mitogen")
+            sys.stderr.write(
+                "[!] Mitogen <https://mitogen.networkgenomics.com/> is required: python -m pip install --user mitogen\n")
             raise e
         self.mitogen = mitogen
         self.mitogen_utils = mitogen_utils
