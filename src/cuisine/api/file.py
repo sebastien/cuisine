@@ -138,7 +138,7 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_ensure_lines(self, path: str, lines: list[str]):
+    def file_ensure_lines(self, path: str, lines: list[str], mode=None, owner=None, group=None, ):
         """Updates the mode/owner/group for the remote file at the given
         path."""
         file_lines: list[str] = str(
@@ -149,7 +149,8 @@ class FileAPI(API):
                 file_lines.append(line)
                 changed = True
         if changed:
-            self.api.file_write(path, "\n".join(file_lines))
+            self.api.file_write(path, "\n".join(file_lines),
+                                mode=mode, owner=owner, group=group)
         return True
 
     def file_is_same(self, local: str, remote: str) -> bool:

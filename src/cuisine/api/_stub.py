@@ -201,7 +201,7 @@ class API:
         path."""
           raise NotImplementedError
 
-     def file_ensure_lines(self, path: str, lines: list):
+     def file_ensure_lines(self, path: str, lines: list, mode=None, owner=None, group=None):
           """Updates the mode/owner/group for the remote file at the given
         path."""
           raise NotImplementedError
