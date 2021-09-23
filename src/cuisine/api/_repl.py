@@ -198,6 +198,11 @@ def file_ensure( path, mode=None, owner=None, group=None, scp=False):
         path."""
      return default_api().file_ensure(path, mode, owner, group, scp)
 
+def file_ensure_lines( path: str, lines: list):
+     """Updates the mode/owner/group for the remote file at the given
+        path."""
+     return default_api().file_ensure_lines(path, lines)
+
 def file_exists( path: str) -> bool:
      """Tests if there is a *remote* file at the given path."""
      return default_api().file_exists(path)

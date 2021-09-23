@@ -201,6 +201,11 @@ class API:
         path."""
           raise NotImplementedError
 
+     def file_ensure_lines(self, path: str, lines: list):
+          """Updates the mode/owner/group for the remote file at the given
+        path."""
+          raise NotImplementedError
+
      def file_exists(self, path: str) -> bool:
           """Tests if there is a *remote* file at the given path."""
           raise NotImplementedError
