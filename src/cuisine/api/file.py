@@ -136,12 +136,28 @@ class FileAPI(API):
             self.file_write(path, "", mode=mode, owner=owner,
                             group=group, scp=scp)
 
+    @expose
+    @logged
+    def file_ensure_lines(self, path: str, lines: list[str]):
+        """Updates the mode/owner/group for the remote file at the given
+        path."""
+        file_lines: list[str] = str(
+            self.api.file_read(path), "utf8").split("\n")
+        changed = False
+        for line in lines:
+            if line not in file_lines:
+                file_lines.append(line)
+                changed = True
+        if changed:
+            self.api.file_write(path, "\n".join(file_lines))
+        return True
+
     def file_is_same(self, local: str, remote: str) -> bool:
         """Tells if the local and remote file have the same content. Both
         file must exist and have the same signature."""
         if not os.path.exists(local):
             return False
-        if not self.api.file_exits(remote):
+        if not self.api.file_exists(remote):
             return False
         with open(local, "rb") as f:
             content = f.read()
