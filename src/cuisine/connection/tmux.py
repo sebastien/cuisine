@@ -1,5 +1,5 @@
 from ..utils import quoted, timenum
-from typing import Optional, List, Tuple
+from typing import Optional
 from pathlib import Path
 import time
 import re
@@ -67,14 +67,14 @@ class Tmux:
         res = self.connection.run(cmd)
         if silent:
             self.connection.log.pop()
-        if res.is_success:
+        if res and res.is_success:
             return str(res.out_nocolor)
         else:
             self.connection.log.error(
                 f"Could not run Tmux command '{command}' through connection '{self.connection.prompt()}'")
             return ""
 
-    def session_list(self) -> List[str]:
+    def session_list(self) -> list[str]:
         """Returns the list of sessions"""
         sessions = self.command("list-session").split("\n")
         return [_.split(":", 1)[0] for _ in sessions if _]
@@ -83,7 +83,12 @@ class Tmux:
         """Ensures that the given session exists."""
         sessions = self.session_list()
         if session not in sessions:
-            self.command(f"new-session -d -s {session}")
+            # NOTE: If we use bash, we may get weird stuff like
+            # `Install package 'python3-argcomplete' to provide command 'register-python-argcomplete'? [N/y]`
+            # on some systems.
+            # TODO: We should define PS1
+            self.command(
+                f"new-session -d -s {session} /bin/sh \\; set default-shell /bin/sh")
             return False
         else:
             return True
@@ -92,7 +97,7 @@ class Tmux:
         """Tells if the given session exists or not."""
         return session in self.session_list()
 
-    def window_list(self, session: str) -> List[int]:
+    def window_list(self, session: str) -> list[int]:
         """Retuns the list of windows in the given session"""
         if not self.session_has(session):
             return []
@@ -110,13 +115,13 @@ class Tmux:
                 # TODO: If we want, we could use the name
                 # name = (fields[1][:-1] if fields[1][-1]
                 #         in "*-" else fields[1]).split("@", 1)[0].split(":", 1)[0]
-            res.append(index)
+                res.append(index)
         return res
 
-    def window_get(self, session: str, window: int) -> List[str]:
+    def window_get(self, session: str, window: int) -> list[str]:
         if not self.session_has(session):
             return []
-        return window in self.window_list(session)
+        return self.window_list(session)
 
     def window_has(self, session: str, window: int) -> bool:
         return bool(self.window_get(session, window)) if self.session_has(session) else False
@@ -162,7 +167,7 @@ class Tmux:
         """Sends a `Ctrl-c` keystroke in this session."""
         self.command(f"send-keys -t {session}:{window} C-c")
 
-    def run(self, session: str, window: int, command: str, timeout=2, resolution=0.1) -> Tuple[bool, str]:
+    def run(self, session: str, window: int, command: str, timeout=2, resolution=0.1) -> tuple[bool, str]:
         """This function allows to run a command and retrieve its output
         as given by the shell. It is quite error prone, as it will include
         your prompt styling and will only poll the output at `resolution` seconds
