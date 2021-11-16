@@ -107,7 +107,8 @@ class FileAPI(API):
         # Gets the content signature and write it to a secure tempfile
         bytes_content = content if isinstance(
             content, bytes) else bytes(content, "utf8")
-        self.api.dir_ensure(os.path.dirname(path))
+        if os.path.dirname(path):
+            self.api.dir_ensure(os.path.dirname(path))
         sig = hashlib.md5(bytes_content).hexdigest()
         fd, local_path = tempfile.mkstemp()
         os.write(fd, bytes_content)
