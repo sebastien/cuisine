@@ -39,6 +39,12 @@ QUOTE_ESCAPE = "'\"'\"'"
 QUOTE = "'"
 
 
+def normpath(path:Union[Path,str]):
+    """Ensures that the given value is a string, this accepts a Path"""
+    res = str(path) if isinstance(path, Path) else path
+    assert isinstance(res,str)
+    return res
+
 def quotable(line: str) -> str:
     """Returns a string that can be used in single quotes, but won't necessariy
     work without quotes."""
@@ -48,9 +54,11 @@ def quotable(line: str) -> str:
         return line.replace(QUOTE_ESCAPE, QUOTE).replace(QUOTE, QUOTE_ESCAPE)
 
 
-def quoted(line: str) -> str:
+def quoted(line: Union[Path,str]) -> str:
     # FIXME: https://unix.stackexchange.com/questions/30903/how-to-escape-quotes-in-shell#30904
     # FROM: https://stackoverflow.com/questions/1250079/how-to-escape-single-quotes-within-single-quoted-strings#1250279
+    line = normpath(line)
+    assert isinstance(line,str)
     if line and line[0] == line[-1] and line[0] == "'":
         return line
     else:

@@ -6,6 +6,7 @@ from ..connection import CommandOutput, Connection
 from ..connection.local import LocalConnection
 from ..api import APIModule
 from ..decorators import expose, dispatch, variant
+from ..utils import normpath
 from typing import Optional, ContextManager, Union, List
 from pathlib import Path
 
@@ -188,6 +189,6 @@ class Connection(APIModule):
         # Current path will be "~"
         ```
         """
-        return self._connection.cd(path)
+        return self._connection.cd(normpath(path))
 
 # EOF
