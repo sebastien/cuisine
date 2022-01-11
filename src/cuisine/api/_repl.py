@@ -198,7 +198,7 @@ def file_ensure( path, mode=None, owner=None, group=None, scp=False):
         path."""
      return default_api().file_ensure(path, mode, owner, group, scp)
 
-def file_ensure_lines( path: str, lines: list, mode=None, owner=None, group=None):
+def file_ensure_lines( path: str, lines: list[str], mode=None, owner=None, group=None):
      """Updates the mode/owner/group for the remote file at the given
         path."""
      return default_api().file_ensure_lines(path, lines, mode, owner, group)
@@ -265,10 +265,10 @@ def file_update( path: str, updater=None):
         """
      return default_api().file_update(path, updater)
 
-def file_upload( local: str, remote: str):
+def file_upload( local: str, remote: str, mode: Optional[str] = None, owner: Optional[str] = None, group: Optional[str] = None):
      """Uploads the local file to the remote path only if the remote path does not
         exists or the content are different."""
-     return default_api().file_upload(local, remote)
+     return default_api().file_upload(local, remote, mode, owner, group)
 
 def file_write( path: str, content: Union[str, bytes], mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
      """Writes the given content to the file at the given remote

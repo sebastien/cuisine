@@ -201,7 +201,7 @@ class API:
         path."""
           raise NotImplementedError
 
-     def file_ensure_lines(self, path: str, lines: list, mode=None, owner=None, group=None):
+     def file_ensure_lines(self, path: str, lines: list[str], mode=None, owner=None, group=None):
           """Updates the mode/owner/group for the remote file at the given
         path."""
           raise NotImplementedError
@@ -268,7 +268,7 @@ class API:
         """
           raise NotImplementedError
 
-     def file_upload(self, local: str, remote: str):
+     def file_upload(self, local: str, remote: str, mode: Optional[str] = None, owner: Optional[str] = None, group: Optional[str] = None):
           """Uploads the local file to the remote path only if the remote path does not
         exists or the content are different."""
           raise NotImplementedError

@@ -92,7 +92,7 @@ class FileAPI(API):
         otherwise.
         """
         if self.file_exists(self, path):
-            fs_check = run('stat %s %s' %
+            fs_check = self.api.run('stat %s %s' %
                            (shell_safe(path), '--format="%a %U %G"'))
             (mode, owner, group) = fs_check.split(' ')
             return {'mode': mode, 'owner': owner, 'group': group}
@@ -168,7 +168,7 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_upload(self, local: str, remote: str):
+    def file_upload(self, local: str, remote: str, mode:Optional[str]=None, owner:Optional[str]=None, group:Optional[str]=None):
         """Uploads the local file to the remote path only if the remote path does not
         exists or the content are different."""
         # FIXME: Big files are never transferred properly!
@@ -189,7 +189,9 @@ class FileAPI(API):
             self.api.info(f"Remote file is identical to local, no need to upload: {remote} ← {local}")
         else:
             self.api.connection().upload(remote, local)
-
+        if mode or owner or group:
+            self.api.file_attribs(remote, mode, owner, group)
+        return remote
 
     @expose
     @logged
