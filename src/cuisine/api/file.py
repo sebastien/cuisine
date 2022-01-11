@@ -3,6 +3,7 @@ import base64
 import tempfile
 import hashlib
 import os
+import stat
 from ..api import APIModule as API
 from ..decorators import logged, expose, requires
 from ..utils import shell_safe, quoted
@@ -174,7 +175,21 @@ class FileAPI(API):
         assert os.path.exists(
             local), f"Cannot upload, local file does not exists: {local}"
         self.api.dir_ensure(os.path.dirname(remote))
-        self.api.connection().upload(remote, local)
+        # If the file is too big, we'll see if we can skip the upload
+        size = os.stat(local)[stat.ST_SIZE]
+        is_same = False
+        if size > 100_000 and self.file_exists(remote):
+            # NOTE: Remote and local may not calculate the signature the same
+            # way.
+            remote_sig = self.file_sha256(remote)
+            with open(local,"rb") as f:
+                local_sig = hashlib.sha256(f.read()).hexdigest()
+            is_same = local_sig == remote_sig
+        if is_same:
+            self.api.info(f"Remote file is identical to local, no need to upload: {remote} ← {local}")
+        else:
+            self.api.connection().upload(remote, local)
+
 
     @expose
     @logged
@@ -272,7 +287,7 @@ class FileAPI(API):
         if not self.file_exists(path):
             return None
         elif option_hash == "python":
-            return self.api.run(f"cat {quoted(path)} | ${self.api.command('python')} -c 'import sys,hashlib;sys.stdout.buffer.write(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())'")
+            return self.api.run(f"cat {quoted(path)} | {self.api.command('python')} -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())'").value
         else:
             return self.api.run(f"openssl dgst -sha256 {quoted(path)}").split("\n")[-1].split(")= ", 1)[-1].strip()
 
