@@ -1,4 +1,5 @@
 # See <git@github.com:sebastien/cuisine.git>
 appenv_declare cuisine
-appenv_prepend PYTHONPATH $APPENV_DIR/src
+appenv_prepend PYTHONPATH $APPENV_DIR/src/py
+appenv_prepend PATH bin
 # EOF
