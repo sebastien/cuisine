@@ -227,6 +227,10 @@ class API(Interface):
           """Returns the base64-encoded content of the file at the given path."""
           return self._file.file_base64(path)
 
+     def file_download(self, remote: str, local: str, mode: Optional[int] = None, owner: Optional[str] = None, group: Optional[str] = None):
+          """Downloads the file at the `remote` path to the `local` path."""
+          return self._file.file_download(remote, local, mode, owner, group)
+
      def file_ensure(self, path, mode=None, owner=None, group=None, scp=False):
           """Updates the mode/owner/group for the remote file at the given
         path."""
@@ -300,7 +304,7 @@ class API(Interface):
           return self._file.file_update(path, updater)
 
      def file_upload(self, local: str, remote: str, mode: Optional[str] = None, owner: Optional[str] = None, group: Optional[str] = None):
-          """Uploads the local file to the remote path only if the remote path does not
+          """Downloads the local file to the remote path only if the remote path does not
         exists or the content are different."""
           return self._file.file_upload(local, remote, mode, owner, group)
 

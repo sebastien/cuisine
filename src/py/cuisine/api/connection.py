@@ -20,12 +20,15 @@ ACTIVE_CONNECTIONS = 0
 class ConnectionContext(ContextManager):
     """Automatically disconnects a connection path to where it was."""
 
-    def __init__(self, connection: 'Connection'):
+    def __init__(self, connection: "Connection"):
         self.connection = connection
         self.has_entered = False
 
     def __enter__(self):
         self.has_entered = True
+        # TODO: We could return a Cuisine API scoped at the given connection
+        # instead.
+        return self.connection
 
     def __exit__(self, type, value, traceback):
         if self.has_entered:
@@ -54,11 +57,9 @@ class Connection(APIModule):
         """Cleans the connections, removing the ones that are disconnected"""
         n = len(self.__connections)
         if connection:
-            self.__connections = [
-                _ for _ in self.__connections if _ is not connection]
+            self.__connections = [_ for _ in self.__connections if _ is not connection]
         else:
-            self.__connections = [
-                _ for _ in self.__connections if _.is_connected]
+            self.__connections = [_ for _ in self.__connections if _.is_connected]
         global ACTIVE_CONNECTIONS
         ACTIVE_CONNECTIONS -= n - len(self.__connections)
 
@@ -101,27 +102,38 @@ class Connection(APIModule):
         return True
 
     @expose
-    def connect(self, host=None, port=None, user=None, password=None, key: Union[str, Path] = None, transport: Optional[str] = None) -> ContextManager:
+    def connect(
+        self,
+        host=None,
+        port=None,
+        user=None,
+        password=None,
+        key: Union[str, Path] = None,
+        transport: Optional[str] = None,
+    ) -> ContextManager:
         """Connects to the given host/port using the given user/password/key_path credentials. Note that
         not all connection types support all these arguments, so you might get warnings if they are
         not supported."""
-        transport = transport or self.api.detect_connection() if host or port else "local"
+        transport = (
+            transport or self.api.detect_connection() if host or port else "local"
+        )
         if transport == "local":
             assert not user, "Local user change is not supported yet"
             return ConnectionContext(self.connection())
         else:
             connection_creator = getattr(self.api, f"connect_{transport}")
             if not connection_creator:
-                raise RuntimeError(
-                    f"Connection type not supported: {transport}")
+                raise RuntimeError(f"Connection type not supported: {transport}")
             else:
                 return connection_creator(
-                    host=host, port=port, user=user, password=password, key=key)
+                    host=host, port=port, user=user, password=password, key=key
+                )
 
     @expose
     def disconnect(self) -> Optional[Connection]:
         """Disconnects from the current connection unless it'"s the default
         local connection."""
+        global ACTIVE_CONNECTIONS
         if len(self.__connections) > 1:
             conn = self.__connections.pop()
             ACTIVE_CONNECTIONS -= 1
@@ -145,36 +157,58 @@ class Connection(APIModule):
 
     @expose
     @variant("paramiko")
-    def connect_paramiko(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> ContextManager:
-        return self.register_connection(ParamikoConnection(host=host, port=port, user=user, password=password, key=key))
+    def connect_paramiko(
+        self, host=None, port=None, user=None, password=None, key: Optional[Path] = None
+    ) -> ContextManager:
+        return self.register_connection(
+            ParamikoConnection(
+                host=host, port=port, user=user, password=password, key=key
+            )
+        )
 
     @expose
     @variant("mitogen")
-    def connect_mitogen(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> ContextManager:
-        return self.register_connection(MitogenConnection(host=host, port=port, user=user, password=password, key=key))
+    def connect_mitogen(
+        self, host=None, port=None, user=None, password=None, key: Optional[Path] = None
+    ) -> ContextManager:
+        return self.register_connection(
+            MitogenConnection(
+                host=host, port=port, user=user, password=password, key=key
+            )
+        )
 
     @expose
     @variant("parallelssh")
-    def connect_parallelssh(self, host=None, port=None, user=None, password=None, key: Optional[Path] = None) -> ContextManager:
-        return self.register_connection(ParallelSSHConnection(host=host, port=port, user=user, password=password, key=key))
+    def connect_parallelssh(
+        self, host=None, port=None, user=None, password=None, key: Optional[Path] = None
+    ) -> ContextManager:
+        return self.register_connection(
+            ParallelSSHConnection(
+                host=host, port=port, user=user, password=password, key=key
+            )
+        )
 
     @expose
     def connect_tmux(self, session: str, window: str) -> ContextManager:
         """Creates a new connection using the TmuxConnection"""
-        return self.register_connection(TmuxConnection(self._connection, session, window))
+        return self.register_connection(
+            TmuxConnection(self._connection, session, window)
+        )
 
     @expose
-    def run(self, command: str) -> 'CommandOutput':
+    def run(self, command: str) -> "CommandOutput":
         return self._connection.run(command)
 
     @expose
-    def run_local(self, command: str) -> 'CommandOutput':
+    def run_local(self, command: str) -> "CommandOutput":
         local_connection = self.__connections[0]
         assert isinstance(local_connection, LocalConnection)
         return local_connection.run(command)
 
     @expose
-    def sudo(self, command: Optional[str] = None) -> Union[ContextManager, 'CommandOutput']:
+    def sudo(
+        self, command: Optional[str] = None
+    ) -> Union[ContextManager, "CommandOutput"]:
         return self._connection.sudo(command)
 
     @expose
@@ -190,5 +224,6 @@ class Connection(APIModule):
         ```
         """
         return self._connection.cd(normpath(path))
+
 
 # EOF

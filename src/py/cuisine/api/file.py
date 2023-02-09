@@ -4,6 +4,7 @@ import tempfile
 import hashlib
 import os
 import stat
+from pathlib import Path
 from ..api import APIModule as API
 from ..decorators import logged, expose, requires
 from ..utils import shell_safe, quoted
@@ -11,7 +12,6 @@ from typing import Dict, Union, Optional
 
 
 class FileAPI(API):
-
     @expose
     def file_name(self, path: str) -> str:
         """Returns the file name for the given path."""
@@ -28,10 +28,9 @@ class FileAPI(API):
         if once and self.file_exists(backup_path):
             return False
         else:
-            return self.api.run("cp -a {0} {1}".format(
-                shell_safe(path),
-                shell_safe(backup_path)
-            ))
+            return self.api.run(
+                "cp -a {0} {1}".format(shell_safe(path), shell_safe(backup_path))
+            )
 
     @expose
     @logged
@@ -92,22 +91,34 @@ class FileAPI(API):
         otherwise.
         """
         if self.file_exists(self, path):
-            fs_check = self.api.run('stat %s %s' %
-                           (shell_safe(path), '--format="%a %U %G"'))
-            (mode, owner, group) = fs_check.split(' ')
-            return {'mode': mode, 'owner': owner, 'group': group}
+            fs_check = self.api.run(
+                "stat %s %s" % (shell_safe(path), '--format="%a %U %G"')
+            )
+            (mode, owner, group) = fs_check.split(" ")
+            return {"mode": mode, "owner": owner, "group": group}
         else:
             return None
 
     @expose
     @logged
-    def file_write(self, path: str, content: Union[str, bytes], mode=None, owner=None, group=None, sudo=None, check=True, scp=False):
+    def file_write(
+        self,
+        path: str,
+        content: Union[str, bytes],
+        mode=None,
+        owner=None,
+        group=None,
+        sudo=None,
+        check=True,
+        scp=False,
+    ):
         """Writes the given content to the file at the given remote
         path, optionally setting mode/owner/group."""
         # FIXME: Big files are never transferred properly!
         # Gets the content signature and write it to a secure tempfile
-        bytes_content = content if isinstance(
-            content, bytes) else bytes(content, "utf8")
+        bytes_content = (
+            content if isinstance(content, bytes) else bytes(content, "utf8")
+        )
         if os.path.dirname(path):
             self.api.dir_ensure(os.path.dirname(path))
         sig = hashlib.md5(bytes_content).hexdigest()
@@ -124,7 +135,9 @@ class FileAPI(API):
         # Ensures that the signature matches
         if check:
             file_sig = self.file_md5(path)
-            assert sig == file_sig, f"File content does not matches file: {path}, got {file_sig}, expects {sig}"
+            assert (
+                sig == file_sig
+            ), f"File content does not matches file: {path}, got {file_sig}, expects {sig}"
         return self.file_attribs(path, mode=mode, owner=owner, group=group)
 
     @expose
@@ -135,24 +148,30 @@ class FileAPI(API):
         if self.file_exists(path):
             self.file_attribs(path, mode=mode, owner=owner, group=group)
         else:
-            self.file_write(path, "", mode=mode, owner=owner,
-                            group=group, scp=scp)
+            self.file_write(path, "", mode=mode, owner=owner, group=group, scp=scp)
 
     @expose
     @logged
-    def file_ensure_lines(self, path: str, lines: list[str], mode=None, owner=None, group=None, ):
+    def file_ensure_lines(
+        self,
+        path: str,
+        lines: list[str],
+        mode=None,
+        owner=None,
+        group=None,
+    ):
         """Updates the mode/owner/group for the remote file at the given
         path."""
-        file_lines: list[str] = str(
-            self.api.file_read(path), "utf8").split("\n")
+        file_lines: list[str] = str(self.api.file_read(path), "utf8").split("\n")
         changed = False
         for line in lines:
             if line not in file_lines:
                 file_lines.append(line)
                 changed = True
         if changed:
-            self.api.file_write(path, "\n".join(file_lines),
-                                mode=mode, owner=owner, group=group)
+            self.api.file_write(
+                path, "\n".join(file_lines), mode=mode, owner=owner, group=group
+            )
         return True
 
     def file_is_same(self, local: str, remote: str) -> bool:
@@ -168,12 +187,20 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_upload(self, local: str, remote: str, mode:Optional[str]=None, owner:Optional[str]=None, group:Optional[str]=None):
-        """Uploads the local file to the remote path only if the remote path does not
+    def file_upload(
+        self,
+        local: str,
+        remote: str,
+        mode: Optional[str] = None,
+        owner: Optional[str] = None,
+        group: Optional[str] = None,
+    ):
+        """Downloads the local file to the remote path only if the remote path does not
         exists or the content are different."""
         # FIXME: Big files are never transferred properly!
         assert os.path.exists(
-            local), f"Cannot upload, local file does not exists: {local}"
+            local
+        ), f"Cannot upload, local file does not exists: {local}"
         self.api.dir_ensure(os.path.dirname(remote))
         # If the file is too big, we'll see if we can skip the upload
         size = os.stat(local)[stat.ST_SIZE]
@@ -182,16 +209,41 @@ class FileAPI(API):
             # NOTE: Remote and local may not calculate the signature the same
             # way.
             remote_sig = self.file_sha256(remote)
-            with open(local,"rb") as f:
+            with open(local, "rb") as f:
                 local_sig = hashlib.sha256(f.read()).hexdigest()
             is_same = local_sig == remote_sig
         if is_same:
-            self.api.info(f"Remote file is identical to local, no need to upload: {remote} ← {local}")
+            self.api.info(
+                f"Remote file is identical to local, no need to upload: {remote} ← {local}"
+            )
         else:
             self.api.connection().upload(remote, local)
         if mode or owner or group:
             self.api.file_attribs(remote, mode, owner, group)
         return remote
+
+    @expose
+    @logged
+    def file_download(
+        self,
+        remote: str,
+        local: str,
+        mode: Optional[int] = None,
+        owner: Optional[str] = None,
+        group: Optional[str] = None,
+    ):
+        """Downloads the file at the `remote` path to the `local` path."""
+        # FIXME: Big files are never transferred properly!
+        output_path = Path(local)
+        try:
+            self.api.connection().download(remote, local)
+        except NotImplementedError:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, "wb") as f:
+                f.write(self.file_read(remote))
+        if mode is not None:
+            os.chmod(output_path, mode=mode)
+        return output_path
 
     @expose
     @logged
@@ -212,7 +264,7 @@ class FileAPI(API):
         assert self.file_exists(path), "File does not exists: " + path
         old_content = self.file_read(path)
         new_content = updater(old_content) if updater else old_content
-        if (old_content == new_content):
+        if old_content == new_content:
             return False
         # assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
         self.api.file_write(path, new_content)
@@ -220,16 +272,25 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_append(self, path: str, content: Union[bytes, str], mode: Optional[str] = None, owner: Optional[str] = None, group: Optional[str] = None):
+    def file_append(
+        self,
+        path: str,
+        content: Union[bytes, str],
+        mode: Optional[str] = None,
+        owner: Optional[str] = None,
+        group: Optional[str] = None,
+    ):
         """Appends the given content to the remote file at the given
         path, optionally updating its mode/owner/group."""
         # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
         # NOTE: We use tee to preserve the writing rights (sudo)
-        content_bytes = content if isinstance(
-            content, bytes) else bytes(content, "utf8")
+        content_bytes = (
+            content if isinstance(content, bytes) else bytes(content, "utf8")
+        )
         # SEE: https://unix.stackexchange.com/questions/503990/redirecting-from-right-to-left
         self.api.run(
-            f"tee -a {quoted(path)} < <(echo {quoted(str(base64.b64encode(content_bytes), 'ascii'))} | openssl base64 -A -d) > /dev/null")
+            f"tee -a {quoted(path)} < <(echo {quoted(str(base64.b64encode(content_bytes), 'ascii'))} | openssl base64 -A -d) > /dev/null"
+        )
         return self.api.file_attribs(path, mode, owner, group)
 
     @expose
@@ -242,21 +303,22 @@ class FileAPI(API):
 
     @expose
     @logged
-    def file_link(self, source, destination, symbolic=True, mode=None, owner=None, group=None):
+    def file_link(
+        self, source, destination, symbolic=True, mode=None, owner=None, group=None
+    ):
         """Creates a (symbolic) link between source and destination on the remote host,
         optionally setting its mode/owner/group."""
         if self.file_exists(destination) and (not self.file_is_link(destination)):
             raise Exception(
-                "Destination already exists and is not a link: %s" % (destination))
+                "Destination already exists and is not a link: %s" % (destination)
+            )
         # FIXME: Should resolve the link first before unlinking
         if self.file_is_link(destination):
             self.file_unlink(destination)
         if symbolic:
-            self.api.run('ln -sf %s %s' %
-                         (shell_safe(source), shell_safe(destination)))
+            self.api.run("ln -sf %s %s" % (shell_safe(source), shell_safe(destination)))
         else:
-            self.api.run('ln -f %s %s' %
-                         (shell_safe(source), shell_safe(destination)))
+            self.api.run("ln -f %s %s" % (shell_safe(source), shell_safe(destination)))
         self.file_attribs(destination, mode, owner, group)
 
     # SHA256/MD5 sums with openssl are tricky to get working cross-platform
@@ -274,9 +336,13 @@ class FileAPI(API):
         option_hash = self.api.config_get("hash", "openssl")
         if option_hash == "python":
             # FIXME: This does not seem to work al
-            return self.api.run(f"cat {quoted(path)} | {self.api.command('python')} -c 'import sys,base64;sys.stdout.buffer.write(base64.b64encode(sys.stdin.buffer.read()))'").out
+            return self.api.run(
+                f"cat {quoted(path)} | {self.api.command('python')} -c 'import sys,base64;sys.stdout.buffer.write(base64.b64encode(sys.stdin.buffer.read()))'"
+            ).out
         else:
-            return self.api.run(f"cat {quoted(path)} | {self.api.command('openssl')} base64").out
+            return self.api.run(
+                f"cat {quoted(path)} | {self.api.command('openssl')} base64"
+            ).out
 
     @expose
     @logged
@@ -289,9 +355,16 @@ class FileAPI(API):
         if not self.file_exists(path):
             return None
         elif option_hash == "python":
-            return self.api.run(f"cat {quoted(path)} | {self.api.command('python')} -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())'").value
+            return self.api.run(
+                f"cat {quoted(path)} | {self.api.command('python')} -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())'"
+            ).value
         else:
-            return self.api.run(f"openssl dgst -sha256 {quoted(path)}").split("\n")[-1].split(")= ", 1)[-1].strip()
+            return (
+                self.api.run(f"openssl dgst -sha256 {quoted(path)}")
+                .split("\n")[-1]
+                .split(")= ", 1)[-1]
+                .strip()
+            )
 
     @expose
     @logged
@@ -306,8 +379,13 @@ class FileAPI(API):
         if not self.file_exists(path):
             return None
         elif option_hash == "python":
-            return self.api.run(f"python -c 'import sys,hashlib;sys.stdout.buffer.write(hashlib.md5(sys.stdin.buffer.read()).hexdigest())' < {quoted(path)}").out
+            return self.api.run(
+                f"python -c 'import sys,hashlib;sys.stdout.buffer.write(hashlib.md5(sys.stdin.buffer.read()).hexdigest())' < {quoted(path)}"
+            ).out
         else:
             return self.api.run(
-                f"openssl dgst -md5 {quoted(path)}").checked_value.split(")= ", 1)[-1]
+                f"openssl dgst -md5 {quoted(path)}"
+            ).checked_value.split(")= ", 1)[-1]
+
+
 # EOF

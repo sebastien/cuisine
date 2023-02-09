@@ -12,7 +12,6 @@ RE_TMUX_FIELDS = re.compile(r"\[[^\]]+\]|\([^\)]+\)|[^ ]+")
 
 
 class TmuxConnection(Connection):
-
     def __init__(self, connection: Connection, session: str, window: int = 0):
         super().__init__()
         self._connection = connection
@@ -32,16 +31,17 @@ class TmuxConnection(Connection):
         pass
 
     def _run(self, command: str) -> Optional[CommandOutput]:
-        cmd = self.cd_prefix + command
+        cmd = self.cd_prefix + command if self.cd_prefix else command
         success, out = self.tmux.run(self.session, self.window, cmd)
-        return CommandOutput((command, 0 if success else 1, bytes(out or "", "utf8"), b""))
+        return CommandOutput(
+            (command, 0 if success else 1, bytes(out or "", "utf8"), b"")
+        )
 
     def _upload(self, remote: str, source: Path):
         return self._connection._upload(remote, source)
 
     def _cd(self, path: str):
-        self.tmux.run(self.session, self.window,
-                      f"cd {quoted(path)}")
+        self.tmux.run(self.session, self.window, f"cd {quoted(path)}")
 
 
 # TODO: We might want to change that so that an instance is not required, and
@@ -55,7 +55,8 @@ class Tmux:
     def __init__(self, connection: Connection):
         """The Tmux wrapper takes a regular connection"""
         assert not isinstance(
-            connection, TmuxConnection), "TMux cannot use a TMux connection"
+            connection, TmuxConnection
+        ), "TMux cannot use a TMux connection"
         self.connection = connection
 
     def command(self, command: str, silent=True) -> str:
@@ -71,7 +72,8 @@ class Tmux:
             return str(res.out_nocolor)
         else:
             self.connection.log.error(
-                f"Could not run Tmux command '{command}' through connection '{self.connection.prompt()}'")
+                f"Could not run Tmux command '{command}' through connection '{self.connection.prompt()}'"
+            )
             return ""
 
     def session_list(self) -> list[str]:
@@ -88,7 +90,8 @@ class Tmux:
             # on some systems.
             # TODO: We should define PS1
             self.command(
-                f"new-session -d -s {session} /bin/sh \\; set default-shell /bin/sh")
+                f"new-session -d -s {session} /bin/sh \\; set default-shell /bin/sh"
+            )
             return False
         else:
             return True
@@ -101,8 +104,9 @@ class Tmux:
         """Retuns the list of windows in the given session"""
         if not self.session_has(session):
             return []
-        windows = filter(lambda _: _, self.command(
-            f"list-windows -t {session}").split("\n"))
+        windows = filter(
+            lambda _: _, self.command(f"list-windows -t {session}").split("\n")
+        )
         res = []
         # OUTPUT is like:
         # 1: ONE- (1 panes) [122x45] [layout bffe,122x45,0,0,1] @1
@@ -124,13 +128,18 @@ class Tmux:
         return self.window_list(session)
 
     def window_has(self, session: str, window: int) -> bool:
-        return bool(self.window_get(session, window)) if self.session_has(session) else False
+        return (
+            bool(self.window_get(session, window))
+            if self.session_has(session)
+            else False
+        )
 
     def window_ensure(self, session: str, window: int) -> bool:
         self.session_ensure(session)
         if not self.window_get(session, window):
             self.command(
-                f"set-option -g allow-rename off \\; new-window -t {session} -n {window} \\; set-window -g automatic-rename off ")
+                f"set-option -g allow-rename off \\; new-window -t {session} -n {window} \\; set-window -g automatic-rename off "
+            )
 
             return False
         else:
@@ -156,18 +165,21 @@ class Tmux:
 
     def read(self, session: str, window: int) -> str:
         """Reads from the given session and window"""
-        return self.command(f"capture-pane -t {session}:{window} \\; save-buffer -", silent=True)
+        return self.command(
+            f"capture-pane -t {session}:{window} \\; save-buffer -", silent=True
+        )
 
     def write(self, session: str, window: int, commands: str):
-        self.command(
-            f"send-keys -t {session}:{window}  {quoted(commands)}")
+        self.command(f"send-keys -t {session}:{window}  {quoted(commands)}")
         self.command(f"send-keys -t {session}:{window} C-m")
 
     def halt(self, session: str, window: int):
         """Sends a `Ctrl-c` keystroke in this session."""
         self.command(f"send-keys -t {session}:{window} C-c")
 
-    def run(self, session: str, window: int, command: str, timeout=2, resolution=0.1) -> tuple[bool, str]:
+    def run(
+        self, session: str, window: int, command: str, timeout=2, resolution=0.1
+    ) -> tuple[bool, str]:
         """This function allows to run a command and retrieve its output
         as given by the shell. It is quite error prone, as it will include
         your prompt styling and will only poll the output at `resolution` seconds
@@ -221,7 +233,9 @@ class Tmux:
         return is_success, "\n".join(result)
         # return output.rsplit(delimiter, 2)[-2].split("\n", 1)[-1] if found else None
 
-    def is_responsive(self, session: str, window: int, timeout: int = 1, resolution: float = 0.1) -> Optional[bool]:
+    def is_responsive(
+        self, session: str, window: int, timeout: int = 1, resolution: float = 0.1
+    ) -> Optional[bool]:
         """Tells if the given session/window is responsive, returning None if the session does not
         exist."""
         if self.session_has(session) and self.window_has(session, window):
@@ -239,5 +253,6 @@ class Tmux:
             return False
         else:
             return None
+
 
 # EOF

@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from typing import Optional, Tuple, Any, List, Iterable, Union, ContextManager
+from typing import Optional, Any, Iterable, Union, ContextManager
 from ..utils import shell_safe, strip_ansi, quoted
 from .. import logging
 
@@ -22,17 +22,23 @@ class CommandOutput(str):
     - `command`, the original command
     """
 
-    STATUS_SUCCESS = (0,)
+    STATUS_SUCCESS: tuple[int] = (0,)
+
+    @classmethod
+    def Make(
+        cls, *, command: str, status: int, out: bytes, err: bytes
+    ) -> "CommandOutput":
+        return cls((command, status, out, err))
 
     # I'm not sure how that even works, as we're not initializing self with
     # `out`, but it still does work.
-    def __init__(self, res: Tuple[str, int, bytes, bytes]):
+    def __init__(self, res: tuple[str, int, bytes, bytes]):
         str.__init__(self)
         command, status, out, err = res
-        self.command = command
-        self.status = status
-        self._out = out
-        self._err = err
+        self.command: str = command
+        self.status: int = status
+        self._out: bytes = out
+        self._err: bytes = err
         self._outStr: Optional[str] = None
         self._errStr: Optional[str] = None
         self.encoding = "utf8"
@@ -70,7 +76,8 @@ class CommandOutput(str):
     def checked_value(self) -> Any:
         if not self.is_success:
             raise RuntimeError(
-                f"Command failed with status {self.status}: {self.command}")
+                f"Command failed with status {self.status}: {self.command}"
+            )
         else:
             return self.value
 
@@ -98,7 +105,7 @@ class CommandOutput(str):
     def last_line(self) -> str:
         """Returns the last line, stripping the trailing EOL"""
         i = self.out.rfind("\n", 0, -2)
-        return (self.out if i == -1 else self.out[i+1:]).rstrip("\n")
+        return (self.out if i == -1 else self.out[i + 1 :]).rstrip("\n")
 
     @property
     def is_success(self) -> bool:
@@ -116,6 +123,7 @@ class CommandOutput(str):
     def __repr__(self) -> str:
         return f"Command: {self.command}\nstatus: {self.status}\nout: {repr(logging.stringify(self.out))}\nerr: {repr(logging.stringify(self.err))}"
 
+
 # =============================================================================
 #
 # CURRENT PATH
@@ -127,7 +135,7 @@ class CurrentPathContext(ContextManager):
     """A helper object returned by `cd` that will return the connection's
     path to where it was."""
 
-    def __init__(self, connection: 'Connection', path: Optional[str] = None):
+    def __init__(self, connection: "Connection", path: Optional[str] = None):
         """On exit, the given connection will be cd'ed to the given path. If no path
         is given ,then the connection's current path will be used."""
         self.path = path or connection.path
@@ -145,7 +153,7 @@ class CurrentPathContext(ContextManager):
 class SudoContext(ContextManager):
     """A helper object that will temporarily set the connection to sudo."""
 
-    def __init__(self, connection: 'Connection'):
+    def __init__(self, connection: "Connection"):
         self.is_sudo = connection.is_sudo
         self.connection = connection
 
@@ -154,6 +162,7 @@ class SudoContext(ContextManager):
 
     def __exit__(self, type, value, traceback):
         self.connection.is_sudo = self.is_sudo
+
 
 # =============================================================================
 #
@@ -170,9 +179,19 @@ class Connection:
 
     TYPE = "unknown"
 
-    def __init__(self, host: Optional[str] = None, port: Optional[int] = None, user: Optional[str] = None, password: Optional[str] = None, key: Optional[Path] = None):
-        self.key = Path(os.path.normpath(os.path.expanduser(
-            os.path.expandvars(key)))) if key else None
+    def __init__(
+        self,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        key: Optional[Path] = None,
+    ):
+        self.key = (
+            Path(os.path.normpath(os.path.expanduser(os.path.expandvars(key))))
+            if key
+            else None
+        )
         self.password: Optional[str] = password
         self.user: Optional[str] = user
         self.host: Optional[str] = host
@@ -182,7 +201,7 @@ class Connection:
         self.is_connected = False
         self.type = self.TYPE
         self._path: Optional[str] = None
-        self.cd_prefix: str = ""
+        self.cd_prefix: Optional[str] = None
         self.log = logging.LoggingContext()
         self.log.prompt = self.prompt
         self.on_disconnect = None
@@ -192,7 +211,7 @@ class Connection:
         pass
 
     def prompt(self):
-        res: List[str] = []
+        res: list[str] = []
         if self.type:
             res.append(f"{self.type}://")
         if self.user:
@@ -214,20 +233,30 @@ class Connection:
         self._path = value
         # We store the cd_prefix as we need to prefix commands with
         # a directory.
-        self.cd_prefix = f"cd '{shell_safe(value)}';"if value else ""
+        self.cd_prefix = f"cd '{shell_safe(value)}';" if value else ""
 
-    def connect(self, host: Optional[str] = None, port: Optional[int] = None, user: Optional[str] = None, password: Optional[str] = None, key: Optional[Path] = None):
+    def connect(
+        self,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        key: Optional[Path] = None,
+    ):
         assert not self.is_connected, "Connection already made, call 'disconnect' first"
         self.host = host or self.host
         self.port = port or self.port
         self.user = user or self.user
         self.password = password or self.password
+        self.cd_prefix = None
         self.key = password or self.key
         self.log.action("connect")
         self._connect()
         return self
 
-    def reconnect(self, user: Optional[str], host: Optional[str], port: Optional[int]) -> 'Connection':
+    def reconnect(
+        self, user: Optional[str], host: Optional[str], port: Optional[int]
+    ) -> "Connection":
         self.disconnect()
         self.user = user or self.user
         host = host or self.host or "localhost"
@@ -244,7 +273,9 @@ class Connection:
             self.log.output(res)
             return res
 
-    def sudo(self, command: Optional[str] = None) -> Union[ContextManager, Optional[CommandOutput]]:
+    def sudo(
+        self, command: Optional[str] = None
+    ) -> Union[ContextManager, Optional[CommandOutput]]:
         if not command:
             return SudoContext(self)
         else:
@@ -262,11 +293,23 @@ class Connection:
     def upload(self, remote: str, local: str) -> bool:
         """Copies from the local file to the remote path"""
         self.log.action("upload", remote, local)
-        local_path = Path(os.path.normpath(
-            os.path.expanduser(os.path.expandvars(local))))
+        local_path = Path(
+            os.path.normpath(os.path.expanduser(os.path.expandvars(local)))
+        )
         if not local_path.exists():
             raise ValueError(f"Local path does not exists: '{local}'")
         self._upload(remote, local_path)
+        return True
+
+    def download(self, remote: str, local: str) -> bool:
+        """Copies from the remote file to the local path"""
+        self.log.action("download", remote, local)
+        local_path = Path(
+            os.path.normpath(os.path.expanduser(os.path.expandvars(local)))
+        )
+        if not (parent := local_path.parent).exists():
+            raise ValueError(f"Local path does not exists: '{parent}'")
+        self._download(remote, local_path)
         return True
 
     def write(self, remote: str, content: bytes) -> bool:
@@ -301,7 +344,11 @@ class Connection:
         with open(source, "rb") as f:
             self._write(remote, f.read())
 
+    def _download(self, remote: str, source: Path):
+        raise NotImplementedError
+
     def _cd(self, path: str):
         raise NotImplementedError
+
 
 # EOF

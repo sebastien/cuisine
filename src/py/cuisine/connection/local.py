@@ -19,9 +19,10 @@ class LocalConnection(Connection):
         pass
 
     def _run(self, command: str) -> Optional[CommandOutput]:
-        cmd = self.cd_prefix + command
-        return CommandOutput(run_local_raw(
-            cmd, on_out=self.log.out, on_err=self.log.err))
+        cmd = self.cd_prefix + command if self.cd_prefix else command
+        return CommandOutput(
+            run_local_raw(cmd, on_out=self.log.out, on_err=self.log.err)
+        )
 
     def _upload(self, remote: str, source: Path):
         try:
@@ -36,12 +37,20 @@ class LocalConnection(Connection):
             self.log.error(f"Path does not exist: {path}")
 
 
-def run_local_raw(command: str, cwd=".", encoding="utf8", shell=True, on_out: Optional[Callable[[bytes], None]] = None, on_err: Optional[Callable[[bytes], None]] = None) -> Tuple[str, int, bytes, bytes]:
+def run_local_raw(
+    command: str,
+    cwd=".",
+    encoding="utf8",
+    shell=True,
+    on_out: Optional[Callable[[bytes], None]] = None,
+    on_err: Optional[Callable[[bytes], None]] = None,
+) -> Tuple[str, int, bytes, bytes]:
     """Low-level command running function. This spawns a new subprocess with
     two reader threads (stdout and stderr). It's fairly heavyweight but it's OK,
     Cuisine is about automation, not high-performance."""
     process = subprocess.Popen(
-        command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
+        command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd
+    )
     # NOTE: This is not ideal, but works well.
     # See http://stackoverflow.com/questions/15654163/how-to-capture-streaming-output-in-python-from-subprocess-communicate
     # At some point, we should use a single thread.

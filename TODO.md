@@ -1,7 +1,9 @@
-  - File: when using file\_write, it seems that the existing attributes
-    are not always preserved
-:
+## Features
 
+- Options: global options that can be used as defaults, such as the SSH transport, etc.
+
+- File: when using file\_write, it seems that the existing attributes
+    are not always preserved
 - Commands run through API functions should be silenced unless we're debugging.
   Basically, we need some kind of command tracing.
 
@@ -14,4 +16,5 @@
   an interesting use case for logging.
 
 Connection:
- - Automatically clears paramiko.ssh_exception.BadHostKeyException: Host key for server '3.104.147.76' does not match: got 'AAAAC3NzaC1lZDI1NTE5AAAAIFekt+4ctGPiY4PKB3V5okAOSdwRfHBfOmiYrX5/I8lk', expected 'AAAAC3NzaC1lZDI1NTE5AAAAIKAoGchYME9rbBRTfwq1upldReXfh7oAiLa4BgBBem5n'
+
+- Automatically clears `paramiko.ssh_exception.BadHostKeyException: Host key for server '3.104.147.76' does not match: got 'AAAAC3NzaC1lZDI1NTE5AAAAIFekt+4ctGPiY4PKB3V5okAOSdwRfHBfOmiYrX5/I8lk', expected 'AAAAC3NzaC1lZDI1NTE5AAAAIKAoGchYME9rbBRTfwq1upldReXfh7oAiLa4BgBBem5n'`

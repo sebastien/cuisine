@@ -2,6 +2,9 @@ from cuisine import *
 import threading
 import time
 
+print("=== TEST Connection: Streaming output")
+print("--- EXPECT timeout=15")
+
 
 def writer():
     for _ in range(10):
@@ -18,4 +21,6 @@ run("unlink streaming.txt")
 print(res.lines)
 
 t.join()
+
+print("EOK")
 # EOF

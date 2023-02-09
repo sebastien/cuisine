@@ -1,4 +1,5 @@
 from ..connection import Connection, CommandOutput
+from typing import Optional
 import logging
 
 
@@ -13,19 +14,24 @@ class ParallelSSHConnection(Connection):
             from pssh.exceptions import AuthenticationError
         except ImportError as e:
             logging.error(
-                "parallel-ssh is required: run 'ppython -m pip install --user parallel-ssh' or pick another transport: {transport_options}")
+                "parallel-ssh is required: run 'python -m pip install --user parallel-ssh' or pick another transport: {transport_options}"
+            )
             raise e
         self.SSHClient = SSHClient
         self.AuthenticationError = AuthenticationError
         self.context: Optional[SSHClient] = None
 
-    def _connect(self) -> 'ParallelSSHConnection':
+    def _connect(self) -> "ParallelSSHConnection":
         try:
-            client = self.SSHClient(host=self.host, port=self.port,
-                                    user=self.user, password=self.password, pkey=self.key)
+            client = self.SSHClient(
+                host=self.host,
+                port=self.port,
+                user=self.user,
+                password=self.password,
+                pkey=self.key,
+            )
         except self.AuthenticationError as e:
-            logging.error(
-                f"Cannot connect to {self.user}@{self.host}:{self.port}: {e}")
+            logging.error(f"Cannot connect to {self.user}@{self.host}:{self.port}: {e}")
             raise e
         self.context = client
         return self
@@ -33,7 +39,12 @@ class ParallelSSHConnection(Connection):
     def _run(self, command: str) -> CommandOutput:
         if not self.context:
             logging.error(f"Connection failed, cannot run: {command}")
-            return CommandOutput((command, 127, b"", b""))
+            return CommandOutput.Make(command=command, status=127, out=b"", err=b"")
         else:
             out = self.context.run_command(command)
-            return CommandOutput(out=out.stdout, err=out.stderr, status=out.exist_code)
+            return CommandOutput.Make(
+                command=command, out=out.stdout, err=out.stderr, status=out.exit_code
+            )
+
+
+# EOF
