@@ -1,3 +1,7 @@
+## Refactor
+
+- Connection: support streaming, and paralell ssh
+
 ## Features
 
 - Options: global options that can be used as defaults, such as the SSH transport, etc.

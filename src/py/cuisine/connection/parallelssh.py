@@ -1,6 +1,19 @@
 from ..connection import Connection, CommandOutput
-from typing import Optional
+from typing import Optional, Generator, Any
 import logging
+
+try:
+    from pssh.output import HostOutput
+except ImportError:
+    pass
+
+
+# TODO: We'll need to wrap the command output and find a way to manage
+# iterators/streams.
+class ParallelSSHCommandOutput(CommandOutput):
+    def __init__(self, command: str, out: HostOutput):
+        super().__init__((command, -1, b"", b""))
+        self.psshOut: HostOutput = out
 
 
 # NOTE: I can't get PSSH to work with keyfiles...
@@ -41,10 +54,19 @@ class ParallelSSHConnection(Connection):
             logging.error(f"Connection failed, cannot run: {command}")
             return CommandOutput.Make(command=command, status=127, out=b"", err=b"")
         else:
-            out = self.context.run_command(command)
-            return CommandOutput.Make(
-                command=command, out=out.stdout, err=out.stderr, status=out.exit_code
-            )
+            # TODO: Parallel SSH outputs UTF8 and also uses generators
+            # for stdout/stderr
+            output = self.context.run_command(command)
+            for host, stream in output.items():
+                print(host, stream)
+            # return CommandOutput.Make(
+            #     command=command, out=out.stdout, err=out.stderr, status=out.exit_code
+            # )
+
+    def _disconnect(self):
+        if self.context:
+            self.context.disconnect()
+            self.context = None
 
 
 # EOF

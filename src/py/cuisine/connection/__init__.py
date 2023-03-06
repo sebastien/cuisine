@@ -1,5 +1,5 @@
 from pathlib import Path
-import os
+import os, inspect
 from typing import Optional, Any, Iterable, Union, ContextManager
 from ..utils import shell_safe, strip_ansi, quoted
 from .. import logging
@@ -47,7 +47,10 @@ class CommandOutput(str):
     @property
     def out(self) -> str:
         if self._outStr is None:
-            self._outStr = str(self._out, self.encoding)
+            if inspect.isgenerator(self._out):
+                self._outStr = "".join(_ for _ in self._out)
+            else:
+                self._outStr = str(self._out, self.encoding)
         return self._outStr
 
     @property
@@ -57,7 +60,10 @@ class CommandOutput(str):
     @property
     def err(self) -> str:
         if self._errStr is None:
-            self._errStr = str(self._err, self.encoding)
+            if inspect.isgenerator(self._err):
+                self._errStr = "".join(_ for _ in self._err)
+            else:
+                self._errStr = str(self._err, self.encoding)
         return self._errStr
 
     @property
