@@ -5,7 +5,7 @@ import logging
 try:
     from pssh.output import HostOutput
 except ImportError:
-    pass
+    HostOutput = Any
 
 
 # TODO: We'll need to wrap the command output and find a way to manage
